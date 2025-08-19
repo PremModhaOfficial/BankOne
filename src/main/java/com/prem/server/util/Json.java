@@ -1,0 +1,51 @@
+
+package com.prem.server.util;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.prem.server.config.Configuration;
+
+public class Json {
+	private static ObjectMapper objectMapper = defaultObjectMapper();
+
+	public static ObjectMapper defaultObjectMapper() {
+		ObjectMapper om = new ObjectMapper();
+
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+		return om;
+	}
+
+	public static JsonNode parse(String jString) throws IOException {
+		return objectMapper.readTree(jString);
+	}
+
+	public static String stringifyPretty(JsonNode jsonNode) throws JsonProcessingException {
+		return generateJson(jsonNode, true);
+	}
+
+	public static String stringify(JsonNode jsonNode) throws JsonProcessingException {
+		return generateJson(jsonNode, false);
+	}
+
+	private static String generateJson(JsonNode jsonNode, boolean pretty) throws JsonProcessingException {
+		ObjectWriter ow = objectMapper.writer();
+		if (pretty) {
+			ow = ow.with(SerializationFeature.INDENT_OUTPUT);
+		}
+
+		return objectMapper.writeValueAsString(jsonNode);
+	}
+
+	public static Configuration fromJson(JsonNode conf, Class<Configuration> class1) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'fromJson'");
+	}
+
+}
