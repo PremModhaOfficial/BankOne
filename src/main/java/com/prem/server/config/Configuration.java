@@ -1,6 +1,8 @@
 package com.prem.server.config;
 
-public class Configuration {
+import java.io.Serializable;
+
+public class Configuration implements Serializable {
 
     private int port;
     private String webroot;
@@ -19,5 +21,10 @@ public class Configuration {
 
     public void setWebroot(String webroot) {
         this.webroot = webroot;
+    }
+
+    @Override
+    public String toString() {
+        return "Configuration [port=" + port + ", webroot=" + webroot + "]";
     }
 }

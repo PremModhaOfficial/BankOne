@@ -28,7 +28,8 @@ public class ConfigurationManager {
         return configurationManager;
     }
 
-    public void loadConfiguration(String filePath) {
+    public void loadConfiguration(String filePath) throws HttpConfigurationException {
+
         FileReader fileReader = null;
         try {
             fileReader = new FileReader(filePath);
@@ -49,10 +50,15 @@ public class ConfigurationManager {
         try {
             conf = Json.parse(sb.toString());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new HttpConfigurationException(e);
         }
+
         currentConfiguration = Json.fromJson(conf, Configuration.class);
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigurationManager []";
     }
 
 }
