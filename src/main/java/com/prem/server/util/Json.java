@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.prem.server.config.Configuration;
+import com.prem.server.config.HttpConfigurationException;
 
 public class Json {
 	private static ObjectMapper objectMapper = defaultObjectMapper();
@@ -43,9 +43,19 @@ public class Json {
 		return objectMapper.writeValueAsString(jsonNode);
 	}
 
-	public static Configuration fromJson(JsonNode conf, Class<Configuration> class1) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'fromJson'");
+	public static <A> A fromJson(JsonNode conf, Class<A> clazz) throws HttpConfigurationException {
+
+		try {
+			return objectMapper.treeToValue(conf, clazz);
+		} catch (JsonProcessingException e) {
+			throw new HttpConfigurationException("Prossesing Exeption");
+		} catch (IllegalArgumentException e) {
+			throw new HttpConfigurationException("IllegalArgumentException");
+		}
+	}
+
+	public static JsonNode toJson(Object object) {
+		return objectMapper.valueToTree(object);
 	}
 
 }
