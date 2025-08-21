@@ -9,6 +9,8 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.prem.http.HttpParser;
+import com.prem.http.HttpParsingException;
 import com.prem.server.config.Configuration;
 
 public class HttpConnectionWorkerThread extends Thread {
@@ -34,17 +36,13 @@ public class HttpConnectionWorkerThread extends Thread {
 	@Override
 	public void run() {
 
+		HttpParser parser = new HttpParser();
+
 		try (InputStream iStream = socket.getInputStream();
 				OutputStream oStream = socket.getOutputStream()) {
 
-			int _bytes;
-
-			while ((_bytes = iStream.read()) >= 0) {
-				System.out.print((char) _bytes);
-			}
-
+			parser.parseHttpRequest(iStream);
 			oStream.write(responce.getBytes());
-
 			LOGGER.info("Conection Prossesing is Finished");
 
 			iStream.close();
@@ -53,6 +51,9 @@ public class HttpConnectionWorkerThread extends Thread {
 		} catch (IOException e) {
 			LOGGER.error("Problem in communicaton");
 
+			e.printStackTrace();
+		} catch (HttpParsingException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

@@ -1,12 +1,15 @@
 package com.prem.server.config;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Configuration implements Serializable {
-
+public class Configuration {
     private int port;
     private String webroot;
 
+    @JsonProperty("storage")
+    private StorageConfig storageConfig;
+
+    // Getters and Setters
     public int getPort() {
         return port;
     }
@@ -23,8 +26,39 @@ public class Configuration implements Serializable {
         this.webroot = webroot;
     }
 
+    public StorageConfig getStorageConfig() {
+        return storageConfig;
+    }
+
+    public void setStorageConfig(StorageConfig storageConfig) {
+        this.storageConfig = storageConfig;
+    }
+
+    public static class StorageConfig {
+        private String type;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public String toString() {
+            return "StorageConfig{" +
+                    "type='" + type + '\'' +
+                    '}';
+        }
+    }
+
     @Override
     public String toString() {
-        return "Configuration [port=" + port + ", webroot=" + webroot + "]";
+        return "Configuration{" +
+                "port=" + port +
+                ", webroot='" + webroot + '\'' +
+                ", storageConfig=" + storageConfig +
+                '}';
     }
 }

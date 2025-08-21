@@ -1,4 +1,7 @@
 {
 	"port": 8080,
-	"webroot": "/tmp"
+	"webroot": "/tmp",
+	"storage": {
+		"type": "in-memory"
+	}
 }

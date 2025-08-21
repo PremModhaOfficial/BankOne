@@ -12,7 +12,7 @@ public class ConfigurationManager {
     private static ConfigurationManager configurationManager;
     private static Configuration currentConfiguration;
 
-    public Configuration getCurrentConfiguration() {
+    public Configuration getCurrentConfiguration() throws HttpConfigurationException {
         if (currentConfiguration == null) {
             throw new HttpConfigurationException("No Config Found");
         }

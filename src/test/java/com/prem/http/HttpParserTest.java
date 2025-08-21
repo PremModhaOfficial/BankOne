@@ -1,16 +1,18 @@
 package com.prem.http;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import java.io.ByteArrayInputStream;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HttpParserTest extends TestCase {
+public class HttpParserTest { // Remove extends TestCase
 
     private HttpParser httpParser;
 
@@ -19,7 +21,35 @@ public class HttpParserTest extends TestCase {
         httpParser = new HttpParser();
     }
 
-    public void testParseHttpRequest() {
+    @Test
+    public void testParseHttpRequest() throws IOException, HttpParsingException {
+        HttpRequest request = httpParser.parseHttpRequest(
+                generateValidTestCase());
+
+        assertEquals(request.getMethod(), HttpMethod.GET);
+    }
+
+    @Test
+    public void test_BAD_REQUEST_SHULD_FAIL() throws IOException, HttpParsingException {
+        HttpRequest request = httpParser.parseHttpRequest(
+                generateBADRequestTestCase());
+
+        assertNotEquals(request.getMethod(), HttpMethod.GET);
+    }
+
+    private InputStream generateBADRequestTestCase() {
+        String rawData = "GeT / HTTP/2.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "Connection: keep-alive\r\n" +
+                "Sec-Fetch-Mode: navigate\r\n" +
+                "Sec-Fetch-Site: none\r\n" +
+                "Sec-Fetch-User: ?1\r\n" +
+                "Priority: u=0, i\r\n" +
+                "\r\n";
+
+        InputStream inputStream = new ByteArrayInputStream(rawData.getBytes(StandardCharsets.US_ASCII));
+
+        return inputStream;
     }
 
     private InputStream generateValidTestCase() {
