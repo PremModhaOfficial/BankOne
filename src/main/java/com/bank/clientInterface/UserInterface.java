@@ -1,6 +1,5 @@
 package com.bank.clientInterface;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Scanner;
 
@@ -22,19 +21,6 @@ public class UserInterface extends BankInterface {
 
     }
 
-    private boolean authenticate() {
-        String resp;
-        int attempts = 3;
-        try (Scanner scanner = new Scanner(System.in)) {
-            resp = scanner.nextLine();
-            while (attempts-- >= 0) {
-                if (user.getHashedPassword() == resp.hashCode())
-                    return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     protected void launchTransactionWindow() {
         int choice;
@@ -45,11 +31,11 @@ public class UserInterface extends BankInterface {
                     2. Create new account
                     3. Delete Account
                         """);
-//            List<Account> accounts = accountService.getAccountsByUserId(user.getId());
-//            for (Account account : accounts) {
-//                System.out.println(account);
-//            }
-//            this.account = accounts;
+            // List<Account> accounts = accountService.getAccountsByUserId(user.getId());
+            // for (Account account : accounts) {
+            // System.out.println(account);
+            // }
+            // this.account = accounts;
             switch (choice) {
                 case 1: // operate Accounts
                     OparateOnAccount();
@@ -86,7 +72,8 @@ public class UserInterface extends BankInterface {
 
         AccountType accountType = getAccountFromUser(choice);
 
-//        accountService.createAccount(user.getId(), "", BigDecimal.valueOf(initialBalance), accountType);
+        // accountService.createAccount(user.getId(), "",
+        // BigDecimal.valueOf(initialBalance), accountType);
     }
 
     private void OparateOnAccount() {

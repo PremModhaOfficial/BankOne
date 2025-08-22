@@ -1,7 +1,6 @@
 package com.bank.business.entities;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
@@ -11,8 +10,6 @@ public class Account {
     private String accountNumber;
     private AtomicReference<BigDecimal> balance;
     private AccountType type; // e.g., SAVINGS, CHECKING
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     public enum AccountType {
         SAVINGS, CHECKING
@@ -27,8 +24,6 @@ public class Account {
         this.accountNumber = accountNumber;
         this.balance = new AtomicReference<BigDecimal>(balance);
         this.type = type;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void addAmmount(BigDecimal ammount) {
@@ -97,22 +92,6 @@ public class Account {
         this.type = type;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     @Override
     public String toString() {
         return "Account{" +
@@ -121,8 +100,6 @@ public class Account {
                 ", accountNumber='" + accountNumber + '\'' +
                 ", balance=" + balance +
                 ", type=" + type +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
                 '}';
     }
 }

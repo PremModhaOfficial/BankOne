@@ -16,7 +16,7 @@ class InMemoryAccountRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        accountRepository =  InMemoryAccountRepository.getInstance();
+        accountRepository = InMemoryAccountRepository.getInstance();
     }
 
     @Test
@@ -40,7 +40,7 @@ class InMemoryAccountRepositoryTest {
         Account savedAccount = accountRepository.save(account); // ID assigned here
         Long assignedId = savedAccount.getId();
         BigDecimal updatedBalance = new BigDecimal("50.00");
-        savedAccount.setBalance(updatedBalance);
+        savedAccount.addAmmount(updatedBalance);
 
         // Act
         Account updatedAccount = accountRepository.save(savedAccount);

@@ -8,10 +8,8 @@ import com.bank.clientInterface.util.UserCred;
 public class AdminInterface extends BankInterface {
 
     User admin;
-    private Scanner sc;
 
     public AdminInterface(UserCred information, Scanner sc) {
-        this.sc = sc;
 
     }
 

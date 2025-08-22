@@ -1,14 +1,19 @@
 package com.bank;
 
 import com.bank.business.entities.User;
+import com.bank.business.entities.dto.AccountCreationRequest;
 import com.bank.business.entities.dto.UserCreationRequest;
 import com.bank.clientInterface.BankApiClient;
 import com.bank.clientInterface.util.CliObjectMapper;
 import com.bank.server.config.ConfigurationManager;
 import com.bank.server.config.HttpConfigurationException;
+import com.bank.server.dto.LoginRequest;
+import com.bank.server.util.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
@@ -89,28 +94,38 @@ public class HttpClient {
 
         System.out.println("Attempting to log in...");
         try {
-            CompletableFuture<HttpResponse<String>> futureResponse = client.login(identifier, password);
+            // Create login request
+            LoginRequest loginRequest = new LoginRequest(identifier, password);
+            JsonNode jsonBody = Json.toJson(loginRequest);
+
+            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/login", jsonBody);
             HttpResponse<String> response = futureResponse.join();
 
             System.out.println("Login Response Status: " + response.statusCode());
-            // In a real implementation, you would extract the token from the response
-            // and set it in the client: client.setAuthToken(extractedToken);
-            // You would also retrieve user details from the response
 
             if (response.statusCode() == 200) {
+                // Parse the response to extract token and user details
+                JsonNode responseBody = Json.parse(response.body());
+                String token = responseBody.get("token").asText();
+                JsonNode userNode = responseBody.get("user");
+                String username = userNode.get("username").asText();
+
+                // Set the token in the client for future requests
+                client.setAuthToken(token);
+
                 System.out.println("Login successful!");
-                // Return a mock user for now
-                // In a real implementation, you would parse the user details from the response
                 User user = new User();
-                user.setUsername(identifier);
-                // Set other user properties as needed
+                user.setUsername(username);
+                // In a real implementation, you would parse all user details from the response
                 return user;
             } else {
                 System.out.println("Login failed. Server responded with status: " + response.statusCode());
+                System.out.println("Response body: " + response.body());
                 return null;
             }
         } catch (Exception e) {
             System.err.println("Error during login: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -121,15 +136,15 @@ public class HttpClient {
             UserCreationRequest userRequest = mapper.readValue(UserCreationRequest.class);
             System.out.println("Attempting to register user: " + userRequest.getUsername());
 
-            CompletableFuture<HttpResponse<String>> futureResponse = client.registerUser(userRequest);
+            JsonNode jsonBody = Json.toJson(userRequest);
+            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/users", jsonBody);
             HttpResponse<String> response = futureResponse.join();
 
             System.out.println("Registration Response Status: " + response.statusCode());
             System.out.println("Registration Response Body: " + response.body());
 
-            if (response.statusCode() == 201) { // Assuming 201 Created for successful registration
+            if (response.statusCode() == 201) {
                 System.out.println("User registered successfully!");
-                // Return a mock user for now
                 // In a real implementation, you would parse the created user from the response
                 User user = new User();
                 user.setUsername(userRequest.getUsername());
@@ -141,6 +156,7 @@ public class HttpClient {
             }
         } catch (Exception e) {
             System.err.println("Error during user registration: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -164,7 +180,7 @@ public class HttpClient {
             choice = Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
             System.out.println("Invalid input. Please enter a number.");
-            return false; // Don't exit
+            return false;
         }
 
         switch (choice) {
@@ -192,56 +208,177 @@ public class HttpClient {
                 break;
             case 0:
                 System.out.println("Logging out...");
-                return true; // Exit to login screen
+                client.setAuthToken(null);
+                return true;
             default:
                 System.out.println("Invalid option. Please try again.");
         }
-        return false; // Don't exit
+        return false;
     }
 
     private static void viewAccounts(BankApiClient client, User user) {
         System.out.println("Viewing accounts for user: " + user.getUsername());
-        // Implementation would involve calling client.get("/accounts?userId=" +
-        // user.getId())
-        // and parsing the response
-        System.out.println("This feature is not yet implemented.");
+        try {
+            CompletableFuture<HttpResponse<String>> futureResponse = client.get("/accounts");
+            HttpResponse<String> response = futureResponse.join();
+
+            System.out.println("Accounts Response Status: " + response.statusCode());
+            System.out.println("Accounts Response Body: " + response.body());
+
+            if (response.statusCode() == 200) {
+                System.out.println("Accounts retrieved successfully!");
+            } else {
+                System.out
+                        .println("Failed to retrieve accounts. Server responded with status: " + response.statusCode());
+            }
+        } catch (Exception e) {
+            System.err.println("Error retrieving accounts: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static void createAccount(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
         System.out.println("Creating a new account for user: " + user.getUsername());
-        // Implementation would involve creating an AccountCreationRequest,
-        // using mapper.readValue(AccountCreationRequest.class),
-        // and calling client.post("/accounts", accountRequestJson)
-        System.out.println("This feature is not yet implemented.");
+        try {
+            AccountCreationRequest accountRequest = mapper.readValue(AccountCreationRequest.class);
+
+            JsonNode jsonBody = Json.toJson(accountRequest);
+            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts", jsonBody);
+            HttpResponse<String> response = futureResponse.join();
+
+            System.out.println("Create Account Response Status: " + response.statusCode());
+            System.out.println("Create Account Response Body: " + response.body());
+
+            if (response.statusCode() == 201) {
+                System.out.println("Account created successfully!");
+            } else {
+                System.out.println("Failed to create account. Server responded with status: " + response.statusCode());
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating account: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static void deposit(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
         System.out.println("Making a deposit...");
-        // Implementation would involve getting account ID and amount from user,
-        // and calling client.post("/accounts/{id}/deposit", depositRequestJson)
-        System.out.println("This feature is not yet implemented.");
+        try {
+            System.out.print("Enter account ID: ");
+            Long accountId = Long.parseLong(scanner.nextLine().trim());
+            System.out.print("Enter amount to deposit: ");
+            BigDecimal amount = new BigDecimal(scanner.nextLine().trim());
+
+            com.bank.server.dto.TransactionRequest transactionRequest = new com.bank.server.dto.TransactionRequest(
+                    accountId, amount);
+            JsonNode jsonBody = Json.toJson(transactionRequest);
+
+            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts/" + accountId + "/deposit",
+                    jsonBody);
+            HttpResponse<String> response = futureResponse.join();
+
+            System.out.println("Deposit Response Status: " + response.statusCode());
+            System.out.println("Deposit Response Body: " + response.body());
+
+            if (response.statusCode() == 200) {
+                System.out.println("Deposit successful!");
+            } else {
+                System.out.println("Failed to make deposit. Server responded with status: " + response.statusCode());
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter valid numbers.");
+        } catch (Exception e) {
+            System.err.println("Error making deposit: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static void withdraw(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
         System.out.println("Making a withdrawal...");
-        // Implementation would involve getting account ID and amount from user,
-        // and calling client.post("/accounts/{id}/withdraw", withdrawRequestJson)
-        System.out.println("This feature is not yet implemented.");
+        try {
+            System.out.print("Enter account ID: ");
+            Long accountId = Long.parseLong(scanner.nextLine().trim());
+            System.out.print("Enter amount to withdraw: ");
+            BigDecimal amount = new BigDecimal(scanner.nextLine().trim());
+
+            com.bank.server.dto.TransactionRequest transactionRequest = new com.bank.server.dto.TransactionRequest(
+                    accountId, amount);
+            JsonNode jsonBody = Json.toJson(transactionRequest);
+
+            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts/" + accountId + "/withdraw",
+                    jsonBody);
+            HttpResponse<String> response = futureResponse.join();
+
+            System.out.println("Withdrawal Response Status: " + response.statusCode());
+            System.out.println("Withdrawal Response Body: " + response.body());
+
+            if (response.statusCode() == 200) {
+                System.out.println("Withdrawal successful!");
+            } else if (response.statusCode() == 400) {
+                System.out.println("Withdrawal failed: Insufficient funds");
+            } else {
+                System.out.println("Failed to make withdrawal. Server responded with status: " + response.statusCode());
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter valid numbers.");
+        } catch (Exception e) {
+            System.err.println("Error making withdrawal: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static void transfer(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
         System.out.println("Making a transfer...");
-        // Implementation would involve getting source account ID, destination account
-        // ID,
-        // and amount from user, and calling client.post("/accounts/{id}/transfer",
-        // transferRequestJson)
-        System.out.println("This feature is not yet implemented.");
+        try {
+            System.out.print("Enter source account ID: ");
+            Long fromAccountId = Long.parseLong(scanner.nextLine().trim());
+            System.out.print("Enter destination account ID: ");
+            Long toAccountId = Long.parseLong(scanner.nextLine().trim());
+            System.out.print("Enter amount to transfer: ");
+            BigDecimal amount = new BigDecimal(scanner.nextLine().trim());
+
+            com.bank.server.dto.TransferRequest transferRequest = new com.bank.server.dto.TransferRequest(fromAccountId,
+                    toAccountId, amount);
+            JsonNode jsonBody = Json.toJson(transferRequest);
+
+            CompletableFuture<HttpResponse<String>> futureResponse = client
+                    .post("/accounts/" + fromAccountId + "/transfer", jsonBody);
+            HttpResponse<String> response = futureResponse.join();
+
+            System.out.println("Transfer Response Status: " + response.statusCode());
+            System.out.println("Transfer Response Body: " + response.body());
+
+            if (response.statusCode() == 200) {
+                System.out.println("Transfer successful!");
+            } else if (response.statusCode() == 400) {
+                System.out.println("Transfer failed: Insufficient funds");
+            } else {
+                System.out.println("Failed to make transfer. Server responded with status: " + response.statusCode());
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter valid numbers.");
+        } catch (Exception e) {
+            System.err.println("Error making transfer: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static void viewAllUsers(BankApiClient client) {
         System.out.println("Viewing all users (Admin only)...");
-        // Implementation would involve calling client.get("/admin/users")
-        // and parsing the response
-        System.out.println("This feature is not yet implemented.");
+        try {
+            CompletableFuture<HttpResponse<String>> futureResponse = client.get("/admin/users");
+            HttpResponse<String> response = futureResponse.join();
+
+            System.out.println("View All Users Response Status: " + response.statusCode());
+            System.out.println("View All Users Response Body: " + response.body());
+
+            if (response.statusCode() == 200) {
+                System.out.println("Users retrieved successfully!");
+            } else {
+                System.out.println("Failed to retrieve users. Server responded with status: " + response.statusCode());
+            }
+        } catch (Exception e) {
+            System.err.println("Error retrieving users: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

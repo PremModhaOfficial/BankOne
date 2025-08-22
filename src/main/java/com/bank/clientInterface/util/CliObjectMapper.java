@@ -13,7 +13,8 @@ import java.util.Scanner;
  * It uses reflection to inspect the fields of a class and prompts the user
  * for each field's value, handling type validation and retries.
  * <p>
- * This is a simplified utility focusing on basic type safety and user interaction.
+ * This is a simplified utility focusing on basic type safety and user
+ * interaction.
  * It's not a full-fledged serialization framework like Jackson.
  */
 public class CliObjectMapper {
@@ -92,10 +93,12 @@ public class CliObjectMapper {
                     value = parseInput(input, fieldType, field);
                     validInput = true;
                 }
-            } catch ( IllegalArgumentException e) {
-                System.out.println("Invalid input type for '" + fieldName + "'. Expected: " + fieldType.getSimpleName() + ". Please try again.");
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid input type for '" + fieldName + "'. Expected: " + fieldType.getSimpleName()
+                        + ". Please try again.");
             } catch (Exception e) {
-                System.out.println("An error occurred while processing input for '" + fieldName + "': " + e.getMessage() + ". Please try again.");
+                System.out.println("An error occurred while processing input for '" + fieldName + "': " + e.getMessage()
+                        + ". Please try again.");
             }
         }
 
@@ -108,7 +111,8 @@ public class CliObjectMapper {
     }
 
     /**
-     * Parses the string input into the appropriate object type based on the field type.
+     * Parses the string input into the appropriate object type based on the field
+     * type.
      *
      * @param input     The user input string.
      * @param fieldType The expected type of the field.
@@ -178,10 +182,11 @@ public class CliObjectMapper {
     /**
      * Parses an enum value.
      *
-     * @param input      The user input string.
-     * @param enumClass  The enum class.
+     * @param input     The user input string.
+     * @param enumClass The enum class.
      * @return The corresponding enum constant.
-     * @throws IllegalArgumentException If the input does not match any enum constant.
+     * @throws IllegalArgumentException If the input does not match any enum
+     *                                  constant.
      */
     private <E extends Enum<E>> E parseEnum(String input, Class<E> enumClass) {
         try {
@@ -195,7 +200,8 @@ public class CliObjectMapper {
                 }
                 validOptions.append(enumConstant.name());
             }
-            throw new IllegalArgumentException("Invalid value for enum " + enumClass.getSimpleName() + ". Valid options are: " + validOptions.toString());
+            throw new IllegalArgumentException("Invalid value for enum " + enumClass.getSimpleName()
+                    + ". Valid options are: " + validOptions.toString());
         }
     }
 
@@ -204,9 +210,9 @@ public class CliObjectMapper {
      * This is a simple implementation. For more complex element types,
      * a more sophisticated parsing mechanism would be needed.
      *
-     * @param input         The user input string (comma-separated).
-     * @param elementType   The type of elements in the list.
-     * @param field         The Field object (for context if needed).
+     * @param input       The user input string (comma-separated).
+     * @param elementType The type of elements in the list.
+     * @param field       The Field object (for context if needed).
      * @return A List of the specified element type.
      * @throws Exception If parsing fails.
      */

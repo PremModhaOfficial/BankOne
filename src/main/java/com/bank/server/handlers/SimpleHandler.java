@@ -7,14 +7,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * A simple handler that demonstrates custom logic.
  * This handler will simulate some work and respond with a message.
  */
 public class SimpleHandler implements HttpHandler {
-    
+
     private final Executor executor;
 
     public SimpleHandler(Executor executor) {
@@ -45,7 +44,7 @@ public class SimpleHandler implements HttpHandler {
 
         String response = "Hello from custom handler with custom threading!";
         exchange.sendResponseHeaders(200, response.getBytes(StandardCharsets.UTF_8).length);
-        
+
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(response.getBytes(StandardCharsets.UTF_8));
         }

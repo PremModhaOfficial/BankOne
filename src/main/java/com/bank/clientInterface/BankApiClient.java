@@ -1,6 +1,5 @@
 package com.bank.clientInterface;
 
-import com.bank.business.entities.User;
 import com.bank.business.entities.dto.UserCreationRequest;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,8 +38,10 @@ public class BankApiClient {
     /**
      * Registers a new user with the server using a UserCreationRequest DTO.
      *
-     * @param userRequest The UserCreationRequest object containing registration details.
-     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous response.
+     * @param userRequest The UserCreationRequest object containing registration
+     *                    details.
+     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
+     *         response.
      */
     public CompletableFuture<HttpResponse<String>> registerUser(UserCreationRequest userRequest) {
         String url = baseUrl + "/users";
@@ -67,7 +68,8 @@ public class BankApiClient {
      *
      * @param identifier The username or email.
      * @param password   The plain text password.
-     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous response.
+     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
+     *         response.
      *         The response body should contain the authentication token.
      */
     public CompletableFuture<HttpResponse<String>> login(String identifier, String password) {
@@ -77,9 +79,9 @@ public class BankApiClient {
             Map<String, String> formData = new HashMap<>();
             formData.put("identifier", identifier); // Could be username or email
             formData.put("password", password);
-            
+
             String formDataString = encodeFormData(formData);
-            
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/x-www-form-urlencoded")
@@ -136,7 +138,8 @@ public class BankApiClient {
      * If an auth token is available, it's included in the Authorization header.
      *
      * @param endpoint The API endpoint (e.g., "/users/123").
-     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous response.
+     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
+     *         response.
      */
     public CompletableFuture<HttpResponse<String>> get(String endpoint) {
         String url = baseUrl + endpoint;
@@ -158,7 +161,8 @@ public class BankApiClient {
      *
      * @param endpoint The API endpoint (e.g., "/accounts").
      * @param body     The request body as a JsonNode.
-     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous response.
+     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
+     *         response.
      */
     public CompletableFuture<HttpResponse<String>> post(String endpoint, JsonNode body) {
         String url = baseUrl + endpoint;

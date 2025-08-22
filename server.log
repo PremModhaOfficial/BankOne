@@ -1,0 +1,6 @@
+15:34:38.587 [main] INFO com.bank.HttpServer -- Server Starting
+15:34:38.778 [main] INFO com.bank.HttpServer -- Using In-Memory storage.
+15:34:38.790 [main] INFO com.bank.server.CustomHttpServer -- Server started on port 8080
+15:34:38.801 [main] INFO com.bank.server.CustomHttpServer -- Configured thread pool size: 10
+15:34:38.801 [main] INFO com.bank.HttpServer -- Server started at http://localhost:8080
+15:34:38.801 [main] INFO com.bank.HttpServer -- Config: Configuration{port=8080, webroot='/tmp', storageConfig=StorageConfig{type='in-memory'}}

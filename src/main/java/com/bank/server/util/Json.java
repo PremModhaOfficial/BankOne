@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.bank.server.config.HttpConfigurationException;
 
 public class Json {
@@ -18,6 +19,7 @@ public class Json {
 		ObjectMapper om = new ObjectMapper();
 
 		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		om.registerModule(new JavaTimeModule());
 
 		return om;
 	}

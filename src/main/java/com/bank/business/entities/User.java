@@ -1,16 +1,12 @@
 package com.bank.business.entities;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class User {
     private Long id;
     private String username;
     private String email;
-    private int hashedPassword; // Store hashed passwords, never plain text
     private boolean isAdmin; // New field for Admin role
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     @Override
     public boolean equals(Object o) {
@@ -26,17 +22,14 @@ public class User {
 
     public User() {}
 
-    public User(String username, String email, String hashedPassword) {
-        this(username, email, hashedPassword, false); // Default to non-admin
+    public User(String username, String email) {
+        this(username, email, false); // Default to non-admin
     }
 
-    public User(String username, String email, String hashedPassword, boolean isAdmin) {
+    public User(String username, String email, boolean isAdmin) {
         this.username = username;
         this.email = email;
-        this.hashedPassword = hashedPassword.hashCode();
         this.isAdmin = isAdmin;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -64,36 +57,12 @@ public class User {
         this.email = email;
     }
 
-    public int getHashedPassword() {
-        return hashedPassword;
-    }
-
-    public void setHashedPassword(int hashedPassword) {
-        this.hashedPassword = hashedPassword;
-    }
-
     public boolean isAdmin() {
         return isAdmin;
     }
 
     public void setAdmin(boolean admin) {
         isAdmin = admin;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     @Override
@@ -103,8 +72,6 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", isAdmin=" + isAdmin +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
                 '}';
     }
 }
