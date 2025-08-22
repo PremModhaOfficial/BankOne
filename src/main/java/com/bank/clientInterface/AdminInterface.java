@@ -13,16 +13,6 @@ public class AdminInterface extends BankInterface {
     public AdminInterface(UserCred information, Scanner sc) {
         this.sc = sc;
 
-        var mayBeUser = userService.getUserByUsername(information.username());
-
-        if (mayBeUser.isPresent()) {
-            admin = mayBeUser.get();
-            if (!authenticate()) {
-                return;
-            }
-        } else {
-            System.out.println("User Not Found");
-        }
     }
 
     private boolean authenticate() {
@@ -39,7 +29,7 @@ public class AdminInterface extends BankInterface {
     }
 
     @Override
-    void lauchTransactionWindow() {
+    void launchTransactionWindow() {
         throw new UnsupportedOperationException("Unimplemented method 'lauchTransactionWindow'");
     }
 }

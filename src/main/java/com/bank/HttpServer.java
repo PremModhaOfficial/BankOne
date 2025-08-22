@@ -1,15 +1,9 @@
 package com.bank;
 
-import com.bank.business.repositories.AccountRepository;
-import com.bank.business.repositories.UserRepository;
-import com.bank.business.services.AccountService;
-import com.bank.business.services.UserService;
-import com.bank.infrastructure.persistence.inmemory.InMemoryAccountRepository;
-import com.bank.infrastructure.persistence.inmemory.InMemoryUserRepository;
+import com.bank.server.CustomHttpServer;
 import com.bank.server.config.Configuration;
 import com.bank.server.config.ConfigurationManager;
 import com.bank.server.config.HttpConfigurationException;
-import com.bank.server.core.ServerListnerThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,56 +15,35 @@ public class HttpServer {
     final static String CONFIG_PATH = "src/main/resources/http.json";
 
     public static void main(String[] args) throws IllegalArgumentException, IOException, HttpConfigurationException {
-
         LOGGER.info("Server Starting");
 
         ConfigurationManager.getInstance().loadConfiguration(CONFIG_PATH);
         Configuration config = ConfigurationManager.getInstance().getCurrentConfiguration();
 
-        // --- Dependency Injection Setup ---
-        UserRepository userRepository;
-        AccountRepository accountRepository;
+        int port = config.getPort();
+        // Configure thread pool size, e.g., from config or a default value
+        int threadPoolSize = 10; // Default value, you might want to make this configurable
 
-        String storageType = config.getStorageConfig().getType();
-        switch (storageType.toLowerCase()) {
-            case "in-memory":
-                LOGGER.info("Using In-Memory storage.");
-                userRepository = InMemoryUserRepository.getInstance();
-                accountRepository = InMemoryAccountRepository.getInstance();
-                break;
-            case "database":
-                // Placeholder for database setup.
-                // You would initialize DatabaseUserRepository and DatabaseAccountRepository
-                // here,
-                // likely requiring a DataSource or EntityManager.
-                LOGGER.info("Database storage selected. (Implementation is a placeholder)");
-                // Example (conceptual, won't compile without actual DB setup):
-                // DataSource dataSource = ... ; // Obtain DataSource
-                // userRepository = new DatabaseUserRepository(dataSource);
-                // accountRepository = new DatabaseAccountRepository(dataSource);
-                // For now, fall back or throw an error if DB setup is incomplete.
-                throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
-            default:
-                LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
-                userRepository = InMemoryUserRepository.getInstance();
-                accountRepository = InMemoryAccountRepository.getInstance();
-        }
+        // Create and start the custom server
+        CustomHttpServer server = new CustomHttpServer(port, threadPoolSize);
 
-        // Initialize Services with the chosen repositories
-        UserService userService = new UserService(userRepository);
-        AccountService accountService = new AccountService(accountRepository);
-        // -----------------------------
-
-        LOGGER.info("http://localhost:" + config.getPort());
+        LOGGER.info("http://localhost:{}", port);
         LOGGER.info("config : {}", config);
-        ServerListnerThread slt = new ServerListnerThread(config);
 
-        slt.start();
+        // Add a shutdown hook to gracefully stop the server
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Shutting down server...");
+            server.stop(0);
+        }));
 
+        server.start();
+
+        // Keep the main thread alive
         try {
-            slt.join();
+            Thread.currentThread().join();
         } catch (InterruptedException e) {
-            LOGGER.error("The Listener Thread Is Interrupted while working", e);
+            LOGGER.info("Server interrupted, shutting down...");
+            server.stop(0);
         }
 
         LOGGER.info("Server Finished");

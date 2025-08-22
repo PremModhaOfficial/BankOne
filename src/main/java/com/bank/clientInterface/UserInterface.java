@@ -7,10 +7,7 @@ import java.util.Scanner;
 import com.bank.business.entities.Account;
 import com.bank.business.entities.User;
 import com.bank.business.entities.Account.AccountType;
-import com.bank.business.services.AccountService;
-import com.bank.business.services.UserService;
 import com.bank.clientInterface.util.InputUtil;
-import com.bank.clientInterface.util.Repositories;
 import com.bank.clientInterface.util.UserCred;
 
 public class UserInterface extends BankInterface {
@@ -20,27 +17,9 @@ public class UserInterface extends BankInterface {
     User user;
     private List<Account> account;
 
-    public UserInterface(UserCred information, Repositories repositories, Scanner sc) {
+    public UserInterface(UserCred information, Scanner sc) {
         this.sc = sc;
-        this.userService = new UserService(repositories.userRepository());
-        this.accountService = new AccountService(repositories.accountRepository());
 
-        var mayBeUser = userService.getUserByUsername(information.username());
-
-        if (mayBeUser.isPresent()) {
-            user = mayBeUser.get();
-            if (!authenticate()) {
-                return;
-            }
-        } else {
-            System.out.println("User Not Found");
-            System.out.println("Creating User...");
-
-            this.user = userService.createUser(information.username(), information.email(),
-                    information.password());
-
-            lauchTransactionWindow();
-        }
     }
 
     private boolean authenticate() {
@@ -57,7 +36,7 @@ public class UserInterface extends BankInterface {
     }
 
     @Override
-    protected void lauchTransactionWindow() {
+    protected void launchTransactionWindow() {
         int choice;
         while (true) {
             choice = InputUtil.getIntegerFromUser(sc);
@@ -66,11 +45,11 @@ public class UserInterface extends BankInterface {
                     2. Create new account
                     3. Delete Account
                         """);
-            List<Account> accounts = accountService.getAccountsByUserId(user.getId());
-            for (Account account : accounts) {
-                System.out.println(account);
-            }
-            this.account = accounts;
+//            List<Account> accounts = accountService.getAccountsByUserId(user.getId());
+//            for (Account account : accounts) {
+//                System.out.println(account);
+//            }
+//            this.account = accounts;
             switch (choice) {
                 case 1: // operate Accounts
                     OparateOnAccount();
@@ -107,7 +86,7 @@ public class UserInterface extends BankInterface {
 
         AccountType accountType = getAccountFromUser(choice);
 
-        accountService.createAccount(user.getId(), "", BigDecimal.valueOf(initialBalance), accountType);
+//        accountService.createAccount(user.getId(), "", BigDecimal.valueOf(initialBalance), accountType);
     }
 
     private void OparateOnAccount() {
