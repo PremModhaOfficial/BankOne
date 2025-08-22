@@ -12,12 +12,12 @@ Key technologies used:
   - SLF4J & Logback (for logging)
   - JUnit (for testing)
 
-The project structure follows standard Maven conventions, with source code in `src/main/java` and tests in `src/test/java`. The main package is `com.prem`.
+The project structure follows standard Maven conventions, with source code in `src/main/java` and tests in `src/test/java`. The main package is `com.bank`.
 
 Key components identified:
 - **HTTP Core:** Classes for parsing HTTP requests (`HttpRequest`, `HttpMethod`, `HttpParser`, etc.) and handling status codes (`HttpStatusCode`).
 - **Server Core:** Classes for server configuration (`Configuration`, `ConfigurationManager`) and the core server listener thread (`ServerListnerThread`).
-- **Business Logic:** A package (`com.prem.business`) likely for application-specific logic, currently containing an `entities` sub-package.
+- **Business Logic:** A package (`com.bank.business`) likely for application-specific logic, currently containing an `entities` sub-package.
 - **Static Resources:** The web root is configured to `/tmp` by default (in `http.json`).
 
 ## Building and Running
@@ -40,9 +40,9 @@ The resulting JAR will be located in the `target/` directory.
 
 ### Run
 1. Ensure the project is built (`mvn compile` or `mvn package`).
-2. Run the main class `com.prem.HttpServer`. This can typically be done using Maven as well:
+2. Run the main class `com.bank.HttpServer`. This can typically be done using Maven as well:
    ```bash
-   mvn exec:java -Dexec.mainClass="com.prem.HttpServer"
+   mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
    ```
    Or by running the JAR file if packaged:
    ```bash
