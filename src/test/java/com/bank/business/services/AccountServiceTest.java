@@ -54,8 +54,6 @@ class AccountServiceTest {
         assertEquals(initialBalance, result.getBalance());
         assertEquals(type, result.getType());
         assertNotNull(result.getId());
-        assertNotNull(result.getCreatedAt());
-        assertNotNull(result.getUpdatedAt());
         verify(accountRepository, times(1)).save(any(Account.class));
     }
 
@@ -134,7 +132,6 @@ class AccountServiceTest {
         // Arrange
         Account accountToUpdate = new Account(1L, "OLDACC", BigDecimal.TEN, Account.AccountType.CHECKING);
         accountToUpdate.setId(1L);
-        accountToUpdate.setCreatedAt(java.time.LocalDateTime.now().minusDays(1));
 
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -145,7 +142,6 @@ class AccountServiceTest {
         assertSame(accountToUpdate, updatedAccount); // Should return the same object instance
         assertEquals(accountToUpdate.getId(), updatedAccount.getId());
         // Verify updatedAt was updated
-        assertTrue(updatedAccount.getUpdatedAt().compareTo(updatedAccount.getCreatedAt()) >= 0);
         verify(accountRepository, times(1)).save(accountToUpdate);
     }
 

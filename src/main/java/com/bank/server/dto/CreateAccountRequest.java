@@ -6,12 +6,19 @@ import java.math.BigDecimal;
 
 public class CreateAccountRequest {
     private Long userId;
-    private String accountNumber;
+    private String accountNumber; // Optional - if not provided, will be auto-generated
     private BigDecimal initialBalance;
     private Account.AccountType type;
 
     // Constructors
     public CreateAccountRequest() {}
+
+    // Constructor without accountNumber for auto-generation
+    public CreateAccountRequest(Long userId, BigDecimal initialBalance, Account.AccountType type) {
+        this.userId = userId;
+        this.initialBalance = initialBalance;
+        this.type = type;
+    }
 
     public CreateAccountRequest(Long userId, String accountNumber, BigDecimal initialBalance, Account.AccountType type) {
         this.userId = userId;
@@ -32,4 +39,9 @@ public class CreateAccountRequest {
 
     public Account.AccountType getType() { return type; }
     public void setType(Account.AccountType type) { this.type = type; }
+    
+    // Helper method to check if accountNumber is provided
+    public boolean hasAccountNumber() {
+        return this.accountNumber != null && !this.accountNumber.isEmpty();
+    }
 }

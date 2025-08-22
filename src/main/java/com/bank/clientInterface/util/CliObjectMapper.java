@@ -56,10 +56,15 @@ public class CliObjectMapper {
      * @param <T>      The type of the object.
      */
     private <T> void populateObject(T instance, Class<T> clazz) {
+
         System.out.println("Please provide values for the fields of " + clazz.getSimpleName() + ":");
 
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
+            if (field.getName().toLowerCase().contains("id")) {
+                continue;
+            }
+
             field.setAccessible(true); // Allow access to private fields
             promptAndSetField(instance, field);
         }

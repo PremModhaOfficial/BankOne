@@ -8,7 +8,7 @@ import com.bank.server.dto.CreateAccountRequest;
 import com.bank.server.dto.TransactionRequest;
 import com.bank.server.dto.TransactionResponse;
 import com.bank.server.dto.TransferRequest;
-import com.bank.server.util.JWTUtil;
+
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpExchange;
@@ -22,10 +22,14 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AccountHandler implements HttpHandler {
     private final AccountService accountService;
     private final UserService userService;
     private final Executor executor;
+    private final Logger LOGGER = LoggerFactory.getLogger(AccountHandler.class);
 
     public AccountHandler(AccountService accountService, UserService userService, Executor executor) {
         this.accountService = accountService;
@@ -39,8 +43,12 @@ public class AccountHandler implements HttpHandler {
             try {
                 handleRequest(exchange);
             } catch (IOException e) {
-                System.err.println("Error handling request: " + e.getMessage());
-                e.printStackTrace();
+                LOGGER.error("Error handling request: " + e.getMessage(), e);
+                try {
+                    sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
+                } catch (IOException ioException) {
+                    LOGGER.error("Failed to send error response: " + ioException.getMessage(), ioException);
+                }
             }
         });
     }
@@ -49,96 +57,88 @@ public class AccountHandler implements HttpHandler {
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
 
-        try {
-            // Check for authentication token in Authorization header
-            String token = extractToken(exchange);
-            if (token == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Unauthorized\"}");
-                return;
-            }
+        LOGGER.debug("Exchange {}", exchange);
 
+        try {
             if ("POST".equals(method) && "/accounts".equals(path)) {
-                handleCreateAccount(exchange, token);
+                handleCreateAccount(exchange);
             } else if ("GET".equals(method) && path.startsWith("/accounts/")) {
-                handleGetAccountById(exchange, token);
+                handleGetAccountById(exchange);
             } else if ("GET".equals(method) && "/accounts".equals(path)) {
-                handleGetAccountsByUser(exchange, token);
+                handleGetAccountsByUser(exchange);
             } else if ("POST".equals(method) && path.startsWith("/accounts/") && path.endsWith("/deposit")) {
-                handleDeposit(exchange, token);
+                handleDeposit(exchange);
             } else if ("POST".equals(method) && path.startsWith("/accounts/") && path.endsWith("/withdraw")) {
-                handleWithdraw(exchange, token);
+                handleWithdraw(exchange);
             } else if ("POST".equals(method) && path.startsWith("/accounts/") && path.endsWith("/transfer")) {
-                handleTransfer(exchange, token);
+                handleTransfer(exchange);
             } else {
                 sendResponse(exchange, 404, "{\"error\": \"Not Found\"}");
             }
         } catch (Exception e) {
-            System.err.println("Error processing request: " + e.getMessage());
-            e.printStackTrace();
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error\"}");
+            LOGGER.error("Error processing request: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 
-    private String extractToken(HttpExchange exchange) {
-        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
+    private String extractUserId(HttpExchange exchange) {
+        // For this toy project, we'll extract user ID from request body
+        try {
+            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            if (requestBody != null && !requestBody.isEmpty()) {
+                JsonNode jsonNode = Json.parse(requestBody);
+                if (jsonNode.has("userId")) {
+                    return jsonNode.get("userId").asText();
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error extracting user ID from request body: " + e.getMessage(), e);
         }
         return null;
     }
 
-    private void handleCreateAccount(HttpExchange exchange, String token) throws IOException {
+    private void handleCreateAccount(HttpExchange exchange) throws IOException {
         try {
-            // Verify token and get user ID
-            String userIdStr = JWTUtil.extractUserId(token);
-            if (userIdStr == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Invalid token\"}");
-                return;
-            }
-
-            Long userId = Long.parseLong(userIdStr);
-
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
             CreateAccountRequest request = Json.fromJson(jsonNode, CreateAccountRequest.class);
 
-            // Verify that the user is creating an account for themselves or is an admin
-            // For simplicity, we'll assume the user can only create accounts for themselves
-            if (!userId.equals(request.getUserId())) {
-                sendResponse(exchange, 403, "{\"error\": \"Forbidden\"}");
-                return;
-            }
+            // Extract user ID from request
+            Long userId = request.getUserId();
 
-            Account account = accountService.createAccount(
+            // Create account - account number will be auto-generated if not provided
+            Account account;
+            if (request.hasAccountNumber()) {
+                account = accountService.createAccount(
                     request.getUserId(),
                     request.getAccountNumber(),
                     request.getInitialBalance(),
                     request.getType());
+            } else {
+                account = accountService.createAccount(
+                    request.getUserId(),
+                    request.getInitialBalance(),
+                    request.getType());
+            }
 
             AccountResponse response = new AccountResponse(account);
             String jsonResponse = Json.stringify(Json.toJson(response));
             sendResponse(exchange, 201, jsonResponse);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
         } catch (Exception e) {
-            System.err.println("Error creating account: " + e.getMessage());
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request\"}");
+            LOGGER.error("Error creating account: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 
-    private void handleGetAccountById(HttpExchange exchange, String token) throws IOException {
+    private void handleGetAccountById(HttpExchange exchange) throws IOException {
         try {
-            // Verify token and get user ID
-            String userIdStr = JWTUtil.extractUserId(token);
-            if (userIdStr == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Invalid token\"}");
-                return;
-            }
-
-            Long userId = Long.parseLong(userIdStr);
-
             // Extract account ID from path
             String[] parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3) {
-                sendResponse(exchange, 400, "{\"error\": \"Bad Request\"}");
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
@@ -147,12 +147,6 @@ public class AccountHandler implements HttpHandler {
 
             if (accountOptional.isPresent()) {
                 Account account = accountOptional.get();
-                // Check if user owns this account or is an admin
-                if (!userId.equals(account.getUserId())) {
-                    sendResponse(exchange, 403, "{\"error\": \"Forbidden\"}");
-                    return;
-                }
-
                 AccountResponse response = new AccountResponse(account);
                 String jsonResponse = Json.stringify(Json.toJson(response));
                 sendResponse(exchange, 200, jsonResponse);
@@ -160,41 +154,40 @@ public class AccountHandler implements HttpHandler {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
             }
         } catch (NumberFormatException e) {
-            sendResponse(exchange, 400, "{\"error\": \"Invalid account ID\"}");
+            LOGGER.error("Invalid account ID format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID format\"}");
         } catch (Exception e) {
-            System.err.println("Error getting account: " + e.getMessage());
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error\"}");
+            LOGGER.error("Error getting account: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 
-    private void handleGetAccountsByUser(HttpExchange exchange, String token) throws IOException {
+    private void handleGetAccountsByUser(HttpExchange exchange) throws IOException {
         try {
-            // Verify token and get user ID
-            String userIdStr = JWTUtil.extractUserId(token);
-            if (userIdStr == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Invalid token\"}");
-                return;
-            }
-
-            Long userId = Long.parseLong(userIdStr);
-
-            // Get query parameter for user ID (if provided)
+            // Get user ID from query parameter or request body
             String query = exchange.getRequestURI().getQuery();
-            Long requestedUserId = userId; // Default to current user
+            Long userId = null;
 
             if (query != null && query.startsWith("userId=")) {
-                String requestedUserIdStr = query.substring(7);
-                requestedUserId = Long.parseLong(requestedUserIdStr);
+                String userIdStr = query.substring(7);
+                userId = Long.parseLong(userIdStr);
+            } else {
+                // Try to extract from request body
+                String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                if (requestBody != null && !requestBody.isEmpty()) {
+                    JsonNode jsonNode = Json.parse(requestBody);
+                    if (jsonNode.has("userId")) {
+                        userId = jsonNode.get("userId").asLong();
+                    }
+                }
             }
 
-            // Check if user is requesting their own accounts or is an admin
-            // For simplicity, we'll assume users can only see their own accounts
-            if (!userId.equals(requestedUserId)) {
-                sendResponse(exchange, 403, "{\"error\": \"Forbidden\"}");
+            if (userId == null) {
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: userId is required\"}");
                 return;
             }
 
-            List<Account> accounts = accountService.getAccountsByUserId(requestedUserId);
+            List<Account> accounts = accountService.getAccountsByUserId(userId);
             List<AccountResponse> accountResponses = accounts.stream()
                     .map(AccountResponse::new)
                     .collect(Collectors.toList());
@@ -202,28 +195,20 @@ public class AccountHandler implements HttpHandler {
             String jsonResponse = Json.stringify(Json.toJson(accountResponses));
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e) {
-            sendResponse(exchange, 400, "{\"error\": \"Invalid user ID\"}");
+            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
         } catch (Exception e) {
-            System.err.println("Error getting accounts: " + e.getMessage());
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error\"}");
+            LOGGER.error("Error getting accounts: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 
-    private void handleDeposit(HttpExchange exchange, String token) throws IOException {
+    private void handleDeposit(HttpExchange exchange) throws IOException {
         try {
-            // Verify token and get user ID
-            String userIdStr = JWTUtil.extractUserId(token);
-            if (userIdStr == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Invalid token\"}");
-                return;
-            }
-
-            Long userId = Long.parseLong(userIdStr);
-
             // Extract account ID from path
             String[] parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3) {
-                sendResponse(exchange, 400, "{\"error\": \"Bad Request\"}");
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
@@ -233,15 +218,14 @@ public class AccountHandler implements HttpHandler {
             JsonNode jsonNode = Json.parse(requestBody);
             TransactionRequest request = Json.fromJson(jsonNode, TransactionRequest.class);
 
-            // Verify that the account belongs to the user
             Optional<Account> accountOptional = accountService.getAccountById(accountId);
-            if (!accountOptional.isPresent() || !userId.equals(accountOptional.get().getUserId())) {
-                sendResponse(exchange, 403, "{\"error\": \"Forbidden\"}");
+            if (!accountOptional.isPresent()) {
+                sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
 
             Account account = accountOptional.get();
-            account.addAmmount(request.getAmount());
+            account.addAmount(request.getAmount());
 
             // Update the account in the service
             accountService.updateAccount(account);
@@ -254,28 +238,20 @@ public class AccountHandler implements HttpHandler {
             String jsonResponse = Json.stringify(Json.toJson(response));
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e) {
-            sendResponse(exchange, 400, "{\"error\": \"Invalid account ID or amount\"}");
+            LOGGER.error("Invalid account ID or amount format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
         } catch (Exception e) {
-            System.err.println("Error processing deposit: " + e.getMessage());
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error\"}");
+            LOGGER.error("Error processing deposit: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 
-    private void handleWithdraw(HttpExchange exchange, String token) throws IOException {
+    private void handleWithdraw(HttpExchange exchange) throws IOException {
         try {
-            // Verify token and get user ID
-            String userIdStr = JWTUtil.extractUserId(token);
-            if (userIdStr == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Invalid token\"}");
-                return;
-            }
-
-            Long userId = Long.parseLong(userIdStr);
-
             // Extract account ID from path
             String[] parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3) {
-                sendResponse(exchange, 400, "{\"error\": \"Bad Request\"}");
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
@@ -285,15 +261,14 @@ public class AccountHandler implements HttpHandler {
             JsonNode jsonNode = Json.parse(requestBody);
             TransactionRequest request = Json.fromJson(jsonNode, TransactionRequest.class);
 
-            // Verify that the account belongs to the user
             Optional<Account> accountOptional = accountService.getAccountById(accountId);
-            if (!accountOptional.isPresent() || !userId.equals(accountOptional.get().getUserId())) {
-                sendResponse(exchange, 403, "{\"error\": \"Forbidden\"}");
+            if (!accountOptional.isPresent()) {
+                sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
 
             Account account = accountOptional.get();
-            boolean success = account.withdrawAmmount(request.getAmount());
+            boolean success = account.withdrawAmount(request.getAmount());
 
             if (success) {
                 // Update the account in the service
@@ -316,28 +291,20 @@ public class AccountHandler implements HttpHandler {
                 sendResponse(exchange, 400, jsonResponse);
             }
         } catch (NumberFormatException e) {
-            sendResponse(exchange, 400, "{\"error\": \"Invalid account ID or amount\"}");
+            LOGGER.error("Invalid account ID or amount format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
         } catch (Exception e) {
-            System.err.println("Error processing withdrawal: " + e.getMessage());
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error\"}");
+            LOGGER.error("Error processing withdrawal: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 
-    private void handleTransfer(HttpExchange exchange, String token) throws IOException {
+    private void handleTransfer(HttpExchange exchange) throws IOException {
         try {
-            // Verify token and get user ID
-            String userIdStr = JWTUtil.extractUserId(token);
-            if (userIdStr == null) {
-                sendResponse(exchange, 401, "{\"error\": \"Invalid token\"}");
-                return;
-            }
-
-            Long userId = Long.parseLong(userIdStr);
-
             // Extract account ID from path (source account)
             String[] parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3) {
-                sendResponse(exchange, 400, "{\"error\": \"Bad Request\"}");
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
@@ -347,10 +314,10 @@ public class AccountHandler implements HttpHandler {
             JsonNode jsonNode = Json.parse(requestBody);
             TransferRequest request = Json.fromJson(jsonNode, TransferRequest.class);
 
-            // Verify that the source account belongs to the user
+            // Verify that the source account exists
             Optional<Account> fromAccountOptional = accountService.getAccountById(fromAccountId);
-            if (!fromAccountOptional.isPresent() || !userId.equals(fromAccountOptional.get().getUserId())) {
-                sendResponse(exchange, 403, "{\"error\": \"Forbidden\"}");
+            if (!fromAccountOptional.isPresent()) {
+                sendResponse(exchange, 404, "{\"error\": \"Source account not found\"}");
                 return;
             }
 
@@ -365,9 +332,9 @@ public class AccountHandler implements HttpHandler {
             Account toAccount = toAccountOptional.get();
 
             // Perform the transfer
-            boolean success = fromAccount.withdrawAmmount(request.getAmount());
+            boolean success = fromAccount.withdrawAmount(request.getAmount());
             if (success) {
-                toAccount.addAmmount(request.getAmount());
+                toAccount.addAmount(request.getAmount());
 
                 // Update both accounts in the service
                 accountService.updateAccount(fromAccount);
@@ -390,10 +357,11 @@ public class AccountHandler implements HttpHandler {
                 sendResponse(exchange, 400, jsonResponse);
             }
         } catch (NumberFormatException e) {
-            sendResponse(exchange, 400, "{\"error\": \"Invalid account ID or amount\"}");
+            LOGGER.error("Invalid account ID or amount format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
         } catch (Exception e) {
-            System.err.println("Error processing transfer: " + e.getMessage());
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error\"}");
+            LOGGER.error("Error processing transfer: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
 

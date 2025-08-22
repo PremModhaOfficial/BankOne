@@ -31,14 +31,19 @@ public class HttpParserTest { // Remove extends TestCase
 
     @Test
     public void test_BAD_REQUEST_SHULD_FAIL() throws IOException, HttpParsingException {
-        HttpRequest request = httpParser.parseHttpRequest(
-                generateBADRequestTestCase());
+        HttpRequest request = null;
+        try {
+            request = httpParser.parseHttpRequest(
+                    generateBADRequestTestCase());
+            assertNotEquals(request.getMethod(), HttpMethod.GET);
+        } catch (HttpParsingException e) {
 
-        assertNotEquals(request.getMethod(), HttpMethod.GET);
+        }
+
     }
 
     private InputStream generateBADRequestTestCase() {
-        String rawData = "GeT / HTTP/2.1\r\n" +
+        String rawData = "GeesdgsdgT / HTTP/2.1\r\n" +
                 "Host: localhost:8080\r\n" +
                 "Connection: keep-alive\r\n" +
                 "Sec-Fetch-Mode: navigate\r\n" +

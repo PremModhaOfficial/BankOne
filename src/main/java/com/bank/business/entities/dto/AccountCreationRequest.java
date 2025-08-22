@@ -10,14 +10,23 @@ import java.math.BigDecimal;
  */
 public class AccountCreationRequest {
     private Long userId; // Foreign key to User
-    private String accountNumber;
+    private String accountNumber; // Optional - if not provided, will be auto-generated
     private BigDecimal initialBalance;
     private Account.AccountType type; // e.g., SAVINGS, CHECKING
 
     // Constructors
-    public AccountCreationRequest() {}
+    public AccountCreationRequest() {
+    }
 
-    public AccountCreationRequest(Long userId, String accountNumber, BigDecimal initialBalance, Account.AccountType type) {
+    // Constructor without accountNumber for auto-generation
+    public AccountCreationRequest(Long userId, BigDecimal initialBalance, Account.AccountType type) {
+        this.userId = userId;
+        this.initialBalance = initialBalance;
+        this.type = type;
+    }
+
+    public AccountCreationRequest(Long userId, String accountNumber, BigDecimal initialBalance,
+            Account.AccountType type) {
         this.userId = userId;
         this.accountNumber = accountNumber;
         this.initialBalance = initialBalance;
@@ -55,6 +64,11 @@ public class AccountCreationRequest {
 
     public void setType(Account.AccountType type) {
         this.type = type;
+    }
+    
+    // Helper method to check if accountNumber is provided
+    public boolean hasAccountNumber() {
+        return this.accountNumber != null && !this.accountNumber.isEmpty();
     }
 
     @Override

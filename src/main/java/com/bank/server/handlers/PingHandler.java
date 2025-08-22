@@ -8,15 +8,19 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A simple handler that demonstrates custom logic.
  * This handler will simulate some work and respond with a message.
  */
-public class SimpleHandler implements HttpHandler {
+public class PingHandler implements HttpHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PingHandler.class);
 
     private final Executor executor;
 
-    public SimpleHandler(Executor executor) {
+    public PingHandler(Executor executor) {
         this.executor = executor;
     }
 
@@ -28,22 +32,26 @@ public class SimpleHandler implements HttpHandler {
             try {
                 handleRequest(exchange);
             } catch (IOException e) {
-                System.err.println("Error handling request: " + e.getMessage());
-                e.printStackTrace();
+                LOGGER.error("Error handling request: " + e.getMessage(), e);
+                try {
+                    sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
+                } catch (IOException ioException) {
+                    LOGGER.error("Failed to send error response: " + ioException.getMessage(), ioException);
+                }
             }
         });
     }
 
     private void handleRequest(HttpExchange exchange) throws IOException {
         // Simulate some work (e.g., database access, computation)
-        try {
-            Thread.sleep(100); // Simulate 100ms of work
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
 
-        String response = "Hello from custom handler with custom threading!";
-        exchange.sendResponseHeaders(200, response.getBytes(StandardCharsets.UTF_8).length);
+        String response = "PONG";
+        sendResponse(exchange, 200, response);
+    }
+
+    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.sendResponseHeaders(statusCode, response.getBytes(StandardCharsets.UTF_8).length);
 
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(response.getBytes(StandardCharsets.UTF_8));

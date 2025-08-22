@@ -1,5 +1,6 @@
 package com.bank.clientInterface;
 
+import com.bank.business.entities.User;
 import com.bank.business.entities.dto.UserCreationRequest;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,13 +24,16 @@ public class BankApiClient {
 
     private final String baseUrl;
     private final HttpClient httpClient;
-    private String authToken; // To store the authentication token after login
+    private User LoggedInUser;
 
-    /**
-     * Constructs a BankApiClient with a given base URL.
-     *
-     * @param baseUrl The base URL of the server (e.g., "http://localhost:8080").
-     */
+    public User getLoggedInUser() {
+        return LoggedInUser;
+    }
+
+    public void setLoggedInUser(User loggedInUser) {
+        LoggedInUser = loggedInUser;
+    }
+
     public BankApiClient(String baseUrl) {
         this.baseUrl = baseUrl;
         this.httpClient = HttpClient.newHttpClient();
@@ -101,18 +105,6 @@ public class BankApiClient {
      *
      * @return The authentication token, or null if not logged in.
      */
-    public String getAuthToken() {
-        return authToken;
-    }
-
-    /**
-     * Sets the authentication token.
-     *
-     * @param authToken The authentication token to set.
-     */
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
-    }
 
     /**
      * Encodes a map of form data into a URL-encoded string.
@@ -147,10 +139,6 @@ public class BankApiClient {
                 .uri(URI.create(url))
                 .GET();
 
-        if (authToken != null && !authToken.isEmpty()) {
-            requestBuilder.header("Authorization", "Bearer " + authToken);
-        }
-
         HttpRequest request = requestBuilder.build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
@@ -169,10 +157,6 @@ public class BankApiClient {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json");
-
-        if (authToken != null && !authToken.isEmpty()) {
-            requestBuilder.header("Authorization", "Bearer " + authToken);
-        }
 
         try {
             String jsonBody = Json.stringify(body);

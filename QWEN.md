@@ -64,3 +64,34 @@ mvn test
 - **Configuration:** Server configuration is externalized in a JSON file (`http.json`).
 - **Testing:** Unit tests are written using JUnit and placed in the `src/test/java` directory.
 - **Dependencies:** Managed via Maven (`pom.xml`).
+
+## Qwen Added Memories
+- Project: Bank - A Java-based HTTP server with multithreading capabilities for banking operations
+
+Key Changes Made:
+1. Removed authentication/JWT system - Simplified to username/email identification only
+2. Removed timestamp fields (createdAt/updatedAt) from User and Account entities
+3. Updated UserService to remove password parameters
+4. Updated AccountService to remove timestamp updates
+5. Modified DTOs to match simplified data model
+6. Removed unused JWTUtil class and related dependencies
+7. Created stress testing framework in separate stress-test directory
+8. Generated comprehensive documentation in SUMMARY.md
+
+Multithreading Implementation:
+- Thread Pool Executors for concurrent request handling
+- Atomic operations for account balance updates
+- Lock-free algorithms using compare-and-swap (CAS) operations
+- Concurrent-safe deposit/withdrawal operations
+
+Current Status:
+- Project compiles successfully (mvn clean compile)
+- Can be installed to local Maven repository (mvn install -DskipTests)
+- Stress test framework created but has encoding issues with Java files
+- Main server runs correctly on port 8080
+
+To Run Server:
+mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
+
+Stress Testing:
+Located in stress-test directory with README.md for instructions

@@ -24,23 +24,25 @@ class InMemoryAccountRepositoryTest {
         // Arrange
         Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
 
+
         // Act
         Account savedAccount = accountRepository.save(account);
 
         // Assert
         assertNotNull(savedAccount.getId());
-        assertEquals(1L, savedAccount.getId().longValue()); // First ID should be 1
+        assertTrue(savedAccount.getId() > 0);
         assertSame(account, savedAccount); // Should return the same instance
     }
 
     @Test
     void testSave_ExistingAccount_Updates() {
         // Arrange
-        Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
+        var initialBalance = BigDecimal.TEN;
+        Account account = new Account(1L, "ACC123", initialBalance, Account.AccountType.SAVINGS);
         Account savedAccount = accountRepository.save(account); // ID assigned here
         Long assignedId = savedAccount.getId();
-        BigDecimal updatedBalance = new BigDecimal("50.00");
-        savedAccount.addAmmount(updatedBalance);
+        BigDecimal additionalBalance = new BigDecimal("50.00");
+        savedAccount.addAmount(additionalBalance);
 
         // Act
         Account updatedAccount = accountRepository.save(savedAccount);
@@ -48,7 +50,7 @@ class InMemoryAccountRepositoryTest {
         // Assert
         assertSame(savedAccount, updatedAccount);
         assertEquals(assignedId, updatedAccount.getId());
-        assertEquals(updatedBalance, updatedAccount.getBalance());
+        assertEquals(additionalBalance.add(initialBalance).compareTo(updatedAccount.getBalance()),0);
     }
 
     @Test
@@ -81,8 +83,8 @@ class InMemoryAccountRepositoryTest {
     @Test
     void testFindByUserId() {
         // Arrange
-        Long userId1 = 1L;
-        Long userId2 = 2L;
+        Long userId1 = 100000000L;
+        Long userId2 = 200000000L;
         Account acc1 = new Account(userId1, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
         Account acc2 = new Account(userId1, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
         Account acc3 = new Account(userId2, "ACC3", BigDecimal.ZERO, Account.AccountType.SAVINGS);

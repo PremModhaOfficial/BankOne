@@ -27,14 +27,14 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        if (userStore.containsValue(user)) {
-            return userStore.get(user.getId());
-        }
-
-
         if (user.getId() == null) {
             user.setId(idGenerator.getAndIncrement());
         }
+        if (userStore.containsValue(user)) {
+            userStore.put(user.getId(), user);
+            return userStore.get(user.getId());
+        }
+
         userStore.put(user.getId(), user);
         return user;
     }

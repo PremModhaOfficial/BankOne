@@ -13,15 +13,15 @@ public class UserService {
     }
 
     // Modified to accept isAdmin flag
-    public User createUser(String username, String email, String hashedPassword, boolean isAdmin) {
+    public User createUser(String username, String email, boolean isAdmin) {
         // Add validation logic here if needed (e.g., prevent duplicate usernames/emails)
-        User user = new User(username, email, hashedPassword, isAdmin);
+        User user = new User(username, email, isAdmin);
         return userRepository.save(user);
     }
 
     // Convenience method if creating regular users is common
-    public User createUser(String username, String email, String password) {
-        return createUser(username, email, password, false); // Defaults to non-admin
+    public User createUser(String username, String email) {
+        return createUser(username, email, false); // Defaults to non-admin
     }
 
     public Optional<User> getUserById(Long id) {
@@ -43,7 +43,6 @@ public class UserService {
 
     public User updateUser(User user) {
         // Add validation logic here if needed
-        user.setUpdatedAt(java.time.LocalDateTime.now());
         return userRepository.save(user);
     }
 

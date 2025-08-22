@@ -1,9 +1,8 @@
 package com.bank;
 
-import com.bank.business.repositories.AccountRepository;
-import com.bank.business.repositories.UserRepository;
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
+import com.bank.clientInterface.util.Repositories;
 import com.bank.infrastructure.persistence.inmemory.InMemoryAccountRepository;
 import com.bank.infrastructure.persistence.inmemory.InMemoryUserRepository;
 import com.bank.server.CustomHttpServer;
@@ -17,45 +16,32 @@ import java.io.IOException;
 
 public class HttpServer {
     private final static Logger LOGGER = LoggerFactory.getLogger(HttpServer.class);
-
     final static String CONFIG_PATH = "src/main/resources/http.json";
+
+    static {
+        try {
+            ConfigurationManager.getInstance().loadConfiguration(CONFIG_PATH);
+        } catch (HttpConfigurationException e) {
+            LOGGER.error("couldn't start Server:: error: {}", e);
+        }
+    }
 
     public static void main(String[] args) throws IllegalArgumentException, IOException, HttpConfigurationException {
         LOGGER.info("Server Starting");
 
-        ConfigurationManager.getInstance().loadConfiguration(CONFIG_PATH);
         Configuration config = ConfigurationManager.getInstance().getCurrentConfiguration();
 
         // --- Dependency Injection Setup ---
-        UserRepository userRepository;
-        AccountRepository accountRepository;
-
-        String storageType = config.getStorageConfig().getType();
-        switch (storageType.toLowerCase()) {
-            case "in-memory":
-                LOGGER.info("Using In-Memory storage.");
-                userRepository = InMemoryUserRepository.getInstance();
-                accountRepository = InMemoryAccountRepository.getInstance();
-                break;
-            case "database":
-                // Placeholder for database setup.
-                LOGGER.info("Database storage selected. (Implementation is a placeholder)");
-                throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
-            default:
-                LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
-                userRepository = InMemoryUserRepository.getInstance();
-                accountRepository = InMemoryAccountRepository.getInstance();
-        }
+        Repositories repositories = getRepositories(config);
 
         // Initialize Services with the chosen repositories
-        UserService userService = new UserService(userRepository);
-        AccountService accountService = new AccountService(accountRepository);
-        // -----------------------------
+        UserService userService = new UserService(repositories.userRepository());
+        AccountService accountService = new AccountService(repositories.accountRepository());
 
         // Create and start the built-in HTTP server
         int port = config.getPort();
         int threadPoolSize = 10; // You can make this configurable if needed
-        
+
         CustomHttpServer server = new CustomHttpServer(port, threadPoolSize, userService, accountService);
         server.start();
 
@@ -71,5 +57,29 @@ public class HttpServer {
         }
 
         LOGGER.info("Server Finished");
+    }
+
+    private static Repositories getRepositories(Configuration config) {
+        Repositories repositories;
+        String storageType = config.getStorageConfig().getType();
+        switch (storageType.toLowerCase()) {
+            case "in-memory":
+                LOGGER.info("Using In-Memory storage.");
+                repositories = new Repositories(
+                        InMemoryUserRepository.getInstance(),
+                        InMemoryAccountRepository.getInstance());
+                break;
+            case "database":
+                // Placeholder for database setup.
+                LOGGER.info("Database storage selected. (Implementation is a placeholder)");
+                throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
+            default:
+                LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
+                repositories = new Repositories(
+                        InMemoryUserRepository.getInstance(),
+                        InMemoryAccountRepository.getInstance());
+        }
+
+        return repositories;
     }
 }

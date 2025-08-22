@@ -1,5 +1,7 @@
 package com.bank.business.entities;
 
+import com.bank.business.entities.dto.UserCreationRequest;
+
 import java.util.Objects;
 
 public class User {
@@ -8,9 +10,17 @@ public class User {
     private String email;
     private boolean isAdmin; // New field for Admin role
 
+    public User(UserCreationRequest userRequest, Long id) {
+        this.id = id;
+        username = userRequest.getUsername();
+        email = userRequest.getEmail();
+        isAdmin = userRequest.isAdmin();
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
         User user = (User) o;
         return Objects.equals(username, user.username) && Objects.equals(email, user.email);
     }
@@ -20,8 +30,6 @@ public class User {
         return Objects.hash(username, email);
     }
 
-    public User() {}
-
     public User(String username, String email) {
         this(username, email, false); // Default to non-admin
     }
@@ -30,6 +38,13 @@ public class User {
         this.username = username;
         this.email = email;
         this.isAdmin = isAdmin;
+    }
+
+    public User(String username, String email, long id, boolean admin) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.isAdmin = admin;
     }
 
     // Getters and Setters

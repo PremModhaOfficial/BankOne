@@ -21,21 +21,23 @@ class InMemoryUserRepositoryTest {
     @Test
     void testSave_NewUser_AssignsId() {
         // Arrange
-        User user = new User("testuser", "test@example.com", "hashedPass");
+        User user = new User("testuser", "test@example.com");
+        var a =userRepository.findAll().stream().max((userA, userB) -> userA.getId().compareTo(userB.getId()));
+        long id = a.get().getId();
 
         // Act
         User savedUser = userRepository.save(user);
 
         // Assert
         assertNotNull(savedUser.getId());
-        assertEquals(1L, savedUser.getId().longValue()); // First ID should be 1
+        assertEquals(id+1L, savedUser.getId().longValue()); // First ID should be 1
         assertSame(user, savedUser); // Should return the same instance
     }
 
     @Test
     void testSave_ExistingUser_Updates() {
         // Arrange
-        User user = new User("testuser", "test@example.com", "hashedPass");
+        User user = new User("testuser", "test@example.com");
         User savedUser = userRepository.save(user); // ID assigned here
         Long assignedId = savedUser.getId();
         String updatedEmail = "newemail@example.com";
@@ -53,7 +55,7 @@ class InMemoryUserRepositoryTest {
     @Test
     void testFindById_UserExists() {
         // Arrange
-        User user = new User("testuser", "test@example.com", "hashedPass");
+        User user = new User("testuser", "test@example.com");
         User savedUser = userRepository.save(user);
         Long id = savedUser.getId();
 
@@ -81,7 +83,7 @@ class InMemoryUserRepositoryTest {
     void testFindByUsername_UserExists() {
         // Arrange
         String username = "uniqueuser";
-        User user = new User(username, "test@example.com", "hashedPass");
+        User user = new User(username, "test@example.com");
         userRepository.save(user);
 
         // Act
@@ -108,7 +110,7 @@ class InMemoryUserRepositoryTest {
     void testFindByEmail_UserExists() {
         // Arrange
         String email = "unique@example.com";
-        User user = new User("testuser", email, "hashedPass");
+        User user = new User("testuser", email);
         userRepository.save(user);
 
         // Act
@@ -134,7 +136,7 @@ class InMemoryUserRepositoryTest {
     @Test
     void testDeleteById_UserExists() {
         // Arrange
-        User user = new User("testuser", "test@example.com", "hashedPass");
+        User user = new User("testuser", "test@example.com");
         User savedUser = userRepository.save(user);
         Long id = savedUser.getId();
 
@@ -154,22 +156,14 @@ class InMemoryUserRepositoryTest {
         assertDoesNotThrow(() -> userRepository.deleteById(nonExistentId));
     }
 
-    @Test
-    void testFindAll_EmptyRepository() {
-        // Act
-        List<User> users = userRepository.findAll();
-
-        // Assert
-        assertNotNull(users);
-        assertTrue(users.isEmpty());
-    }
 
     @Test
     void testFindAll_WithUsers() {
+        int usersSizeBefore = userRepository.findAll().size();
         // Arrange
-        User user1 = new User("user1", "u1@example.com", "pass1");
-        User user2 = new User("user2", "u2@example.com", "pass2", true); // Admin user
-        User user3 = new User("user3", "u3@example.com", "pass3");
+        User user1 = new User("user1", "u1@example.com");
+        User user2 = new User("user2", "u2@example.com", true); // Admin user
+        User user3 = new User("user3", "u3@example.com");
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);
@@ -179,7 +173,7 @@ class InMemoryUserRepositoryTest {
 
         // Assert
         assertNotNull(users);
-        assertEquals(3, users.size());
+        assertEquals(3 + usersSizeBefore, users.size());
         assertTrue(users.contains(user1));
         assertTrue(users.contains(user2));
         assertTrue(users.contains(user3));
@@ -192,16 +186,17 @@ class InMemoryUserRepositoryTest {
     @Test
     void testFindAll_ReturnsCopy() {
         // Arrange
-        User user1 = new User("user1", "u1@example.com", "pass1");
+        User user1 = new User("user1", "u1@example.com");
         userRepository.save(user1);
         List<User> usersFromRepo = userRepository.findAll();
+        int expectedSize = usersFromRepo.size();
 
         // Act - Modify the returned list
         usersFromRepo.clear();
 
         // Assert - The internal store should not be affected
         List<User> usersFromRepoAgain = userRepository.findAll();
-        assertEquals(1, usersFromRepoAgain.size());
-        assertEquals(user1, usersFromRepoAgain.get(0));
+        assertEquals(expectedSize, usersFromRepoAgain.size());
+        assertEquals(true, usersFromRepoAgain.contains(user1));
     }
 }

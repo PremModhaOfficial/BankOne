@@ -19,6 +19,13 @@ public class Account {
     public Account() {
     }
 
+    public Account(Long userId, BigDecimal balance, AccountType type) {
+        this.userId = userId;
+        this.balance = new AtomicReference<BigDecimal>(balance);
+        this.type = type;
+        // Account number will be generated when ID is set
+    }
+
     public Account(Long userId, String accountNumber, BigDecimal balance, AccountType type) {
         this.userId = userId;
         this.accountNumber = accountNumber;
@@ -26,10 +33,17 @@ public class Account {
         this.type = type;
     }
 
-    public void addAmmount(BigDecimal ammount) {
+    // Method to generate account number based on ID
+    public void generateAccountNumber() {
+        if (this.id != null && this.accountNumber == null) {
+            this.accountNumber = "ACC" + String.format("%06d", this.id);
+        }
+    }
+
+    public void addAmount(BigDecimal amount) {
         while (true) {
             BigDecimal currentBalance = this.balance.get();
-            BigDecimal newBalance = currentBalance.add(ammount);
+            BigDecimal newBalance = currentBalance.add(amount);
 
             if (this.balance.compareAndSet(currentBalance, newBalance)) {
                 return;
@@ -39,10 +53,10 @@ public class Account {
         }
     }
 
-    public boolean withdrawAmmount(BigDecimal ammount) {
+    public boolean withdrawAmount(BigDecimal amount) {
         while (true) {
             BigDecimal currentBalance = this.balance.get();
-            BigDecimal newBalance = currentBalance.subtract(ammount);
+            BigDecimal newBalance = currentBalance.subtract(amount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
                 return false;
             }
@@ -62,6 +76,10 @@ public class Account {
 
     public void setId(Long id) {
         this.id = id;
+        // Generate account number when ID is set
+        if (this.accountNumber == null) {
+            generateAccountNumber();
+        }
     }
 
     public Long getUserId() {

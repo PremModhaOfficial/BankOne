@@ -3,7 +3,6 @@ package com.bank.server.dto;
 import com.bank.business.entities.Account;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class AccountResponse {
     private Long id;
@@ -11,8 +10,6 @@ public class AccountResponse {
     private String accountNumber;
     private BigDecimal balance;
     private Account.AccountType type;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     // Constructors
     public AccountResponse() {}
@@ -23,8 +20,6 @@ public class AccountResponse {
         this.accountNumber = account.getAccountNumber();
         this.balance = account.getBalance();
         this.type = account.getType();
-        this.createdAt = account.getCreatedAt();
-        this.updatedAt = account.getUpdatedAt();
     }
 
     // Getters and Setters
@@ -42,10 +37,4 @@ public class AccountResponse {
 
     public Account.AccountType getType() { return type; }
     public void setType(Account.AccountType type) { this.type = type; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
