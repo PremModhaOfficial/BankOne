@@ -95,3 +95,8 @@ mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
 
 Stress Testing:
 Located in stress-test directory with README.md for instructions
+- Fixed stress test results display issues in the Bank application. The fixes included:
+1. Modified StressTest.java to properly track successful vs failed operations by catching exceptions and incrementing the appropriate counters
+2. Added missing success rate calculation to the printResults method in StressTest.java
+3. Ensured proper handling of edge cases like division by zero in the results calculation
+4. Successfully rebuilt the stress test package with these fixes

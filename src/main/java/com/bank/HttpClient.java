@@ -49,17 +49,14 @@ public class HttpClient {
         while (!wantToExit) {
             try {
 
-                if (loggedInUser == null) {
+                if (client.getLoggedInUser() == null || loggedInUser == null) {
                     loggedInUser = loginOrRegister(client, mapper, scanner);
+                    client.setLoggedInUser(loggedInUser);
                 } else {
-                    wantToExit = launchInterface(client, mapper, scanner, loggedInUser);
+                    wantToExit = launchInterface(client, mapper, scanner);
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 System.out.println("Please enter a number between 1 and 100");
-
-            } catch (RuntimeException runtimeException) {
-                System.out.println("Server is Not Online");
-                LOGGER.error("Server is Not Online", runtimeException);
 
             }
         }
@@ -74,7 +71,6 @@ public class HttpClient {
         System.out.println("2. Register");
         System.out.println("3. Exit");
         System.out.print("Choose an option: ");
-
         int choice = -1;
         try {
             choice = Integer.parseInt(scanner.nextLine().trim());
@@ -84,18 +80,21 @@ public class HttpClient {
         }
 
         switch (choice) {
-            case 1:
+            case 1 -> {
                 return performLogin(client, scanner);
-            case 2:
+            }
+            case 2 -> {
                 return performRegistration(client, mapper, scanner);
-            case 3:
+            }
+
+            case 3 -> {
                 System.out.println("Exiting...");
                 System.exit(0);
                 return null;
-            default:
-                System.out.println("Invalid option. Please try again.");
-                return null;
+            }
+            default -> System.out.println("Invalid option. Please try again.");
         }
+        return null;
     }
 
     private static User performLogin(BankApiClient client, Scanner scanner) {
@@ -132,10 +131,8 @@ public class HttpClient {
                 System.out.println("Response:");
                 System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
                 User user = new User(username, email, id, isAdmin);
-                user.setUsername(username);
-                user.setEmail(userNode.get("email").asText());
-                user.setId(userNode.get("id").asLong());
                 // In a real implementation, you would parse all user details from the response
+                client.setLoggedInUser(user);
                 return user;
             } else {
                 System.out.println("Login failed. Server responded with status: " + response.statusCode());
@@ -154,7 +151,6 @@ public class HttpClient {
         try {
             UserCreationRequest userRequest = mapper.readValue(UserCreationRequest.class);
             System.out.println("Attempting to register user: " + userRequest.getUsername());
-
             JsonNode jsonBody = Json.toJson(userRequest);
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/users", jsonBody);
             HttpResponse<String> response = futureResponse.join();
@@ -174,6 +170,8 @@ public class HttpClient {
                 System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
 
                 User user = new User(username, email, id, isAdmin);
+
+                client.setLoggedInUser(user);
                 return user;
             } else {
                 System.out.println("Failed to register user. Server responded with status: " + response.statusCode());
@@ -186,7 +184,8 @@ public class HttpClient {
         }
     }
 
-    private static boolean launchInterface(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
+    private static boolean launchInterface(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+        User user = client.getLoggedInUser();
         System.out.println("\n--- Main Menu ---");
         System.out.println("Welcome, " + user.getUsername() + "!");
         System.out.println("1. View Accounts");
@@ -196,9 +195,10 @@ public class HttpClient {
         System.out.println("5. Transfer");
         if (user.isAdmin()) {
             System.out.println("6. Admin: View All Users");
+            System.out.println("7. Admin: View All Accounts");
         }
         System.out.println("0. Logout");
-        System.out.println("7. Switch User");
+        System.out.println("8. Switch User");
         System.out.print("Choose an option: ");
 
         LOGGER.debug("USER {}", user);
@@ -213,16 +213,16 @@ public class HttpClient {
 
         switch (choice) {
             case 1:
-                viewAccounts(client, user);
+                viewAccounts(client);
                 break;
             case 2:
-                createAccount(client, mapper, scanner, user);
+                createAccount(client, mapper, scanner);
                 break;
             case 3:
-                deposit(client, mapper, scanner, user);
+                deposit(client, mapper, scanner);
                 break;
             case 4:
-                withdraw(client, mapper, scanner, user);
+                withdraw(client, mapper, scanner);
                 break;
             case 5:
                 transfer(client, mapper, scanner, user);
@@ -234,26 +234,57 @@ public class HttpClient {
                     System.out.println("Invalid option.");
                 }
                 break;
+            case 7:
+                if (user.isAdmin()) {
+                    viewAllAccounts(client);
+                }
+                break;
             case 0:
                 System.out.println("Logging out...");
                 return true;
-            case 7:
+            case 8:
                 System.out.println("Switch Users...");
-                return true;
+                client.setLoggedInUser(null);
+                return false;
             default:
                 System.out.println("Invalid option. Please try again.");
         }
         return false;
     }
 
-    private static void viewAccounts(BankApiClient client, User user) {
+    private static void viewAllAccounts(BankApiClient client) {
+        User user = client.getLoggedInUser();
+        System.out.println("Viewing all accounts by admin: " + user.getUsername());
+        try {
+            // Include userId in query parameter for GET request
+            CompletableFuture<HttpResponse<String>> futureResponse = client.get("/accounts-all");
+            HttpResponse<String> response = futureResponse.join();
+
+            ResponseFormatter.logResponse(LOGGER, "Accounts", response.statusCode(), response.body());
+
+            if (response.statusCode() == 200) {
+                System.out.println("All Accounts:");
+                System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
+            } else {
+                System.out
+                        .println("Failed to retrieve accounts. Server responded with status: " + response.statusCode());
+                System.out.println("Response Body: " + response.body());
+            }
+        } catch (Exception e) {
+            System.err.println("Error retrieving accounts: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void viewAccounts(BankApiClient client) {
+        User user = client.getLoggedInUser();
         System.out.println("Viewing accounts for user: " + user.getUsername());
         try {
             // Include userId in query parameter for GET request
             CompletableFuture<HttpResponse<String>> futureResponse = client.get("/accounts?userId=" + user.getId());
             HttpResponse<String> response = futureResponse.join();
 
-            ResponseFormatter.logAndDisplayResponse(LOGGER, "Accounts", response.statusCode(), response.body());
+            ResponseFormatter.logResponse(LOGGER, "Accounts", response.statusCode(), response.body());
 
             if (response.statusCode() == 200) {
                 System.out.println("Accounts:");
@@ -269,7 +300,8 @@ public class HttpClient {
         }
     }
 
-    private static void createAccount(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
+    private static void createAccount(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+        var user = client.getLoggedInUser();
         System.out.println("Creating a new account for user: " + user.getUsername());
         boolean created = false;
         while (!created) {
@@ -277,7 +309,7 @@ public class HttpClient {
                 // Get account details from user
                 System.out.print("Enter initial balance: ");
                 String initialBalanceString = scanner.nextLine().trim();
-                BigDecimal initialBalance = new BigDecimal(initialBalanceString==""?"0":initialBalanceString);
+                BigDecimal initialBalance = new BigDecimal(initialBalanceString == "" ? "0" : initialBalanceString);
 
                 Account.AccountType type = getAccountType(scanner);
 
@@ -291,20 +323,22 @@ public class HttpClient {
                 CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts", jsonBody);
                 HttpResponse<String> response = futureResponse.join();
 
-                ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(), response.body());
+                ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(),
+                        response.body());
                 if (response.statusCode() == 201) {
                     created = true;
                     System.out.println("Account created successfully!");
                     System.out.println("Response:");
                     System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
                 } else {
-                    System.out.println("Failed to create account. Server responded with status: " + response.statusCode());
+                    System.out.println(
+                            "Failed to create account. Server responded with status: " + response.statusCode());
                     System.out.println("Response Body: " + response.body());
                 }
             } catch (Exception e) {
                 System.out.println("Please try again. with valid input");
-//                System.err.println("Error creating account: " + e.getMessage());
-//                e.printStackTrace();
+                // System.err.println("Error creating account: " + e.getMessage());
+                // e.printStackTrace();
             }
         }
     }
@@ -312,10 +346,10 @@ public class HttpClient {
     private static Account.AccountType getAccountType(Scanner scanner) {
         System.out.println("Enter account type \n[1] SAVINGS \n[2] CHECKING");
 
-        if (scanner.nextLine().equals("1")) {
+        String nextLine = scanner.nextLine();
+        if (nextLine.equals("1")) {
             return Account.AccountType.SAVINGS;
-        }
-        else if (scanner.nextLine().equals("2")) {
+        } else if (nextLine.equals("2")) {
             return Account.AccountType.CHECKING;
         }
         String typeStr = scanner.nextLine().trim().toUpperCase();
@@ -323,7 +357,7 @@ public class HttpClient {
         return type;
     }
 
-    private static void deposit(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
+    private static void deposit(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
         System.out.println("Making a deposit...");
         try {
             System.out.print("Enter account ID: ");
@@ -357,10 +391,11 @@ public class HttpClient {
         }
     }
 
-    private static void withdraw(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
+    private static void withdraw(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
         System.out.println("Making a withdrawal...");
         try {
             System.out.print("Enter account ID: ");
+            viewAccounts(client);
             Long accountId = Long.parseLong(scanner.nextLine().trim());
             System.out.print("Enter amount to withdraw: ");
             BigDecimal amount = new BigDecimal(scanner.nextLine().trim());

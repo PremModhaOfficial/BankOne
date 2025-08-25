@@ -19,14 +19,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Stress test for the banking system to profile performance under high load.
- * This test creates multiple threads performing concurrent operations to measure
+ * This test creates multiple threads performing concurrent operations to
+ * measure
  * throughput and identify performance bottlenecks.
  */
 public class StressTest {
 
-    private static final int NUMBER_OF_USERS = 100;
-    private static final int NUMBER_OF_ACCOUNTS_PER_USER = 5;
-    private static final int NUMBER_OF_THREADS = 50;
+    private static final int NUMBER_OF_USERS = 10000;
+    private static final int NUMBER_OF_ACCOUNTS_PER_USER = 59;
+    private static final int NUMBER_OF_THREADS = 2323;
     private static final int OPERATIONS_PER_THREAD = 100;
 
     private UserService userService;
@@ -146,19 +147,39 @@ public class StressTest {
                 // Randomly select an operation
                 int operationType = (int) (Math.random() * 3);
 
+                boolean success = false;
                 switch (operationType) {
                     case 0:
-                        performDeposit();
+                        try {
+                            performDeposit();
+                            success = true;
+                        } catch (Exception e) {
+                            // Operation failed
+                        }
                         break;
                     case 1:
-                        performWithdrawal();
+                        try {
+                            performWithdrawal();
+                            success = true;
+                        } catch (Exception e) {
+                            // Operation failed
+                        }
                         break;
                     case 2:
-                        performTransfer();
+                        try {
+                            performTransfer();
+                            success = true;
+                        } catch (Exception e) {
+                            // Operation failed
+                        }
                         break;
                 }
 
-                successfulOperations.incrementAndGet();
+                if (success) {
+                    successfulOperations.incrementAndGet();
+                } else {
+                    failedOperations.incrementAndGet();
+                }
             } catch (Exception e) {
                 System.err.println("Error in thread " + threadId + " operation " + i + ": " + e.getMessage());
                 failedOperations.incrementAndGet();
@@ -222,15 +243,17 @@ public class StressTest {
         long totalOps = totalOperations.get();
         int successOps = successfulOperations.get();
         int failedOps = failedOperations.get();
-        double throughput = (double) totalOps / (duration / 1000.0);
+        double throughput = totalOps > 0 ? (double) totalOps / (duration / 1000.0) : 0;
+        double successRate = totalOps > 0 ? (double) successOps / totalOps * 100 : 0;
 
         System.out.println("=== STRESS TEST RESULTS ===");
         System.out.println("Duration: " + duration + " ms");
         System.out.println("Total operations: " + totalOps);
         System.out.println("Successful operations: " + successOps);
         System.out.println("Failed operations: " + failedOps);
+        System.out.println("Success rate: " + String.format("%.2f", successRate) + "%");
         System.out.println("Throughput: " + String.format("%.2f", throughput) + " ops/sec");
-        System.out.println("Average response time: " + String.format("%.2f", (double) duration / totalOps) + " ms");
+        System.out.println("Average response time: " + String.format("%.2f", totalOps > 0 ? (double) duration / totalOps : 0) + " ms");
     }
 
     private void cleanup() throws InterruptedException {

@@ -69,8 +69,24 @@ else
     exit 1
 fi
 
+# Test getAllAccounts endpoint
+echo "Testing getAllAccounts endpoint..."
+ALL_ACCOUNTS_RESPONSE=$(curl -s -X GET http://localhost:8080/accounts-all \
+  -H "Content-Type: application/json")
+
+echo "All accounts response: $ALL_ACCOUNTS_RESPONSE"
+
+# Check if the response contains account data
+if echo "$ALL_ACCOUNTS_RESPONSE" | grep -q '"id"'; then
+    echo "getAllAccounts successful"
+else
+    echo "getAllAccounts failed"
+    kill $SERVER_PID 2>/dev/null
+    exit 1
+fi
+
 # Kill the server
 echo "Stopping server..."
 kill $SERVER_PID 2>/dev/null
 
-echo "All tests completed successfully!"
+echo "getAllAccounts test completed successfully!"

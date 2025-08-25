@@ -1,5 +1,10 @@
 package com.bank;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
 import com.bank.clientInterface.util.Repositories;
@@ -9,10 +14,6 @@ import com.bank.server.CustomHttpServer;
 import com.bank.server.config.Configuration;
 import com.bank.server.config.ConfigurationManager;
 import com.bank.server.config.HttpConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 public class HttpServer {
     private final static Logger LOGGER = LoggerFactory.getLogger(HttpServer.class);

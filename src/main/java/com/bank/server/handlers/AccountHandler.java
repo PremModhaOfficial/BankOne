@@ -1,21 +1,8 @@
 package com.bank.server.handlers;
 
-import com.bank.business.entities.Account;
-import com.bank.business.services.AccountService;
-import com.bank.business.services.UserService;
-import com.bank.server.dto.AccountResponse;
-import com.bank.server.dto.CreateAccountRequest;
-import com.bank.server.dto.TransactionRequest;
-import com.bank.server.dto.TransactionResponse;
-import com.bank.server.dto.TransferRequest;
-
-import com.bank.server.util.Json;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +11,19 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bank.business.entities.Account;
+import com.bank.business.services.AccountService;
+import com.bank.business.services.UserService;
+import com.bank.server.dto.AccountResponse;
+import com.bank.server.dto.CreateAccountRequest;
+import com.bank.server.dto.TransactionRequest;
+import com.bank.server.dto.TransactionResponse;
+import com.bank.server.dto.TransferRequest;
+import com.bank.server.util.Json;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 public class AccountHandler implements HttpHandler {
     private final AccountService accountService;
@@ -57,13 +57,15 @@ public class AccountHandler implements HttpHandler {
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
 
-        LOGGER.debug("Exchange {}", exchange);
+        LOGGER.debug("REQUEST {} @ {}", method, path);
 
         try {
             if ("POST".equals(method) && "/accounts".equals(path)) {
                 handleCreateAccount(exchange);
             } else if ("GET".equals(method) && path.startsWith("/accounts/")) {
                 handleGetAccountById(exchange);
+            } else if ("GET".equals(method) && "/accounts-all".equals(path)) {
+                handleGetAllAccounts(exchange);
             } else if ("GET".equals(method) && "/accounts".equals(path)) {
                 handleGetAccountsByUser(exchange);
             } else if ("POST".equals(method) && path.startsWith("/accounts/") && path.endsWith("/deposit")) {
@@ -81,44 +83,25 @@ public class AccountHandler implements HttpHandler {
         }
     }
 
-    private String extractUserId(HttpExchange exchange) {
-        // For this toy project, we'll extract user ID from request body
-        try {
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            if (requestBody != null && !requestBody.isEmpty()) {
-                JsonNode jsonNode = Json.parse(requestBody);
-                if (jsonNode.has("userId")) {
-                    return jsonNode.get("userId").asText();
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error extracting user ID from request body: " + e.getMessage(), e);
-        }
-        return null;
-    }
-
     private void handleCreateAccount(HttpExchange exchange) throws IOException {
         try {
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
             CreateAccountRequest request = Json.fromJson(jsonNode, CreateAccountRequest.class);
 
-            // Extract user ID from request
-            Long userId = request.getUserId();
-
             // Create account - account number will be auto-generated if not provided
             Account account;
             if (request.hasAccountNumber()) {
                 account = accountService.createAccount(
-                    request.getUserId(),
-                    request.getAccountNumber(),
-                    request.getInitialBalance(),
-                    request.getType());
+                        request.getUserId(),
+                        request.getAccountNumber(),
+                        request.getInitialBalance(),
+                        request.getType());
             } else {
                 account = accountService.createAccount(
-                    request.getUserId(),
-                    request.getInitialBalance(),
-                    request.getType());
+                        request.getUserId(),
+                        request.getInitialBalance(),
+                        request.getType());
             }
 
             AccountResponse response = new AccountResponse(account);
@@ -158,6 +141,24 @@ public class AccountHandler implements HttpHandler {
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID format\"}");
         } catch (Exception e) {
             LOGGER.error("Error getting account: " + e.getMessage(), e);
+            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
+        }
+    }
+
+    private void handleGetAllAccounts(HttpExchange exchange) throws IOException {
+        try {
+            List<Account> accounts = accountService.getAllAccounts();
+            List<AccountResponse> accountResponses = accounts.stream()
+                    .map(AccountResponse::new)
+                    .collect(Collectors.toList());
+
+            String jsonResponse = Json.stringify(Json.toJson(accountResponses));
+            sendResponse(exchange, 200, jsonResponse);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
+        } catch (Exception e) {
+            LOGGER.error("Error getting accounts: " + e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -218,13 +219,18 @@ public class AccountHandler implements HttpHandler {
             JsonNode jsonNode = Json.parse(requestBody);
             TransactionRequest request = Json.fromJson(jsonNode, TransactionRequest.class);
 
+            if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: Negative Deposit Not Possible\"}");
+                return;
+            }
+
             Optional<Account> accountOptional = accountService.getAccountById(accountId);
             if (!accountOptional.isPresent()) {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
-
             Account account = accountOptional.get();
+
             account.addAmount(request.getAmount());
 
             // Update the account in the service
@@ -313,6 +319,10 @@ public class AccountHandler implements HttpHandler {
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
             TransferRequest request = Json.fromJson(jsonNode, TransferRequest.class);
+            if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+                sendResponse(exchange, 400, "{\"error\": \"Bad Request: Negative Transfer Amount is Not Allowed\"}");
+                return;
+            }
 
             // Verify that the source account exists
             Optional<Account> fromAccountOptional = accountService.getAccountById(fromAccountId);

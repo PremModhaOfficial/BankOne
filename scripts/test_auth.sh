@@ -9,7 +9,7 @@ curl -X POST http://localhost:8080/users \
   -d '{
     "username": "testuser",
     "email": "test@example.com",
-    "admin": false
+    "password": "testpassword"
   }' | jq .
 
 echo -e "\nLogging in..."
@@ -23,18 +23,16 @@ LOGIN_RESPONSE=$(curl -X POST http://localhost:8080/login \
 
 echo $LOGIN_RESPONSE | jq .
 
-# Extract the token
-TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.token')
-echo -e "\nToken: $TOKEN"
+# Extract the user ID
+USER_ID=$(echo $LOGIN_RESPONSE | jq -r '.user.id')
+echo -e "\nUser ID: $USER_ID"
 
 echo -e "\nCreating account..."
-# Create an account using the token
+# Create an account using the user ID
 curl -X POST http://localhost:8080/accounts \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "userId": 1,
-    "accountNumber": "ACC123456",
-    "initialBalance": 1000,
-    "type": "SAVINGS"
-  }' | jq .
+  -d "{
+    \"userId\": $USER_ID,
+    \"initialBalance\": 1000,
+    \"type\": \"SAVINGS\"
+  }" | jq .

@@ -26,7 +26,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.bank.stress.StressTest</mainClass>
+                  <mainClass>com.bank.stress.NetworkStressTest</mainClass>
                 </transformer>
               </transformers>
             </configuration>

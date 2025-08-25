@@ -9,35 +9,46 @@ curl -X POST http://localhost:8080/users \
   -d '{
     "username": "testuser3",
     "email": "test3@example.com",
-    "admin": false
+    "password": "testpassword"
   }' | jq .
+
+# Login to get the user ID
+echo -e "\nLogging in to get user ID..."
+LOGIN_RESPONSE=$(curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "identifier": "test3@example.com",
+    "password": "testpassword"
+  }')
+
+USER_ID=$(echo $LOGIN_RESPONSE | jq -r '.user.id')
+echo "User ID: $USER_ID"
 
 # Create an account using JSON only (no auth headers)
 echo -e "\nCreating account with JSON only..."
 curl -X POST http://localhost:8080/accounts \
   -H "Content-Type: application/json" \
-  -d '{
-    "userId": 3,
-    "accountNumber": "ACC999999",
-    "initialBalance": 3000,
-    "type": "CHECKING"
-  }' | jq .
+  -d "{
+    \"userId\": $USER_ID,
+    \"initialBalance\": 3000,
+    \"type\": \"CHECKING\"
+  }" | jq .
 
 # View accounts for user
 echo -e "\nViewing accounts for user..."
-curl -X GET "http://localhost:8080/accounts?userId=3" | jq .
+curl -X GET "http://localhost:8080/accounts?userId=$USER_ID" | jq .
 
 # Check what accounts exist
 echo -e "\nChecking what accounts exist..."
-curl -X GET "http://localhost:8080/accounts?userId=3" | jq .
+curl -X GET "http://localhost:8080/accounts?userId=$USER_ID" | jq .
 
-# Now we know the account ID is 3, let's access it directly
+# Now we know the account ID is 1, let's access it directly
 echo -e "\nViewing specific account by ID..."
-curl -X GET "http://localhost:8080/accounts/3" | jq .
+curl -X GET "http://localhost:8080/accounts/1" | jq .
 
 # Deposit money
 echo -e "\nDepositing money..."
-curl -X POST http://localhost:8080/accounts/3/deposit \
+curl -X POST http://localhost:8080/accounts/1/deposit \
   -H "Content-Type: application/json" \
   -d '{
     "amount": 500
@@ -45,7 +56,7 @@ curl -X POST http://localhost:8080/accounts/3/deposit \
 
 # Withdraw money
 echo -e "\nWithdrawing money..."
-curl -X POST http://localhost:8080/accounts/3/withdraw \
+curl -X POST http://localhost:8080/accounts/1/withdraw \
   -H "Content-Type: application/json" \
   -d '{
     "amount": 100
@@ -55,26 +66,25 @@ curl -X POST http://localhost:8080/accounts/3/withdraw \
 echo -e "\nCreating second account for transfer..."
 curl -X POST http://localhost:8080/accounts \
   -H "Content-Type: application/json" \
-  -d '{
-    "userId": 3,
-    "accountNumber": "ACC888888",
-    "initialBalance": 0,
-    "type": "SAVINGS"
-  }' | jq .
+  -d "{
+    \"userId\": $USER_ID,
+    \"initialBalance\": 0,
+    \"type\": \"SAVINGS\"
+  }" | jq .
 
 # Check what accounts exist now
 echo -e "\nChecking accounts after creating second one..."
-curl -X GET "http://localhost:8080/accounts?userId=3" | jq .
+curl -X GET "http://localhost:8080/accounts?userId=$USER_ID" | jq .
 
-# Transfer between accounts (assuming the new account has ID 4)
+# Transfer between accounts (assuming the new account has ID 2)
 echo -e "\nTransferring money..."
-curl -X POST http://localhost:8080/accounts/3/transfer \
+curl -X POST http://localhost:8080/accounts/1/transfer \
   -H "Content-Type: application/json" \
   -d '{
-    "toAccountId": 4,
+    "toAccountId": 2,
     "amount": 200
   }' | jq .
 
 # Check final account balances
 echo -e "\nChecking final account balances..."
-curl -X GET "http://localhost:8080/accounts?userId=3" | jq .
+curl -X GET "http://localhost:8080/accounts?userId=$USER_ID" | jq .

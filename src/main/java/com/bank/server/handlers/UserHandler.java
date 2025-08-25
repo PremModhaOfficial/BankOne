@@ -77,11 +77,10 @@ public class UserHandler implements HttpHandler {
             JsonNode jsonNode = Json.parse(requestBody);
             UserCreationRequest request = Json.fromJson(jsonNode, UserCreationRequest.class);
 
-            LOGGER.info("Creating user: " + request);
+            LOGGER.info("Requested Creating user: " + request);
 
-            // Create user
+            // Create user - the service will handle duplicates appropriately
             User user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
-
             String jsonResponse = Json.stringify(Json.toJson(user));
             sendResponse(exchange, 201, jsonResponse);
         } catch (Exception e) {
@@ -104,7 +103,8 @@ public class UserHandler implements HttpHandler {
 
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                // Generate a simple session token (user ID:email:password for this simplified version)
+                // Generate a simple session token (user ID:email:password for this simplified
+                // version)
                 String token = user.getId().toString() + ":" + user.getEmail() + ":" + request.getPassword();
                 UserResponse userResponse = new UserResponse(user);
                 LoginResponse response = new LoginResponse(token, userResponse);

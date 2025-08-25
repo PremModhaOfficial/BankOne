@@ -12,14 +12,12 @@ curl -X GET http://localhost:8080/users/999 | jq .
 
 # Test invalid account ID
 echo -e "\nTesting invalid account ID..."
-curl -X GET http://localhost:8080/accounts/invalid \
-  -H "Authorization: Bearer 1:test@example.com:testpassword" | jq .
+curl -X GET http://localhost:8080/accounts/invalid | jq .
 
 # Test non-existent account
 echo -e "\nTesting non-existent account..."
-curl -X GET http://localhost:8080/accounts/999 \
-  -H "Authorization: Bearer 1:test@example.com:testpassword" | jq .
+curl -X GET http://localhost:8080/accounts/999 | jq .
 
-# Test unauthorized access
-echo -e "\nTesting unauthorized access..."
-curl -X GET http://localhost:8080/accounts/1 | jq .
+# Test account access without user ID
+echo -e "\nTesting account access without user ID..."
+curl -X GET http://localhost:8080/accounts | jq .

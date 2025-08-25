@@ -14,10 +14,17 @@ public class UserService {
 
     // Modified to accept isAdmin flag
     public User createUser(String username, String email, boolean isAdmin) {
-        if (userRepository.findByUsername(username).isPresent()) {
-            return userRepository.findByUsername(username).get();
+        // Check for existing user by username
+        Optional<User> existingUser = userRepository.findByUsername(username);
+        if (existingUser.isPresent()) {
+            return existingUser.get();
         }
-
+        
+        // Check for existing user by email
+        existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            return existingUser.get();
+        }
 
         User user = new User(username, email, isAdmin);
         return userRepository.save(user);

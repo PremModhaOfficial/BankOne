@@ -13,7 +13,9 @@ public class InMemoryAccountRepository implements AccountRepository {
     private final Map<Long, Account> accountStore = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1); // Simple ID generator
     private static InMemoryAccountRepository instance;
-    private InMemoryAccountRepository() {}
+
+    private InMemoryAccountRepository() {
+    }
 
     public static InMemoryAccountRepository getInstance() {
         if (instance == null) {
@@ -21,7 +23,6 @@ public class InMemoryAccountRepository implements AccountRepository {
         }
         return instance;
     }
-
 
     @Override
     public Account save(Account account) {
@@ -54,5 +55,10 @@ public class InMemoryAccountRepository implements AccountRepository {
     @Override
     public void deleteById(Long id) {
         accountStore.remove(id);
+    }
+
+    @Override
+    public List<Account> getAll() {
+        return accountStore.values().stream().toList();
     }
 }

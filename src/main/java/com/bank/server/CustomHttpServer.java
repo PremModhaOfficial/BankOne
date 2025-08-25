@@ -1,20 +1,21 @@
 package com.bank.server;
 
-import com.bank.business.services.AccountService;
-import com.bank.business.services.UserService;
-import com.bank.server.handlers.AccountHandler;
-import com.bank.server.handlers.PingHandler;
-import com.bank.server.handlers.UserHandler;
-import com.sun.net.httpserver.HttpServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bank.business.services.AccountService;
+import com.bank.business.services.UserService;
+import com.bank.server.handlers.AccountHandler;
+import com.bank.server.handlers.PingHandler;
+import com.bank.server.handlers.UserHandler;
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * A custom HTTP server using com.sun.net.httpserver.HttpServer
@@ -26,20 +27,13 @@ public class CustomHttpServer {
     private final HttpServer server;
     private final Executor customExecutor;
     private final int threadPoolSize;
-    private final UserService userService;
-    private final AccountService accountService;
 
     public CustomHttpServer(int port, int threadPoolSize, UserService userService, AccountService accountService)
             throws IOException {
         this.threadPoolSize = threadPoolSize;
-        this.userService = userService;
-        this.accountService = accountService;
-
         // Create the server
-        server = HttpServer.create(new InetSocketAddress(port), 0);
+        server = HttpServer.create(new InetSocketAddress(port), 1000);
 
-        // Create a custom executor with a fixed thread pool
-        // You can customize this to use different threading models
         customExecutor = Executors.newFixedThreadPool(threadPoolSize, new CustomThreadFactory());
 
         // Set the custom executor for the server
@@ -50,12 +44,14 @@ public class CustomHttpServer {
         server.createContext("/", new PingHandler(customExecutor));
         server.createContext("/users", new UserHandler(userService, customExecutor));
         server.createContext("/login", new UserHandler(userService, customExecutor));
-        server.createContext("/accounts", new AccountHandler(accountService, userService, customExecutor));
         server.createContext("/admin/users", new UserHandler(userService, customExecutor));
 
         // Create contexts for account operations
-        server.createContext("/accounts/", new AccountHandler(accountService, userService, customExecutor)); // For
-                                                                                                             // /accounts/{id}
+        server.createContext("/accounts", new AccountHandler(accountService, userService, customExecutor));
+        server.createContext("/accounts-all", new AccountHandler(accountService, userService, customExecutor));
+        // For
+        // /accounts/{id}
+        server.createContext("/accounts/", new AccountHandler(accountService, userService, customExecutor));
 
         // Create a context that uses the server's default executor (for comparison)
         server.createContext("/default", new PingHandler(server.getExecutor()));

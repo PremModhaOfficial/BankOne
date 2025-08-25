@@ -2,7 +2,7 @@
 
 # Start the server in the background
 echo "Starting server..."
-java -cp target/Bank-1.0-SNAPSHOT-jar-with-dependencies.jar com.bank.HttpServer > server.log 2>&1 &
+java -jar target/Bank-1.0-SNAPSHOT.jar > server.log 2>&1 &
 SERVER_PID=$!
 
 # Give the server time to start
@@ -11,7 +11,7 @@ sleep 5
 # Test the server is running
 echo "Testing server connectivity..."
 RESPONSE=$(curl -s http://localhost:8080)
-if [ "$RESPONSE" = "Hello from custom handler with custom threading!" ]; then
+if [ "$RESPONSE" = "PONG" ]; then
     echo "Server is running successfully"
 else
     echo "Server failed to start properly"

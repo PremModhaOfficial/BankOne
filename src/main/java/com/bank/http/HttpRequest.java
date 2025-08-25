@@ -12,9 +12,6 @@ public class HttpRequest extends HttpMessage {
         this.method = method;
     }
 
-    private String requestTarget;
-    private String httpVersion;
-
     HttpRequest() {
     }
 

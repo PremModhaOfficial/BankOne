@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Network Stress Test Runner Script
-# This script builds and runs the network-based stress test for the Bank application
+# This script runs the network-based stress test for the Bank application
 
 echo "Bank Application Network Stress Test"
 echo "==================================="
@@ -13,33 +13,14 @@ if [ ! -f "pom.xml" ]; then
     exit 1
 fi
 
-# Build the main Bank application first
-echo "Building main Bank application..."
-cd ..
-mvn clean install -DskipTests
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to build main Bank application"
-    exit 1
-fi
-cd stress-test
-
-# Build the stress test
-echo
-echo "Building network stress test..."
-mvn clean package
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to build network stress test"
-    exit 1
-fi
-
-# Check if JAR was created
+# Check if JAR exists
 if [ ! -f "target/stress-test-1.0-SNAPSHOT.jar" ]; then
-    echo "Error: Network stress test JAR not found"
+    echo "Error: Network stress test JAR not found. Please build it first:"
+    echo "  mvn clean package"
     exit 1
 fi
 
 # Make sure the server is running
-echo
 echo "Please make sure the Bank server is running on http://localhost:8080"
 echo "You can start it by running: cd .. && ./scripts/run-server.sh"
 echo

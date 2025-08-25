@@ -40,7 +40,7 @@ public class Json {
 			ow = ow.with(SerializationFeature.INDENT_OUTPUT);
 		}
 
-		return objectMapper.writeValueAsString(jsonNode);
+		return ow.writeValueAsString(jsonNode);
 	}
 
 	public static <A> A fromJson(JsonNode conf, Class<A> clazz) throws HttpConfigurationException {

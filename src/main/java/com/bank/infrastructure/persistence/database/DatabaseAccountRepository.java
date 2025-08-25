@@ -9,18 +9,6 @@ import java.util.Optional;
 // This class won't compile until you add actual database logic (e.g., JDBC, JPA).
 public class DatabaseAccountRepository implements AccountRepository {
 
-    // You would typically inject a DataSource or EntityManager here.
-    // private final DataSource dataSource; // For JDBC
-    // private final EntityManager entityManager; // For JPA
-
-    // public DatabaseAccountRepository(DataSource dataSource) { // For JDBC
-    //     this.dataSource = dataSource;
-    // }
-
-    // public DatabaseAccountRepository(EntityManager entityManager) { // For JPA
-    //     this.entityManager = entityManager;
-    // }
-
     @Override
     public Account save(Account account) {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
@@ -44,5 +32,10 @@ public class DatabaseAccountRepository implements AccountRepository {
     @Override
     public void deleteById(Long id) {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
+    }
+
+    @Override
+    public List<Account> getAll() {
+        throw new UnsupportedOperationException("Unimplemented method 'getAll'");
     }
 }

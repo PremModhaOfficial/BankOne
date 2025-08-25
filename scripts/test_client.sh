@@ -2,7 +2,7 @@
 
 # Start the server in the background
 echo "Starting server..."
-java -cp target/Bank-1.0-SNAPSHOT-jar-with-dependencies.jar com.bank.HttpServer > server.log 2>&1 &
+java -jar target/Bank-1.0-SNAPSHOT.jar > server.log 2>&1 &
 SERVER_PID=$!
 
 # Give the server time to start

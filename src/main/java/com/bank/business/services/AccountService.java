@@ -20,18 +20,20 @@ public class AccountService {
     }
 
     // Overloaded method for backward compatibility
-    public Account createAccount(Long userId, String accountNumber, BigDecimal initialBalance, Account.AccountType type) {
-        // Add validation logic here (e.g., check if user exists, balance is non-negative)
+    public Account createAccount(Long userId, String accountNumber, BigDecimal initialBalance,
+            Account.AccountType type) {
+        // Add validation logic here (e.g., check if user exists, balance is
+        // non-negative)
         Account account = new Account(userId, accountNumber, initialBalance, type);
         Account savedAccount = accountRepository.save(account);
-        
+
         // Ensure account number is generated if not provided
         if (savedAccount.getAccountNumber() == null) {
             savedAccount.setAccountNumber("ACC" + String.format("%06d", savedAccount.getId()));
             // Update the account with the generated number
             return accountRepository.save(savedAccount);
         }
-        
+
         return savedAccount;
     }
 
@@ -54,5 +56,9 @@ public class AccountService {
 
     public void deleteAccount(Long id) {
         accountRepository.deleteById(id);
+    }
+
+    public List<Account> getAllAccounts() {
+        return accountRepository.getAll();
     }
 }

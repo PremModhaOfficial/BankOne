@@ -13,8 +13,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Create logs directory if it doesn't exist
+mkdir -p logs
+
 # Run the client
 echo "Running the client..."
+echo "Logs will be written to the 'logs/' directory"
 mvn exec:java -Dexec.mainClass="com.bank.HttpClient"
 
 echo "Client stopped."

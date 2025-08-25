@@ -1,8 +1,8 @@
 package com.bank.business.entities;
 
-import com.bank.business.entities.dto.UserCreationRequest;
-
 import java.util.Objects;
+
+import com.bank.business.entities.dto.UserCreationRequest;
 
 public class User {
     private Long id;
@@ -10,11 +10,13 @@ public class User {
     private String email;
     private boolean isAdmin; // New field for Admin role
 
-    public User(UserCreationRequest userRequest, Long id) {
-        this.id = id;
+    public User(UserCreationRequest userRequest) {
+        this.id = null;
         username = userRequest.getUsername();
         email = userRequest.getEmail();
         isAdmin = userRequest.isAdmin();
+
+        this.id = ((long) this.hashCode());
     }
 
     @Override
@@ -27,7 +29,7 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hash(username, email);
+        return Objects.hash(username, email, isAdmin);
     }
 
     public User(String username, String email) {
@@ -38,6 +40,8 @@ public class User {
         this.username = username;
         this.email = email;
         this.isAdmin = isAdmin;
+
+        this.id = ((long) this.hashCode());
     }
 
     public User(String username, String email, long id, boolean admin) {
