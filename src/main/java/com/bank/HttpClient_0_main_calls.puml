@@ -1,0 +1,313 @@
+@startuml
+
+/' diagram meta data start
+config=CallConfiguration;
+{
+  "rootMethod": "com.bank.HttpClient#main(String[])",
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": "",
+    "treatFinalFieldsAsMandatory": false
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false, // root node is included
+    "useMethodCallsForStructureDiagram": "ForwardOnly" // ForwardOnly, BothDirections, No
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showMethodParametersTypes": false,
+    "showMethodParametersNames": false,
+    "showMethodReturnType": true,
+    "showPackageLevels": 5,
+    "showCallOrder": true,
+    "edgeMode": "MethodsOnly", // TypesOnly, MethodsOnly, TypesAndMethods, MethodsAndDirectTypeUsage
+    "showDetailedClassStructure": true
+  },
+  "rootClass": "com.bank.HttpClient",
+  "extensionCallbackMethod": "" // qualified.class.name#methodName - signature: public static String method(String)
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="LR"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_3016252 { 
+   	label=bank
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_1489004776 { 
+   	label=HttpClient
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   HttpClient660699511XXXmain1859653459[
+	label="+ main()"
+	style=filled
+	fillcolor=white
+	tooltip="HttpClient
+
+null"
+	penwidth=4
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1989843452 { 
+   	label=clientInterface
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1608608948 { 
+   	label=util
+	labeljust=l
+	fillcolor="#c4c4c4"
+	style=filled
+   
+   subgraph cluster_222760510 { 
+   	label=ResponseFormatter
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ResponseFormatter2131095929XXXformatJsonResponse1808118735[
+	label="+ formatJsonResponse(): String"
+	style=filled
+	fillcolor=white
+	tooltip="ResponseFormatter
+
+&#10;  Formats JSON response for better readability&#10;  @param jsonString The JSON string to format&#10;  @return Formatted JSON string or original string if formatting fails&#10; "
+	fontcolor=darkgreen
+];
+
+ResponseFormatter2131095929XXXlogAndDisplayResponse1759427733[
+	label="+ logAndDisplayResponse()"
+	style=filled
+	fillcolor=white
+	tooltip="ResponseFormatter
+
+&#10;  Logs and displays a formatted response&#10;  @param logger The logger to use for logging&#10;  @param operationName The name of the operation being performed&#10;  @param statusCode The HTTP status code&#10;  @param responseBody The response body&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_54362599 { 
+   	label=CliObjectMapper
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   CliObjectMapper2131095929XXXreadValue757044046[
+	label="+ readValue(): T"
+	style=filled
+	fillcolor=white
+	tooltip="CliObjectMapper
+
+&#10;  Prompts the user to fill in the fields of an object of the specified class.&#10; &#10;  @param clazz The Class of the object to create and populate.&#10;  @param \<T\> The type of the object.&#10;  @return A new instance of T populated with user input.&#10;  @throws RuntimeException If object instantiation fails.&#10; "
+	fontcolor=darkgreen
+];
+} 
+} 
+
+subgraph cluster_270609756 { 
+   	label=BankApiClient
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   BankApiClient1591549879XXXget1808118735[
+	label="+ get(): CompletableFuture<HttpResponse<String>>"
+	style=filled
+	fillcolor=white
+	tooltip="BankApiClient
+
+&#10;  Sends a GET request to the specified endpoint.&#10;  If an auth token is available, it's included in the Authorization header.&#10; &#10;  @param endpoint The API endpoint (e.g., \"/users/123\").&#10;  @return CompletableFuture\<HttpResponse\<String\>\> representing the asynchronous&#10;  response.&#10; "
+	fontcolor=darkgreen
+];
+
+BankApiClient1591549879XXXpost1948281969[
+	label="+ post(): CompletableFuture<HttpResponse<String>>"
+	style=filled
+	fillcolor=white
+	tooltip="BankApiClient
+
+&#10;  Sends a POST request to the specified endpoint with a JSON body.&#10;  If an auth token is available, it's included in the Authorization header.&#10; &#10;  @param endpoint The API endpoint (e.g., \"/accounts\").&#10;  @param body The request body as a JsonNode.&#10;  @return CompletableFuture\<HttpResponse\<String\>\> representing the asynchronous&#10;  response.&#10; "
+	fontcolor=darkgreen
+];
+} 
+} 
+
+subgraph cluster_79260875 { 
+   	label=server
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1443712795 { 
+   	label=util
+	labeljust=l
+	fillcolor="#c4c4c4"
+	style=filled
+   
+   subgraph cluster_1876228274 { 
+   	label=Json
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   Json1193722856XXXfromJson659567903[
+	label="+ fromJson(): A"
+	style=filled
+	fillcolor=white
+	tooltip="Json
+
+null"
+	fontcolor=darkgreen
+];
+
+Json1193722856XXXparse1808118735[
+	label="+ parse(): JsonNode"
+	style=filled
+	fillcolor=white
+	tooltip="Json
+
+null"
+	fontcolor=darkgreen
+];
+
+Json1193722856XXXstringify1910456534[
+	label="+ stringify(): String"
+	style=filled
+	fillcolor=white
+	tooltip="Json
+
+null"
+	fontcolor=darkgreen
+];
+
+Json1193722856XXXstringifyPretty1910456534[
+	label="+ stringifyPretty(): String"
+	style=filled
+	fillcolor=white
+	tooltip="Json
+
+null"
+	fontcolor=darkgreen
+];
+
+Json1193722856XXXtoJson1939501217[
+	label="+ toJson(): JsonNode"
+	style=filled
+	fillcolor=white
+	tooltip="Json
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+
+subgraph cluster_386236389 { 
+   	label=config
+	labeljust=l
+	fillcolor="#c4c4c4"
+	style=filled
+   
+   subgraph cluster_1512454531 { 
+   	label=ConfigurationManager
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ConfigurationManager108399192XXXloadConfiguration1808118735[
+	label="+ loadConfiguration()"
+	style=filled
+	fillcolor=white
+	tooltip="ConfigurationManager
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+} 
+
+'edges    
+BankApiClient1591549879XXXpost1948281969 -> Json1193722856XXXstringify1910456534[label=4];
+ConfigurationManager108399192XXXloadConfiguration1808118735 -> Json1193722856XXXfromJson659567903[label=9];
+ConfigurationManager108399192XXXloadConfiguration1808118735 -> Json1193722856XXXparse1808118735[label=6];
+HttpClient660699511XXXmain1859653459 -> BankApiClient1591549879XXXget1808118735[label=2];
+HttpClient660699511XXXmain1859653459 -> BankApiClient1591549879XXXpost1948281969[label=5];
+HttpClient660699511XXXmain1859653459 -> BankApiClient1591549879XXXpost1948281969[label=9];
+HttpClient660699511XXXmain1859653459 -> CliObjectMapper2131095929XXXreadValue757044046[label=1];
+HttpClient660699511XXXmain1859653459 -> ConfigurationManager108399192XXXloadConfiguration1808118735[label=0];
+HttpClient660699511XXXmain1859653459 -> Json1193722856XXXparse1808118735[label=15];
+HttpClient660699511XXXmain1859653459 -> Json1193722856XXXstringifyPretty1910456534[label=43];
+HttpClient660699511XXXmain1859653459 -> Json1193722856XXXtoJson1939501217[label=44];
+HttpClient660699511XXXmain1859653459 -> Json1193722856XXXtoJson1939501217[label=8];
+HttpClient660699511XXXmain1859653459 -> ResponseFormatter2131095929XXXformatJsonResponse1808118735[label=30];
+HttpClient660699511XXXmain1859653459 -> ResponseFormatter2131095929XXXlogAndDisplayResponse1759427733[label=11];
+HttpClient660699511XXXmain1859653459 -> ResponseFormatter2131095929XXXlogAndDisplayResponse1759427733[label=7];
+ResponseFormatter2131095929XXXformatJsonResponse1808118735 -> Json1193722856XXXparse1808118735[label=1];
+ResponseFormatter2131095929XXXformatJsonResponse1808118735 -> Json1193722856XXXstringifyPretty1910456534[label=2];
+ResponseFormatter2131095929XXXlogAndDisplayResponse1759427733 -> ResponseFormatter2131095929XXXformatJsonResponse1808118735[label=2];
+    
+}
+@enduml

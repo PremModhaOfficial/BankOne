@@ -14,7 +14,11 @@ public class UserService {
 
     // Modified to accept isAdmin flag
     public User createUser(String username, String email, boolean isAdmin) {
-        // Add validation logic here if needed (e.g., prevent duplicate usernames/emails)
+        if (userRepository.findByUsername(username).isPresent()) {
+            return userRepository.findByUsername(username).get();
+        }
+
+
         User user = new User(username, email, isAdmin);
         return userRepository.save(user);
     }

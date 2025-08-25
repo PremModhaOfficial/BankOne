@@ -37,6 +37,7 @@ public class BankApiClient {
     public BankApiClient(String baseUrl) {
         this.baseUrl = baseUrl;
         this.httpClient = HttpClient.newHttpClient();
+
     }
 
     /**

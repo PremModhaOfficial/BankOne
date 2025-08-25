@@ -47,10 +47,20 @@ public class HttpClient {
         User loggedInUser = null;
 
         while (!wantToExit) {
-            if (loggedInUser == null) {
-                loggedInUser = loginOrRegister(client, mapper, scanner);
-            } else {
-                wantToExit = launchInterface(client, mapper, scanner, loggedInUser);
+            try {
+
+                if (loggedInUser == null) {
+                    loggedInUser = loginOrRegister(client, mapper, scanner);
+                } else {
+                    wantToExit = launchInterface(client, mapper, scanner, loggedInUser);
+                }
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("Please enter a number between 1 and 100");
+
+            } catch (RuntimeException runtimeException) {
+                System.out.println("Server is Not Online");
+                LOGGER.error("Server is Not Online", runtimeException);
+
             }
         }
 
@@ -188,6 +198,7 @@ public class HttpClient {
             System.out.println("6. Admin: View All Users");
         }
         System.out.println("0. Logout");
+        System.out.println("7. Switch User");
         System.out.print("Choose an option: ");
 
         LOGGER.debug("USER {}", user);
@@ -226,6 +237,9 @@ public class HttpClient {
             case 0:
                 System.out.println("Logging out...");
                 return true;
+            case 7:
+                System.out.println("Switch Users...");
+                return true;
             default:
                 System.out.println("Invalid option. Please try again.");
         }
@@ -257,39 +271,56 @@ public class HttpClient {
 
     private static void createAccount(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
         System.out.println("Creating a new account for user: " + user.getUsername());
-        try {
-            // Get account details from user
-            System.out.print("Enter initial balance: ");
-            BigDecimal initialBalance = new BigDecimal(scanner.nextLine().trim());
+        boolean created = false;
+        while (!created) {
+            try {
+                // Get account details from user
+                System.out.print("Enter initial balance: ");
+                String initialBalanceString = scanner.nextLine().trim();
+                BigDecimal initialBalance = new BigDecimal(initialBalanceString==""?"0":initialBalanceString);
 
-            System.out.print("Enter account type (SAVINGS or CHECKING): ");
-            String typeStr = scanner.nextLine().trim().toUpperCase();
-            Account.AccountType type = Account.AccountType.valueOf(typeStr);
+                Account.AccountType type = getAccountType(scanner);
 
-            // Create a proper request without account number (it will be auto-generated)
-            com.bank.server.dto.CreateAccountRequest request = new com.bank.server.dto.CreateAccountRequest(
-                    user.getId(),
-                    initialBalance,
-                    type);
+                // Create a proper request without account number (it will be auto-generated)
+                com.bank.server.dto.CreateAccountRequest request = new com.bank.server.dto.CreateAccountRequest(
+                        user.getId(),
+                        initialBalance,
+                        type);
 
-            JsonNode jsonBody = Json.toJson(request);
-            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts", jsonBody);
-            HttpResponse<String> response = futureResponse.join();
+                JsonNode jsonBody = Json.toJson(request);
+                CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts", jsonBody);
+                HttpResponse<String> response = futureResponse.join();
 
-            ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(), response.body());
-
-            if (response.statusCode() == 201) {
-                System.out.println("Account created successfully!");
-                System.out.println("Response:");
-                System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
-            } else {
-                System.out.println("Failed to create account. Server responded with status: " + response.statusCode());
-                System.out.println("Response Body: " + response.body());
+                ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(), response.body());
+                if (response.statusCode() == 201) {
+                    created = true;
+                    System.out.println("Account created successfully!");
+                    System.out.println("Response:");
+                    System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
+                } else {
+                    System.out.println("Failed to create account. Server responded with status: " + response.statusCode());
+                    System.out.println("Response Body: " + response.body());
+                }
+            } catch (Exception e) {
+                System.out.println("Please try again. with valid input");
+//                System.err.println("Error creating account: " + e.getMessage());
+//                e.printStackTrace();
             }
-        } catch (Exception e) {
-            System.err.println("Error creating account: " + e.getMessage());
-            e.printStackTrace();
         }
+    }
+
+    private static Account.AccountType getAccountType(Scanner scanner) {
+        System.out.println("Enter account type \n[1] SAVINGS \n[2] CHECKING");
+
+        if (scanner.nextLine().equals("1")) {
+            return Account.AccountType.SAVINGS;
+        }
+        else if (scanner.nextLine().equals("2")) {
+            return Account.AccountType.CHECKING;
+        }
+        String typeStr = scanner.nextLine().trim().toUpperCase();
+        Account.AccountType type = Account.AccountType.valueOf(typeStr);
+        return type;
     }
 
     private static void deposit(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {

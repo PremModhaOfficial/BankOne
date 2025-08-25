@@ -1,0 +1,241 @@
+@startuml
+
+/' diagram meta data start
+config=StructureConfiguration;
+{
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": "",
+    "treatFinalFieldsAsMandatory": false
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false, // root node is included
+    "useMethodCallsForStructureDiagram": "ForwardOnly" // ForwardOnly, BothDirections, No
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showClassGenericTypes": true,
+    "showMethods": true,
+    "showMethodParameterNames": true,
+    "showMethodParameterTypes": true,
+    "showMethodReturnType": true,
+    "showPackageLevels": 2,
+    "showDetailedClassStructure": true
+  },
+  "rootClass": "com.bank.HttpClient",
+  "extensionCallbackMethod": "" // qualified.class.name#methodName - signature: public static String method(String)
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="TB"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_3016252 { 
+   	label=bank
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   HttpClient660699511[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)HttpClient</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >- createAccount(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner, user: User)</TD></TR>
+<TR><TD ALIGN="LEFT" >- deposit(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner, user: User)</TD></TR>
+<TR><TD ALIGN="LEFT" >- launchInterface(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner, user: User): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >- loginOrRegister(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner): User</TD></TR>
+<TR><TD ALIGN="LEFT" >+ main(args: String[])</TD></TR>
+<TR><TD ALIGN="LEFT" >- performLogin(client: BankApiClient, scanner: Scanner): User</TD></TR>
+<TR><TD ALIGN="LEFT" >- performRegistration(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner): User</TD></TR>
+<TR><TD ALIGN="LEFT" >- transfer(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner, user: User)</TD></TR>
+<TR><TD ALIGN="LEFT" >- viewAccounts(client: BankApiClient, user: User)</TD></TR>
+<TR><TD ALIGN="LEFT" >- viewAllUsers(client: BankApiClient)</TD></TR>
+<TR><TD ALIGN="LEFT" >- withdraw(client: BankApiClient, mapper: CliObjectMapper, scanner: Scanner, user: User)</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+
+subgraph cluster_1386221774 { 
+   	label=business
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   User84224522[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)User</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >-   email: String [0..1]</TD></TR>
+<TR><TD ALIGN="LEFT" >-   id: Long [0..1]</TD></TR>
+<TR><TD ALIGN="LEFT" >-   isAdmin: boolean [1]</TD></TR>
+<TR><TD ALIGN="LEFT" >-   username: String [0..1]</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+} 
+
+subgraph cluster_1989843452 { 
+   	label=clientInterface
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   BankApiClient1591549879[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)BankApiClient</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >-   LoggedInUser: User [0..1]</TD></TR>
+<TR><TD ALIGN="LEFT" >-   baseUrl: String [0..1]</TD></TR>
+<TR><TD ALIGN="LEFT" >-   httpClient: HttpClient [0..1]</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >- encodeFormData(data: Map&lt;String, String&gt;): String</TD></TR>
+<TR><TD ALIGN="LEFT" >+ get(endpoint: String): CompletableFuture&lt;HttpResponse&lt;String&gt;&gt;</TD></TR>
+<TR><TD ALIGN="LEFT" >+ login(identifier: String, password: String): CompletableFuture&lt;HttpResponse&lt;String&gt;&gt;</TD></TR>
+<TR><TD ALIGN="LEFT" >+ post(endpoint: String, body: JsonNode): CompletableFuture&lt;HttpResponse&lt;String&gt;&gt;</TD></TR>
+<TR><TD ALIGN="LEFT" >+ registerUser(userRequest: UserCreationRequest): CompletableFuture&lt;HttpResponse&lt;String&gt;&gt;</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+
+CliObjectMapper2131095929[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)CliObjectMapper</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >-   scanner: Scanner [0..1]</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >- parseEnum(input: String, enumClass: Class&lt;E&gt;): E</TD></TR>
+<TR><TD ALIGN="LEFT" >- parseInput(input: String, fieldType: Class&lt;?&gt;, field: Field): Object</TD></TR>
+<TR><TD ALIGN="LEFT" >- parseList(input: String, elementType: Class&lt;?&gt;, field: Field): List&lt;?&gt;</TD></TR>
+<TR><TD ALIGN="LEFT" >- populateObject(instance: T, clazz: Class&lt;T&gt;)</TD></TR>
+<TR><TD ALIGN="LEFT" >- promptAndSetField(instance: T, field: Field)</TD></TR>
+<TR><TD ALIGN="LEFT" >+ readValue(clazz: Class&lt;T&gt;): T</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+
+ResponseFormatter2131095929[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)ResponseFormatter</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >+ displayResponse(operationName: String, statusCode: int, responseBody: String)</TD></TR>
+<TR><TD ALIGN="LEFT" >+ formatJsonResponse(jsonString: String): String</TD></TR>
+<TR><TD ALIGN="LEFT" >+ logAndDisplayResponse(logger: Logger, operationName: String, statusCode: int, responseBody: String)</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+} 
+
+subgraph cluster_79260875 { 
+   	label=server
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   ConfigurationManager108399192[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)ConfigurationManager</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >+ loadConfiguration(filePath: String)</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+
+Json1193722856[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)Json</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >+ defaultObjectMapper(): ObjectMapper</TD></TR>
+<TR><TD ALIGN="LEFT" >+ fromJson(conf: JsonNode, clazz: Class&lt;A&gt;): A</TD></TR>
+<TR><TD ALIGN="LEFT" >- generateJson(jsonNode: JsonNode, pretty: boolean): String</TD></TR>
+<TR><TD ALIGN="LEFT" >+ parse(jString: String): JsonNode</TD></TR>
+<TR><TD ALIGN="LEFT" >+ stringify(jsonNode: JsonNode): String</TD></TR>
+<TR><TD ALIGN="LEFT" >+ stringifyPretty(jsonNode: JsonNode): String</TD></TR>
+<TR><TD ALIGN="LEFT" >+ toJson(object: Object): JsonNode</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+} 
+} 
+
+'edges    
+BankApiClient1591549879 -> User84224522[label="LoggedInUser
+[0..1]"];
+HttpClient660699511 -> CliObjectMapper2131095929[label="performRegistration() -> readValue()"];
+HttpClient660699511 -> ConfigurationManager108399192[label="main() -> loadConfiguration()"];
+    
+}
+@enduml
