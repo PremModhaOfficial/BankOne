@@ -4,8 +4,8 @@ import com.bank.business.entities.Account;
 import com.bank.business.entities.User;
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
-import com.bank.infrastructure.persistence.inmemory.InMemoryAccountRepository;
-import com.bank.infrastructure.persistence.inmemory.InMemoryUserRepository;
+import com.bank.db.inmemory.InMemoryAccountRepository;
+import com.bank.db.inmemory.InMemoryUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

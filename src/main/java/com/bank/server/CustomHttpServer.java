@@ -34,7 +34,9 @@ public class CustomHttpServer {
         // Create the server
         server = HttpServer.create(new InetSocketAddress(port), 1000);
 
-        customExecutor = Executors.newFixedThreadPool(threadPoolSize, new CustomThreadFactory());
+        // customExecutor = Executors.newFixedThreadPool(threadPoolSize, new
+        // CustomThreadFactory());
+        customExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
         // Set the custom executor for the server
         // This controls how incoming requests are handled

@@ -40,9 +40,9 @@ The resulting JAR will be located in the `target/` directory.
 
 ### Run
 1. Ensure the project is built (`mvn compile` or `mvn package`).
-2. Run the main class `com.bank.HttpServer`. This can typically be done using Maven as well:
+2. Run the main class `com.bank.Main`. This can typically be done using Maven as well:
    ```bash
-   mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
+   mvn exec:java -Dexec.mainClass="com.bank.Main"
    ```
    Or by running the JAR file if packaged:
    ```bash
@@ -91,7 +91,7 @@ Current Status:
 - Main server runs correctly on port 8080
 
 To Run Server:
-mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
+mvn exec:java -Dexec.mainClass="com.bank.Main"
 
 Stress Testing:
 Located in stress-test directory with README.md for instructions

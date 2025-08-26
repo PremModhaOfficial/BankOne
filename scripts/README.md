@@ -16,6 +16,7 @@ This directory contains various scripts for running and testing the Bank applica
 - `test_auth.sh` - Tests authentication functionality
 - `test_client.sh` - Tests the client interface
 - `test_errors.sh` - Tests error handling
+- `test_get_all_accounts.sh` - Tests the getAllAccounts endpoint
 - `test_no_auth.sh` - Tests functionality without authentication
 - `test_no_auth_fixed.sh` - Tests fixed version without authentication
 

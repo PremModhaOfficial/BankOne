@@ -1,6 +1,5 @@
 package com.bank.server.config;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -30,35 +29,26 @@ public class ConfigurationManager {
 
     public void loadConfiguration(String filePath) throws HttpConfigurationException {
 
-        FileReader fileReader = null;
-        try {
-            fileReader = new FileReader(filePath);
-        } catch (FileNotFoundException e) {
-            throw new HttpConfigurationException(e);
-        }
-        StringBuffer sb = new StringBuffer();
-
-        int i;
-        try {
-            while ((i = fileReader.read()) != -1) {
-                sb.append((char) i);
+        try (FileReader fileReader = new FileReader(filePath)) {
+            StringBuffer sb = new StringBuffer();
+            int i;
+            try {
+                while ((i = fileReader.read()) != -1) {
+                    sb.append((char) i);
+                }
+            } catch (IOException e) {
+                throw new HttpConfigurationException(e);
             }
-        } catch (IOException e) {
-            throw new HttpConfigurationException(e);
+            JsonNode conf = null;
+            try {
+                conf = Json.parse(sb.toString());
+            } catch (IOException e) {
+                throw new HttpConfigurationException(e);
+            }
+
+            currentConfiguration = Json.fromJson(conf, Configuration.class);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
         }
-        JsonNode conf = null;
-        try {
-            conf = Json.parse(sb.toString());
-        } catch (IOException e) {
-            throw new HttpConfigurationException(e);
-        }
-
-        currentConfiguration = Json.fromJson(conf, Configuration.class);
     }
-
-    @Override
-    public String toString() {
-        return "ConfigurationManager []";
-    }
-
 }

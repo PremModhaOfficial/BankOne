@@ -1,24 +1,22 @@
 package com.bank;
 
-import java.math.BigDecimal;
-import java.net.http.HttpResponse;
-import java.util.Scanner;
-import java.util.concurrent.CompletableFuture;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bank.business.entities.Account;
 import com.bank.business.entities.User;
-import com.bank.business.entities.dto.UserCreationRequest;
 import com.bank.clientInterface.BankApiClient;
 import com.bank.clientInterface.util.CliObjectMapper;
 import com.bank.clientInterface.util.ResponseFormatter;
 import com.bank.server.config.ConfigurationManager;
 import com.bank.server.config.HttpConfigurationException;
-import com.bank.server.dto.LoginRequest;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.net.http.HttpResponse;
+import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 
 public class HttpClient {
 
@@ -53,7 +51,7 @@ public class HttpClient {
                     loggedInUser = loginOrRegister(client, mapper, scanner);
                     client.setLoggedInUser(loggedInUser);
                 } else {
-                    wantToExit = launchInterface(client, mapper, scanner);
+                    wantToExit = launchInterface(client, scanner);
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 System.out.println("Please enter a number between 1 and 100");
@@ -71,7 +69,7 @@ public class HttpClient {
         System.out.println("2. Register");
         System.out.println("3. Exit");
         System.out.print("Choose an option: ");
-        int choice = -1;
+        int choice;
         try {
             choice = Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
@@ -84,7 +82,7 @@ public class HttpClient {
                 return performLogin(client, scanner);
             }
             case 2 -> {
-                return performRegistration(client, mapper, scanner);
+                return performRegistration(client, mapper);
             }
 
             case 3 -> {
@@ -99,15 +97,17 @@ public class HttpClient {
 
     private static User performLogin(BankApiClient client, Scanner scanner) {
         System.out.print("Enter username or email: ");
-        String identifier = scanner.nextLine().trim();
+        String request_id = scanner.nextLine().trim();
         System.out.print("Enter password: ");
         String password = scanner.nextLine().trim();
 
         System.out.println("Attempting to log in...");
         try {
-            // Create login request
-            LoginRequest loginRequest = new LoginRequest(identifier, password);
-            JsonNode jsonBody = Json.toJson(loginRequest);
+            // Create login request directly as JSON
+            ObjectNode loginRequest = Json.defaultObjectMapper().createObjectNode();
+            loginRequest.put("id", request_id);
+            loginRequest.put("password", password);
+            JsonNode jsonBody = loginRequest;
 
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/login", jsonBody);
             HttpResponse<String> response = futureResponse.join();
@@ -141,15 +141,14 @@ public class HttpClient {
             }
         } catch (Exception e) {
             System.err.println("Error during login: " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
 
-    private static User performRegistration(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+    private static User performRegistration(BankApiClient client, CliObjectMapper mapper) {
         System.out.println("Registering a new user:");
         try {
-            UserCreationRequest userRequest = mapper.readValue(UserCreationRequest.class);
+            User userRequest = mapper.readValue(User.class);
             System.out.println("Attempting to register user: " + userRequest.getUsername());
             JsonNode jsonBody = Json.toJson(userRequest);
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/users", jsonBody);
@@ -179,12 +178,11 @@ public class HttpClient {
             }
         } catch (Exception e) {
             System.err.println("Error during user registration: " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
 
-    private static boolean launchInterface(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+    private static boolean launchInterface(BankApiClient client, Scanner scanner) {
         User user = client.getLoggedInUser();
         System.out.println("\n--- Main Menu ---");
         System.out.println("Welcome, " + user.getUsername() + "!");
@@ -203,7 +201,7 @@ public class HttpClient {
 
         LOGGER.debug("USER {}", user);
 
-        int choice = -1;
+        int choice;
         try {
             choice = Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
@@ -216,16 +214,16 @@ public class HttpClient {
                 viewAccounts(client);
                 break;
             case 2:
-                createAccount(client, mapper, scanner);
+                createAccount(client, scanner);
                 break;
             case 3:
-                deposit(client, mapper, scanner);
+                deposit(client, scanner);
                 break;
             case 4:
-                withdraw(client, mapper, scanner);
+                withdraw(client, scanner);
                 break;
             case 5:
-                transfer(client, mapper, scanner, user);
+                transfer(client, scanner);
                 break;
             case 6:
                 if (user.isAdmin()) {
@@ -272,7 +270,6 @@ public class HttpClient {
             }
         } catch (Exception e) {
             System.err.println("Error retrieving accounts: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -296,11 +293,10 @@ public class HttpClient {
             }
         } catch (Exception e) {
             System.err.println("Error retrieving accounts: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    private static void createAccount(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+    private static void createAccount(BankApiClient client, Scanner scanner) {
         var user = client.getLoggedInUser();
         System.out.println("Creating a new account for user: " + user.getUsername());
         boolean created = false;
@@ -309,12 +305,12 @@ public class HttpClient {
                 // Get account details from user
                 System.out.print("Enter initial balance: ");
                 String initialBalanceString = scanner.nextLine().trim();
-                BigDecimal initialBalance = new BigDecimal(initialBalanceString == "" ? "0" : initialBalanceString);
+                BigDecimal initialBalance = new BigDecimal(initialBalanceString.isEmpty() ? "0" : initialBalanceString);
 
                 Account.AccountType type = getAccountType(scanner);
 
                 // Create a proper request without account number (it will be auto-generated)
-                com.bank.server.dto.CreateAccountRequest request = new com.bank.server.dto.CreateAccountRequest(
+                Account request = new Account(
                         user.getId(),
                         initialBalance,
                         type);
@@ -337,8 +333,6 @@ public class HttpClient {
                 }
             } catch (Exception e) {
                 System.out.println("Please try again. with valid input");
-                // System.err.println("Error creating account: " + e.getMessage());
-                // e.printStackTrace();
             }
         }
     }
@@ -353,11 +347,10 @@ public class HttpClient {
             return Account.AccountType.CHECKING;
         }
         String typeStr = scanner.nextLine().trim().toUpperCase();
-        Account.AccountType type = Account.AccountType.valueOf(typeStr);
-        return type;
+        return Account.AccountType.valueOf(typeStr);
     }
 
-    private static void deposit(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+    private static void deposit(BankApiClient client, Scanner scanner) {
         System.out.println("Making a deposit...");
         try {
             System.out.print("Enter account ID: ");
@@ -365,9 +358,11 @@ public class HttpClient {
             System.out.print("Enter amount to deposit: ");
             BigDecimal amount = new BigDecimal(scanner.nextLine().trim());
 
-            com.bank.server.dto.TransactionRequest transactionRequest = new com.bank.server.dto.TransactionRequest(
-                    accountId, amount);
-            JsonNode jsonBody = Json.toJson(transactionRequest);
+            // Create transaction request directly as JSON
+            ObjectNode transactionRequest = Json.defaultObjectMapper().createObjectNode();
+            transactionRequest.put("accountId", accountId);
+            transactionRequest.put("amount", amount.toString());
+            JsonNode jsonBody = transactionRequest;
 
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts/" + accountId + "/deposit",
                     jsonBody);
@@ -387,11 +382,10 @@ public class HttpClient {
             System.out.println("Invalid input. Please enter valid numbers.");
         } catch (Exception e) {
             System.err.println("Error making deposit: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    private static void withdraw(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+    private static void withdraw(BankApiClient client, Scanner scanner) {
         System.out.println("Making a withdrawal...");
         try {
             System.out.print("Enter account ID: ");
@@ -400,9 +394,11 @@ public class HttpClient {
             System.out.print("Enter amount to withdraw: ");
             BigDecimal amount = new BigDecimal(scanner.nextLine().trim());
 
-            com.bank.server.dto.TransactionRequest transactionRequest = new com.bank.server.dto.TransactionRequest(
-                    accountId, amount);
-            JsonNode jsonBody = Json.toJson(transactionRequest);
+            // Create transaction request directly as JSON
+            ObjectNode transactionRequest = Json.defaultObjectMapper().createObjectNode();
+            transactionRequest.put("accountId", accountId);
+            transactionRequest.put("amount", amount.toString());
+            JsonNode jsonBody = transactionRequest;
 
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts/" + accountId + "/withdraw",
                     jsonBody);
@@ -426,11 +422,10 @@ public class HttpClient {
             System.out.println("Invalid input. Please enter valid numbers.");
         } catch (Exception e) {
             System.err.println("Error making withdrawal: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    private static void transfer(BankApiClient client, CliObjectMapper mapper, Scanner scanner, User user) {
+    private static void transfer(BankApiClient client, Scanner scanner) {
         System.out.println("Making a transfer...");
         try {
             System.out.print("Enter source account ID: ");
@@ -440,9 +435,12 @@ public class HttpClient {
             System.out.print("Enter amount to transfer: ");
             BigDecimal amount = new BigDecimal(scanner.nextLine().trim());
 
-            com.bank.server.dto.TransferRequest transferRequest = new com.bank.server.dto.TransferRequest(fromAccountId,
-                    toAccountId, amount);
-            JsonNode jsonBody = Json.toJson(transferRequest);
+            // Create transfer request directly as JSON
+            ObjectNode transferRequest = Json.defaultObjectMapper().createObjectNode();
+            transferRequest.put("fromAccountId", fromAccountId);
+            transferRequest.put("toAccountId", toAccountId);
+            transferRequest.put("amount", amount.toString());
+            JsonNode jsonBody = transferRequest;
 
             CompletableFuture<HttpResponse<String>> futureResponse = client
                     .post("/accounts/" + fromAccountId + "/transfer", jsonBody);
@@ -466,7 +464,6 @@ public class HttpClient {
             System.out.println("Invalid input. Please enter valid numbers.");
         } catch (Exception e) {
             System.err.println("Error making transfer: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -488,7 +485,6 @@ public class HttpClient {
             }
         } catch (Exception e) {
             System.err.println("Error retrieving users: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }

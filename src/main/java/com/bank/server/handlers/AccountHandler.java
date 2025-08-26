@@ -7,47 +7,40 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bank.business.entities.Account;
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
-import com.bank.server.dto.AccountResponse;
-import com.bank.server.dto.CreateAccountRequest;
-import com.bank.server.dto.TransactionRequest;
-import com.bank.server.dto.TransactionResponse;
-import com.bank.server.dto.TransferRequest;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class AccountHandler implements HttpHandler {
     private final AccountService accountService;
-    private final UserService userService;
     private final Executor executor;
     private final Logger LOGGER = LoggerFactory.getLogger(AccountHandler.class);
 
     public AccountHandler(AccountService accountService, UserService userService, Executor executor) {
         this.accountService = accountService;
-        this.userService = userService;
         this.executor = executor;
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange) {
         executor.execute(() -> {
             try {
                 handleRequest(exchange);
             } catch (IOException e) {
-                LOGGER.error("Error handling request: " + e.getMessage(), e);
+                LOGGER.error("Error handling request: {}", e.getMessage(), e);
                 try {
                     sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
                 } catch (IOException ioException) {
-                    LOGGER.error("Failed to send error response: " + ioException.getMessage(), ioException);
+                    LOGGER.error("Failed to send error response: {}", ioException.getMessage(), ioException);
                 }
             }
         });
@@ -57,7 +50,7 @@ public class AccountHandler implements HttpHandler {
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
 
-        LOGGER.debug("REQUEST {} @ {}", method, path);
+        LOGGER.debug("REQUEST {}@{}", method, path);
 
         try {
             if ("POST".equals(method) && "/accounts".equals(path)) {
@@ -78,7 +71,7 @@ public class AccountHandler implements HttpHandler {
                 sendResponse(exchange, 404, "{\"error\": \"Not Found\"}");
             }
         } catch (Exception e) {
-            LOGGER.error("Error processing request: " + e.getMessage(), e);
+            LOGGER.error("Error processing request: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -87,31 +80,28 @@ public class AccountHandler implements HttpHandler {
         try {
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
-            CreateAccountRequest request = Json.fromJson(jsonNode, CreateAccountRequest.class);
+
+            // Extract values directly from JSON
+            Long userId = jsonNode.get("userId").asLong();
+            BigDecimal initialBalance = new BigDecimal(jsonNode.get("initialBalance").asText());
+            Account.AccountType type = Account.AccountType.valueOf(jsonNode.get("type").asText());
 
             // Create account - account number will be auto-generated if not provided
             Account account;
-            if (request.hasAccountNumber()) {
-                account = accountService.createAccount(
-                        request.getUserId(),
-                        request.getAccountNumber(),
-                        request.getInitialBalance(),
-                        request.getType());
+            if (jsonNode.has("accountNumber") && !jsonNode.get("accountNumber").isNull()) {
+                String accountNumber = jsonNode.get("accountNumber").asText();
+                account = accountService.createAccount(userId, accountNumber, initialBalance, type);
             } else {
-                account = accountService.createAccount(
-                        request.getUserId(),
-                        request.getInitialBalance(),
-                        request.getType());
+                account = accountService.createAccount(userId, initialBalance, type);
             }
 
-            AccountResponse response = new AccountResponse(account);
-            String jsonResponse = Json.stringify(Json.toJson(response));
+            String jsonResponse = Json.stringify(Json.toJson(account));
             sendResponse(exchange, 201, jsonResponse);
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error creating account: " + e.getMessage(), e);
+            LOGGER.error("Error creating account: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -129,18 +119,16 @@ public class AccountHandler implements HttpHandler {
             Optional<Account> accountOptional = accountService.getAccountById(accountId);
 
             if (accountOptional.isPresent()) {
-                Account account = accountOptional.get();
-                AccountResponse response = new AccountResponse(account);
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                String jsonResponse = Json.stringify(Json.toJson(accountOptional.get()));
                 sendResponse(exchange, 200, jsonResponse);
             } else {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
             }
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid account ID format: " + e.getMessage(), e);
+            LOGGER.error("Invalid account ID format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error getting account: " + e.getMessage(), e);
+            LOGGER.error("Error getting account: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -148,17 +136,13 @@ public class AccountHandler implements HttpHandler {
     private void handleGetAllAccounts(HttpExchange exchange) throws IOException {
         try {
             List<Account> accounts = accountService.getAllAccounts();
-            List<AccountResponse> accountResponses = accounts.stream()
-                    .map(AccountResponse::new)
-                    .collect(Collectors.toList());
-
-            String jsonResponse = Json.stringify(Json.toJson(accountResponses));
+            String jsonResponse = Json.stringify(Json.toJson(accounts));
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error getting accounts: " + e.getMessage(), e);
+            LOGGER.error("Error getting accounts: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -175,7 +159,7 @@ public class AccountHandler implements HttpHandler {
             } else {
                 // Try to extract from request body
                 String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                if (requestBody != null && !requestBody.isEmpty()) {
+                if (!requestBody.isEmpty()) {
                     JsonNode jsonNode = Json.parse(requestBody);
                     if (jsonNode.has("userId")) {
                         userId = jsonNode.get("userId").asLong();
@@ -189,17 +173,13 @@ public class AccountHandler implements HttpHandler {
             }
 
             List<Account> accounts = accountService.getAccountsByUserId(userId);
-            List<AccountResponse> accountResponses = accounts.stream()
-                    .map(AccountResponse::new)
-                    .collect(Collectors.toList());
-
-            String jsonResponse = Json.stringify(Json.toJson(accountResponses));
+            String jsonResponse = Json.stringify(Json.toJson(accounts));
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error getting accounts: " + e.getMessage(), e);
+            LOGGER.error("Error getting accounts: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -217,37 +197,37 @@ public class AccountHandler implements HttpHandler {
 
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
-            TransactionRequest request = Json.fromJson(jsonNode, TransactionRequest.class);
+            BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
 
-            if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+            if (amount.compareTo(BigDecimal.ZERO) < 0) {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Negative Deposit Not Possible\"}");
                 return;
             }
 
             Optional<Account> accountOptional = accountService.getAccountById(accountId);
-            if (!accountOptional.isPresent()) {
+            if (accountOptional.isEmpty()) {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
             Account account = accountOptional.get();
 
-            account.addAmount(request.getAmount());
+            account.addAmount(amount);
 
             // Update the account in the service
             accountService.updateAccount(account);
 
-            TransactionResponse response = new TransactionResponse(
-                    true,
-                    "Deposit successful",
-                    account.getBalance());
+            ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+            response.put("success", true);
+            response.put("message", "Deposit successful");
+            response.put("balance", account.getBalance().toString());
 
-            String jsonResponse = Json.stringify(Json.toJson(response));
+            String jsonResponse = Json.stringify(response);
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid account ID or amount format: " + e.getMessage(), e);
+            LOGGER.error("Invalid account ID or amount format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error processing deposit: " + e.getMessage(), e);
+            LOGGER.error("Error processing deposit: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -265,42 +245,37 @@ public class AccountHandler implements HttpHandler {
 
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
-            TransactionRequest request = Json.fromJson(jsonNode, TransactionRequest.class);
+            BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
 
             Optional<Account> accountOptional = accountService.getAccountById(accountId);
-            if (!accountOptional.isPresent()) {
+            if (accountOptional.isEmpty()) {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
 
             Account account = accountOptional.get();
-            boolean success = account.withdrawAmount(request.getAmount());
+            boolean success = account.withdrawAmount(amount);
+
+            ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+            response.put("success", success);
+            response.put("balance", account.getBalance().toString());
 
             if (success) {
+                response.put("message", "Withdrawal successful");
                 // Update the account in the service
                 accountService.updateAccount(account);
-
-                TransactionResponse response = new TransactionResponse(
-                        true,
-                        "Withdrawal successful",
-                        account.getBalance());
-
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                String jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else {
-                TransactionResponse response = new TransactionResponse(
-                        false,
-                        "Insufficient funds",
-                        account.getBalance());
-
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                response.put("message", "Insufficient funds");
+                String jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid account ID or amount format: " + e.getMessage(), e);
+            LOGGER.error("Invalid account ID or amount format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error processing withdrawal: " + e.getMessage(), e);
+            LOGGER.error("Error processing withdrawal: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -314,63 +289,57 @@ public class AccountHandler implements HttpHandler {
                 return;
             }
 
-            Long fromAccountId = Long.parseLong(parts[2]);
-
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+            LOGGER.debug("GOT requestBody: {}", requestBody);
             JsonNode jsonNode = Json.parse(requestBody);
-            TransferRequest request = Json.fromJson(jsonNode, TransferRequest.class);
-            if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+
+            Long fromAccountId = Long.parseLong(parts[2]);
+            Long toAccountId = jsonNode.get("toAccountId").asLong();
+            BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
+
+            if (amount.compareTo(BigDecimal.ZERO) < 0) {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Negative Transfer Amount is Not Allowed\"}");
                 return;
             }
 
-            // Verify that the source account exists
             Optional<Account> fromAccountOptional = accountService.getAccountById(fromAccountId);
-            if (!fromAccountOptional.isPresent()) {
+            if (fromAccountOptional.isEmpty()) {
                 sendResponse(exchange, 404, "{\"error\": \"Source account not found\"}");
                 return;
             }
 
             // Verify that the destination account exists
-            Optional<Account> toAccountOptional = accountService.getAccountById(request.getToAccountId());
-            if (!toAccountOptional.isPresent()) {
+            Optional<Account> toAccountOptional = accountService.getAccountById(toAccountId);
+            if (toAccountOptional.isEmpty()) {
                 sendResponse(exchange, 400, "{\"error\": \"Destination account not found\"}");
                 return;
             }
 
-            Account fromAccount = fromAccountOptional.get();
-            Account toAccount = toAccountOptional.get();
+            // Perform the atomic transfer
+            boolean success = accountService.transferAmount(fromAccountId, toAccountId, amount);
 
-            // Perform the transfer
-            boolean success = fromAccount.withdrawAmount(request.getAmount());
+            ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+            response.put("success", success);
+
             if (success) {
-                toAccount.addAmount(request.getAmount());
-
-                // Update both accounts in the service
-                accountService.updateAccount(fromAccount);
-                accountService.updateAccount(toAccount);
-
-                TransactionResponse response = new TransactionResponse(
-                        true,
-                        "Transfer successful",
-                        fromAccount.getBalance());
-
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                Account updatedFromAccount = accountService.getAccountById(fromAccountId).orElseThrow();
+                response.put("message", "Transfer successful");
+                response.put("balance", updatedFromAccount.getBalance().toString());
+                String jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else {
-                TransactionResponse response = new TransactionResponse(
-                        false,
-                        "Insufficient funds",
-                        fromAccount.getBalance());
-
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                Account fromAccount = fromAccountOptional.get();
+                response.put("message", "Insufficient funds or account not found");
+                response.put("balance", fromAccount.getBalance().toString());
+                String jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid account ID or amount format: " + e.getMessage(), e);
+            LOGGER.error("Invalid account ID or amount format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error processing transfer: " + e.getMessage(), e);
+            LOGGER.error("Error processing transfer: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }

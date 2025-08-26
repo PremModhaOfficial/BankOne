@@ -32,7 +32,6 @@ class UserServiceTest {
         // Arrange
         String username = "testuser";
         String email = "test@example.com";
-        String hashedPassword = "hashedPass123";
         User savedUser = new User(username, email, false); // Explicitly non-admin
         savedUser.setId(1L); // Simulate ID assignment by repo
 
@@ -59,7 +58,6 @@ class UserServiceTest {
         // Arrange
         String username = "adminuser";
         String email = "admin@example.com";
-        String hashedPassword = "hashedAdminPass123";
         boolean isAdmin = true;
         User savedUser = new User(username, email, isAdmin);
         savedUser.setId(1L); // Simulate ID assignment by repo

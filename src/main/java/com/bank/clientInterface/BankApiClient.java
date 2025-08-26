@@ -1,7 +1,6 @@
 package com.bank.clientInterface;
 
 import com.bank.business.entities.User;
-import com.bank.business.entities.dto.UserCreationRequest;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -41,49 +40,23 @@ public class BankApiClient {
     }
 
     /**
-     * Registers a new user with the server using a UserCreationRequest DTO.
-     *
-     * @param userRequest The UserCreationRequest object containing registration
-     *                    details.
-     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
-     *         response.
-     */
-    public CompletableFuture<HttpResponse<String>> registerUser(UserCreationRequest userRequest) {
-        String url = baseUrl + "/users";
-        try {
-            String jsonBody = Json.stringify(Json.toJson(userRequest));
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
-            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Exception e) {
-            CompletableFuture<HttpResponse<String>> failedFuture = new CompletableFuture<>();
-            failedFuture.completeExceptionally(e);
-            return failedFuture;
-        }
-    }
-
-    /**
-     * Logs in a user with username/email and password.
+     * Logs in a user with username/email and email.
      * This is a placeholder implementation. You'll need to implement the actual
      * login logic on the server side and return a token.
      *
      * @param identifier The username or email.
-     * @param password   The plain text password.
+     * @param email   The plain text email.
      * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
      *         response.
      *         The response body should contain the authentication token.
      */
-    public CompletableFuture<HttpResponse<String>> login(String identifier, String password) {
+    public CompletableFuture<HttpResponse<String>> login(String identifier, String email) {
         String url = baseUrl + "/login";
         try {
             // Create a simple form-encoded body for login
             Map<String, String> formData = new HashMap<>();
             formData.put("identifier", identifier); // Could be username or email
-            formData.put("password", password);
+            formData.put("email", email);
 
             String formDataString = encodeFormData(formData);
 
@@ -102,12 +75,6 @@ public class BankApiClient {
     }
 
     /**
-     * Gets the authentication token.
-     *
-     * @return The authentication token, or null if not logged in.
-     */
-
-    /**
      * Encodes a map of form data into a URL-encoded string.
      *
      * @param data The map of form data.
@@ -116,7 +83,7 @@ public class BankApiClient {
     private String encodeFormData(Map<String, String> data) {
         StringBuilder encodedData = new StringBuilder();
         for (Map.Entry<String, String> entry : data.entrySet()) {
-            if (encodedData.length() > 0) {
+            if (!encodedData.isEmpty()) {
                 encodedData.append("&");
             }
             encodedData.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
@@ -134,7 +101,7 @@ public class BankApiClient {
      * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
      *         response.
      */
-    public CompletableFuture<HttpResponse<String>> get(String endpoint) {
+    public CompletableFuture<HttpResponse<String>> get(String endpoint) /**/{
         String url = baseUrl + endpoint;
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))

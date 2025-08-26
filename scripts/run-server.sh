@@ -19,6 +19,6 @@ mkdir -p logs
 # Run the server
 echo "Running the server..."
 echo "Logs will be written to the 'logs/' directory"
-mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
+mvn exec:java -Dexec.mainClass="com.bank.Main"
 
 echo "Server stopped."

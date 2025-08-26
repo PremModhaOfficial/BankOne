@@ -2,13 +2,10 @@ package com.bank.server.handlers;
 
 import com.bank.business.entities.User;
 import com.bank.business.services.UserService;
-import com.bank.business.entities.dto.UserCreationRequest;
-import com.bank.server.dto.LoginRequest;
-import com.bank.server.dto.LoginResponse;
-import com.bank.server.dto.UserResponse;
 
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -21,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 
 public class UserHandler implements HttpHandler {
     private final Logger LOGGER = LoggerFactory.getLogger(UserHandler.class);
@@ -34,16 +30,16 @@ public class UserHandler implements HttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange) {
         executor.execute(() -> {
             try {
                 handleRequest(exchange);
             } catch (IOException e) {
-                LOGGER.error("Error handling request: " + e.getMessage(), e);
+                LOGGER.error("Error User handling request: {}", e.getMessage(), e);
                 try {
                     sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
                 } catch (IOException ioException) {
-                    LOGGER.error("Failed to send error response: " + ioException.getMessage(), ioException);
+                    LOGGER.error("Failed to user send error response: {}", ioException.getMessage(), ioException);
                 }
             }
         });
@@ -66,7 +62,7 @@ public class UserHandler implements HttpHandler {
                 sendResponse(exchange, 404, "{\"error\": \"Not Found\"}");
             }
         } catch (Exception e) {
-            LOGGER.error("Error processing request: " + e.getMessage(), e);
+            LOGGER.error("Error processing request: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -75,16 +71,18 @@ public class UserHandler implements HttpHandler {
         try {
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
-            UserCreationRequest request = Json.fromJson(jsonNode, UserCreationRequest.class);
 
-            LOGGER.info("Requested Creating user: " + request);
+            LOGGER.debug("JSON is {}", requestBody);
+            User request = new User(jsonNode.get("username").asText(), jsonNode.get("email").asText());
+
+            LOGGER.info("Requested Creating user: {}", request);
 
             // Create user - the service will handle duplicates appropriately
             User user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
             String jsonResponse = Json.stringify(Json.toJson(user));
             sendResponse(exchange, 201, jsonResponse);
         } catch (Exception e) {
-            LOGGER.error("Error creating user: " + e.getMessage(), e);
+            LOGGER.error("Error creating user: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: " + e.getMessage() + "\"}");
         }
     }
@@ -93,29 +91,29 @@ public class UserHandler implements HttpHandler {
         try {
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JsonNode jsonNode = Json.parse(requestBody);
-            LoginRequest request = Json.fromJson(jsonNode, LoginRequest.class);
+            String userId = jsonNode.get("id").asText();
 
             // In a real app, you'd verify the password against the hashed version
-            Optional<User> userOptional = userService.getUserByUsername(request.getIdentifier());
-            if (!userOptional.isPresent()) {
-                userOptional = userService.getUserByEmail(request.getIdentifier());
+            Optional<User> userOptional = userService.getUserByUsername(userId);
+            if (userOptional.isEmpty()) {
+                userOptional = userService.getUserByEmail(userId);
             }
 
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
                 // Generate a simple session token (user ID:email:password for this simplified
                 // version)
-                String token = user.getId().toString() + ":" + user.getEmail() + ":" + request.getPassword();
-                UserResponse userResponse = new UserResponse(user);
-                LoginResponse response = new LoginResponse(token, userResponse);
+                ObjectNode userNode = Json.toJson(user).deepCopy();
+                ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+                response.set("user", userNode);
 
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                String jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else {
                 sendResponse(exchange, 401, "{\"error\": \"User not found\"}");
             }
         } catch (Exception e) {
-            LOGGER.error("Error during login: " + e.getMessage(), e);
+            LOGGER.error("Error during login: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Bad Request: " + e.getMessage() + "\"}");
         }
     }
@@ -133,17 +131,16 @@ public class UserHandler implements HttpHandler {
             Optional<User> userOptional = userService.getUserById(userId);
 
             if (userOptional.isPresent()) {
-                UserResponse response = new UserResponse(userOptional.get());
-                String jsonResponse = Json.stringify(Json.toJson(response));
+                String jsonResponse = Json.stringify(Json.toJson(userOptional.get()));
                 sendResponse(exchange, 200, jsonResponse);
             } else {
                 sendResponse(exchange, 404, "{\"error\": \"User not found\"}");
             }
         } catch (NumberFormatException e) {
-            LOGGER.error("Invalid user ID format: " + e.getMessage(), e);
+            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
             sendResponse(exchange, 400, "{\"error\": \"Invalid user ID format\"}");
         } catch (Exception e) {
-            LOGGER.error("Error getting user: " + e.getMessage(), e);
+            LOGGER.error("Error getting user: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }
@@ -153,14 +150,10 @@ public class UserHandler implements HttpHandler {
             // Check for admin authorization (simplified)
             // In a real app, you'd check the JWT token
             List<User> users = userService.getAllUsers();
-            List<UserResponse> userResponses = users.stream()
-                    .map(UserResponse::new)
-                    .collect(Collectors.toList());
-
-            String jsonResponse = Json.stringify(Json.toJson(userResponses));
+            String jsonResponse = Json.stringify(Json.toJson(users));
             sendResponse(exchange, 200, jsonResponse);
         } catch (Exception e) {
-            LOGGER.error("Error getting all users: " + e.getMessage(), e);
+            LOGGER.error("Error getting all users: {}", e.getMessage(), e);
             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
         }
     }

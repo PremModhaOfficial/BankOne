@@ -3,6 +3,8 @@ package com.bank.business.entities;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Account {
     private Long id;
@@ -10,6 +12,12 @@ public class Account {
     private String accountNumber;
     private AtomicReference<BigDecimal> balance;
     private AccountType type; // e.g., SAVINGS, CHECKING
+
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+    public ReadWriteLock getReadWriteLock() {
+        return readWriteLock;
+    }
 
     public enum AccountType {
         SAVINGS, CHECKING

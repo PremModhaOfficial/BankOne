@@ -38,7 +38,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.bank.HttpServer</mainClass>
+                  <mainClass>com.bank.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>

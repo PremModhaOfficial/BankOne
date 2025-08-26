@@ -1,6 +1,8 @@
 package com.bank.server.config;
 
-public class HttpConfigurationException extends Exception {
+import java.io.IOException;
+
+public class HttpConfigurationException extends IOException {
     public HttpConfigurationException(String message) {
         super(message);
     }

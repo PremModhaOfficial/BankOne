@@ -156,4 +156,23 @@ class AccountServiceTest {
         // Assert
         verify(accountRepository, times(1)).deleteById(accountId);
     }
+
+    @Test
+    void testGetAllAccounts() {
+        // Arrange
+        Account acc1 = new Account(1L, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
+        acc1.setId(1L);
+        Account acc2 = new Account(2L, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
+        acc2.setId(2L);
+        List<Account> mockAccounts = Arrays.asList(acc1, acc2);
+
+        when(accountRepository.getAll()).thenReturn(mockAccounts);
+
+        // Act
+        List<Account> result = accountService.getAllAccounts();
+
+        // Assert
+        assertEquals(mockAccounts, result);
+        verify(accountRepository, times(1)).getAll();
+    }
 }

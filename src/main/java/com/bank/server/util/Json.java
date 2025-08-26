@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.bank.server.config.HttpConfigurationException;
 
 public class Json {
-	private static ObjectMapper objectMapper = defaultObjectMapper();
+	private static final ObjectMapper objectMapper = defaultObjectMapper();
 
 	public static ObjectMapper defaultObjectMapper() {
 		ObjectMapper om = new ObjectMapper();

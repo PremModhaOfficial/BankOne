@@ -76,7 +76,7 @@ mvn clean compile
 
 To run the server:
 ```bash
-mvn exec:java -Dexec.mainClass="com.bank.HttpServer"
+mvn exec:java -Dexec.mainClass="com.bank.Main"
 ```
 
 ## Future Improvements

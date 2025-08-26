@@ -14,24 +14,8 @@ public class Configuration {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getWebroot() {
-        return webroot;
-    }
-
-    public void setWebroot(String webroot) {
-        this.webroot = webroot;
-    }
-
     public StorageConfig getStorageConfig() {
         return storageConfig;
-    }
-
-    public void setStorageConfig(StorageConfig storageConfig) {
-        this.storageConfig = storageConfig;
     }
 
     public static class StorageConfig {

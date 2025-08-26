@@ -25,18 +25,18 @@ public class PingHandler implements HttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange) {
         // Submit the actual work to our custom executor
         // This allows us to control the threading model
         executor.execute(() -> {
             try {
                 handleRequest(exchange);
             } catch (IOException e) {
-                LOGGER.error("Error handling request: " + e.getMessage(), e);
+                LOGGER.error("Error handling Ping request: {}", e.getMessage(), e);
                 try {
                     sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
                 } catch (IOException ioException) {
-                    LOGGER.error("Failed to send error response: " + ioException.getMessage(), ioException);
+                    LOGGER.error("Failed to send Ping error response: {}", ioException.getMessage(), ioException);
                 }
             }
         });

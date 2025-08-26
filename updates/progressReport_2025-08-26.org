@@ -1,0 +1,28 @@
+* **Multithreading & Testing**
+  * Created new test suites for concurrent and high-concurrency operations.
+  * Fixed a critical race condition.
+  * Implemented an atomic transfer method with consistent locking.
+  * The system now handles concurrent operations correctly.
+
+---
+
+* **Code Quality**
+  * Removed problematic `Serializer` code.
+  * Fixed compilation errors.
+  * Updated `pom.xml` for Java 21 support.
+  * Verified all functionality.
+
+---
+
+* **Performance**
+  * Used **JConsole** and **VisualVM** for analysis.
+  * Confirmed stable performance under load.
+  * Found no thread leaks.
+
+---
+
+* **Memory Optimization**
+  * Learned about **Shallow Heap vs. Retained Heap**.
+  * Used **VisualVM** and **Eclipse MAT**.
+  * Applied techniques like string deduplication.
+  * Saw measurable improvements in memory use.

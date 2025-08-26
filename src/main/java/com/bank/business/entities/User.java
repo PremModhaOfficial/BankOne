@@ -2,21 +2,13 @@ package com.bank.business.entities;
 
 import java.util.Objects;
 
-import com.bank.business.entities.dto.UserCreationRequest;
-
 public class User {
     private Long id;
     private String username;
     private String email;
     private boolean isAdmin; // New field for Admin role
 
-    public User(UserCreationRequest userRequest) {
-        this.id = null;
-        username = userRequest.getUsername();
-        email = userRequest.getEmail();
-        isAdmin = userRequest.isAdmin();
-
-        this.id = ((long) this.hashCode());
+    public User() {
     }
 
     @Override
