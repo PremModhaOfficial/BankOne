@@ -2,17 +2,20 @@ package com.bank.business.entities;
 
 import java.util.Objects;
 
-public class User {
+public class User
+{
     private Long id;
     private String username;
     private String email;
     private boolean isAdmin; // New field for Admin role
 
-    public User() {
+    public User()
+    {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (o == null || getClass() != o.getClass())
             return false;
         User user = (User) o;
@@ -20,15 +23,18 @@ public class User {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(username, email, isAdmin);
     }
 
-    public User(String username, String email) {
+    public User(String username, String email)
+    {
         this(username, email, false); // Default to non-admin
     }
 
-    public User(String username, String email, boolean isAdmin) {
+    public User(String username, String email, boolean isAdmin)
+    {
         this.username = username;
         this.email = email;
         this.isAdmin = isAdmin;
@@ -36,7 +42,8 @@ public class User {
         this.id = ((long) this.hashCode());
     }
 
-    public User(String username, String email, long id, boolean admin) {
+    public User(String username, String email, long id, boolean admin)
+    {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -44,45 +51,49 @@ public class User {
     }
 
     // Getters and Setters
-    public Long getId() {
+    public Long getId()
+    {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Long id)
+    {
         this.id = id;
     }
 
-    public String getUsername() {
+    public String getUsername()
+    {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(String username)
+    {
         this.username = username;
     }
 
-    public String getEmail() {
+    public String getEmail()
+    {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(String email)
+    {
         this.email = email;
     }
 
-    public boolean isAdmin() {
+    public boolean isAdmin()
+    {
         return isAdmin;
     }
 
-    public void setAdmin(boolean admin) {
+    public void setAdmin(boolean admin)
+    {
         isAdmin = admin;
     }
 
     @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", isAdmin=" + isAdmin +
-                '}';
+    public String toString()
+    {
+        return "User{" + "id=" + id + ", username='" + username + '\'' + ", email='" + email + '\'' + ", isAdmin=" + isAdmin + '}';
     }
 }

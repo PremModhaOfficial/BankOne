@@ -72,17 +72,20 @@ public class Main
         String storageType = config.getStorageConfig().getType();
         repositories = switch (storageType.toLowerCase())
         {
-            case "in-memory" -> {
+            case "in-memory" ->
+            {
                 LOGGER.info("Using In-Memory storage.");
                 yield new Repositories(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
-            case "database" -> {
+            case "database" ->
+            {
                 // Placeholder for database setup.
                 LOGGER.info("Database storage selected. (Implementation is a placeholder)");
                 throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
             }
-            default -> {
+            default ->
+            {
                 LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
                 yield new Repositories(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());

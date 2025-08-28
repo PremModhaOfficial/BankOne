@@ -21,15 +21,16 @@ import com.sun.net.httpserver.HttpServer;
  * A custom HTTP server using com.sun.net.httpserver.HttpServer
  * with configurable multithreading.
  */
-public class CustomHttpServer {
+public class CustomHttpServer
+{
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomHttpServer.class);
 
     private final HttpServer server;
     private final Executor customExecutor;
     private final int threadPoolSize;
 
-    public CustomHttpServer(int port, int threadPoolSize, UserService userService, AccountService accountService)
-            throws IOException {
+    public CustomHttpServer(int port, int threadPoolSize, UserService userService, AccountService accountService) throws IOException
+    {
         this.threadPoolSize = threadPoolSize;
         // Create the server
         server = HttpServer.create(new InetSocketAddress(port), 1000);
@@ -59,13 +60,15 @@ public class CustomHttpServer {
         server.createContext("/default", new PingHandler(server.getExecutor()));
     }
 
-    public void start() {
+    public void start()
+    {
         server.start();
         LOGGER.info("Server started on port {}", server.getAddress().getPort());
         LOGGER.info("Configured thread pool size: {}", threadPoolSize);
     }
 
-    public void stop(int delay) {
+    public void stop(int delay)
+    {
         server.stop(delay);
         LOGGER.info("Server stopped");
     }
@@ -73,11 +76,13 @@ public class CustomHttpServer {
     /**
      * A custom thread factory to name threads for better debugging.
      */
-    static class CustomThreadFactory implements ThreadFactory {
+    static class CustomThreadFactory implements ThreadFactory
+    {
         private final AtomicInteger threadNumber = new AtomicInteger(1);
 
         @Override
-        public Thread newThread(Runnable r) {
+        public Thread newThread(Runnable r)
+        {
             Thread t = new Thread(r, "CustomHttpServer-" + threadNumber.getAndIncrement());
             t.setDaemon(false); // User threads, not daemon threads
             return t;

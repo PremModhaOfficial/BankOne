@@ -11,17 +11,22 @@ import com.bank.business.repositories.UserRepository;
 
 // Placeholder for a future database implementation.
 // This class won't compile until you add actual database logic (e.g., JDBC, JPA).
-public class DatabaseUserRepository implements UserRepository {
+public class DatabaseUserRepository implements UserRepository
+{
 
     private static Connection instance;
     static private final String URL = "jdbc:sqlite:/home/prem-modha/projects/Motadata/BankOne/Bank/bankData.sqlite";
 
-    public static Connection getInstance() {
-        if (instance == null) {
-            try {
+    public static Connection getInstance()
+    {
+        if (instance == null)
+        {
+            try
+            {
                 instance = DriverManager.getConnection(URL);
 
-            } catch (SQLException e) {
+            } catch (SQLException e)
+            {
                 e.printStackTrace();
             }
         }
@@ -29,14 +34,16 @@ public class DatabaseUserRepository implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
+    public User save(User user)
+    {
         instance = getInstance();
         // Placeholder implementation
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public Optional<User> findById(Long id)
+    {
         // Implement database find by ID logic here.
         // For JDBC: Use PreparedStatement to SELECT.
         // For JPA: Use entityManager.find(User.class, id).
@@ -44,7 +51,8 @@ public class DatabaseUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByUsername(String username) {
+    public Optional<User> findByUsername(String username)
+    {
         // Implement database find by username logic here.
         // For JDBC: Use PreparedStatement to SELECT.
         // For JPA: Use JPQL query or Criteria API.
@@ -52,7 +60,8 @@ public class DatabaseUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
+    public Optional<User> findByEmail(String email)
+    {
         // Implement database find by email logic here.
         // For JDBC: Use PreparedStatement to SELECT.
         // For JPA: Use JPQL query or Criteria API.
@@ -60,7 +69,8 @@ public class DatabaseUserRepository implements UserRepository {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id)
+    {
         // Implement database delete by ID logic here.
         // For JDBC: Use PreparedStatement to DELETE.
         // For JPA: Use entityManager.remove() or a JPQL DELETE query.
@@ -68,7 +78,8 @@ public class DatabaseUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> findAll() {
+    public List<User> findAll()
+    {
         // Implement database find all logic here.
         // For JDBC: Use PreparedStatement to SELECT * FROM users.
         // For JPA: Use entityManager.createQuery("SELECT u FROM User u",

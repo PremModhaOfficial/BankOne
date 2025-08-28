@@ -10,17 +10,20 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryAccountRepositoryTest {
+class InMemoryAccountRepositoryTest
+{
 
     private InMemoryAccountRepository accountRepository;
 
     @BeforeEach
-    void setUp() {
+    void setUp()
+    {
         accountRepository = InMemoryAccountRepository.getInstance();
     }
 
     @Test
-    void testSave_NewAccount_AssignsId() {
+    void testSave_NewAccount_AssignsId()
+    {
         // Arrange
         Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
 
@@ -35,7 +38,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testSave_ExistingAccount_Updates() {
+    void testSave_ExistingAccount_Updates()
+    {
         // Arrange
         var initialBalance = BigDecimal.TEN;
         Account account = new Account(1L, "ACC123", initialBalance, Account.AccountType.SAVINGS);
@@ -50,11 +54,12 @@ class InMemoryAccountRepositoryTest {
         // Assert
         assertSame(savedAccount, updatedAccount);
         assertEquals(assignedId, updatedAccount.getId());
-        assertEquals(additionalBalance.add(initialBalance).compareTo(updatedAccount.getBalance()),0);
+        assertEquals(additionalBalance.add(initialBalance).compareTo(updatedAccount.getBalance()), 0);
     }
 
     @Test
-    void testFindById_AccountExists() {
+    void testFindById_AccountExists()
+    {
         // Arrange
         Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
         Account savedAccount = accountRepository.save(account);
@@ -69,7 +74,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testFindById_AccountNotExists() {
+    void testFindById_AccountNotExists()
+    {
         // Arrange
         Long nonExistentId = 999L;
 
@@ -81,7 +87,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testFindByUserId() {
+    void testFindByUserId()
+    {
         // Arrange
         Long userId1 = 100000000L;
         Long userId2 = 200000000L;
@@ -103,7 +110,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testFindByAccountNumber_AccountExists() {
+    void testFindByAccountNumber_AccountExists()
+    {
         // Arrange
         String accountNumber = "UNIQUE_ACC_NUM";
         Account account = new Account(1L, accountNumber, BigDecimal.ZERO, Account.AccountType.CHECKING);
@@ -118,7 +126,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testFindByAccountNumber_AccountNotExists() {
+    void testFindByAccountNumber_AccountNotExists()
+    {
         // Arrange
         String nonExistentAccountNumber = "NON_EXISTENT";
 
@@ -130,7 +139,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testDeleteById_AccountExists() {
+    void testDeleteById_AccountExists()
+    {
         // Arrange
         Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
         Account savedAccount = accountRepository.save(account);
@@ -144,7 +154,8 @@ class InMemoryAccountRepositoryTest {
     }
 
     @Test
-    void testDeleteById_AccountNotExists() {
+    void testDeleteById_AccountNotExists()
+    {
         // Arrange
         Long nonExistentId = 999L;
 

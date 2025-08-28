@@ -17,7 +17,8 @@ import java.util.Scanner;
  * interaction.
  * It's not a full-fledged serialization framework like Jackson.
  */
-public class CliObjectMapper {
+public class CliObjectMapper
+{
 
     private final Scanner scanner;
 
@@ -26,7 +27,8 @@ public class CliObjectMapper {
      *
      * @param scanner The Scanner to use for reading user input.
      */
-    public CliObjectMapper(Scanner scanner) {
+    public CliObjectMapper(Scanner scanner)
+    {
         this.scanner = scanner;
     }
 
@@ -38,12 +40,15 @@ public class CliObjectMapper {
      * @return A new instance of T populated with user input.
      * @throws RuntimeException If object instantiation fails.
      */
-    public <T> T readValue(Class<T> clazz) {
-        try {
+    public <T> T readValue(Class<T> clazz)
+    {
+        try
+        {
             T instance = clazz.getDeclaredConstructor().newInstance();
             populateObject(instance, clazz);
             return instance;
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             throw new RuntimeException("Failed to create or populate object of type: " + clazz.getSimpleName(), e);
         }
     }
@@ -55,13 +60,16 @@ public class CliObjectMapper {
      * @param clazz    The Class of the object.
      * @param <T>      The type of the object.
      */
-    private <T> void populateObject(T instance, Class<T> clazz) {
+    private <T> void populateObject(T instance, Class<T> clazz)
+    {
 
         System.out.println("Please provide values for the fields of " + clazz.getSimpleName() + ":");
 
         Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields) {
-            if (field.getName().toLowerCase().contains("id")) {
+        for (Field field : fields)
+        {
+            if (field.getName().toLowerCase().contains("id"))
+            {
                 continue;
             }
 
@@ -77,7 +85,8 @@ public class CliObjectMapper {
      * @param field    The field to set.
      * @param <T>      The type of the object.
      */
-    private <T> void promptAndSetField(T instance, Field field) {
+    private <T> void promptAndSetField(T instance, Field field)
+    {
         String fieldName = field.getName();
         Class<?> fieldType = field.getType();
         String fullPrompt = "Enter value for '" + fieldName + "' (" + fieldType.getSimpleName() + "): ";
@@ -85,31 +94,37 @@ public class CliObjectMapper {
         Object value = null;
         boolean validInput = false;
 
-        while (!validInput) {
+        while (!validInput)
+        {
             System.out.print(fullPrompt);
             String input = scanner.nextLine().trim();
 
-            try {
+            try
+            {
                 // Handle null/empty input for non-primitive types
-                if (input.isEmpty() && !fieldType.isPrimitive()) {
+                if (input.isEmpty() && !fieldType.isPrimitive())
+                {
                     value = null;
                     validInput = true;
-                } else {
+                } else
+                {
                     value = parseInput(input, fieldType, field);
                     validInput = true;
                 }
-            } catch (IllegalArgumentException e) {
-                System.out.println("Invalid input type for '" + fieldName + "'. Expected: " + fieldType.getSimpleName()
-                        + ". Please try again.");
-            } catch (Exception e) {
-                System.out.println("An error occurred while processing input for '" + fieldName + "': " + e.getMessage()
-                        + ". Please try again.");
+            } catch (IllegalArgumentException e)
+            {
+                System.out.println("Invalid input type for '" + fieldName + "'. Expected: " + fieldType.getSimpleName() + ". Please try again.");
+            } catch (Exception e)
+            {
+                System.out.println("An error occurred while processing input for '" + fieldName + "': " + e.getMessage() + ". Please try again.");
             }
         }
 
-        try {
+        try
+        {
             field.set(instance, value);
-        } catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e)
+        {
             // This should not happen due to setAccessible(true)
             throw new RuntimeException("Failed to set field: " + fieldName, e);
         }
@@ -126,55 +141,76 @@ public class CliObjectMapper {
      * @throws NumberFormatException    If number parsing fails.
      * @throws IllegalArgumentException If input is invalid for the type.
      */
-    private Object parseInput(String input, Class<?> fieldType, Field field) throws Exception {
-        if (fieldType == String.class) {
+    private Object parseInput(String input, Class<?> fieldType, Field field) throws Exception
+    {
+        if (fieldType == String.class)
+        {
             return input; // Strings are always valid
-        } else if (fieldType == int.class || fieldType == Integer.class) {
+        } else if (fieldType == int.class || fieldType == Integer.class)
+        {
             return Integer.parseInt(input);
-        } else if (fieldType == long.class || fieldType == Long.class) {
+        } else if (fieldType == long.class || fieldType == Long.class)
+        {
             return Long.parseLong(input);
-        } else if (fieldType == double.class || fieldType == Double.class) {
+        } else if (fieldType == double.class || fieldType == Double.class)
+        {
             return Double.parseDouble(input);
-        } else if (fieldType == float.class || fieldType == Float.class) {
+        } else if (fieldType == float.class || fieldType == Float.class)
+        {
             return Float.parseFloat(input);
-        } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+        } else if (fieldType == boolean.class || fieldType == Boolean.class)
+        {
             // Accept "true", "false", "1", "0" (case-insensitive)
-            if ("true".equalsIgnoreCase(input) || "1".equals(input)) {
+            if ("true".equalsIgnoreCase(input) || "1".equals(input))
+            {
                 return true;
-            } else if ("false".equalsIgnoreCase(input) || "0".equals(input)) {
+            } else if ("false".equalsIgnoreCase(input) || "0".equals(input))
+            {
                 return false;
-            } else {
+            } else
+            {
                 throw new IllegalArgumentException("Invalid boolean value");
             }
-        } else if (fieldType == byte.class || fieldType == Byte.class) {
+        } else if (fieldType == byte.class || fieldType == Byte.class)
+        {
             return Byte.parseByte(input);
-        } else if (fieldType == short.class || fieldType == Short.class) {
+        } else if (fieldType == short.class || fieldType == Short.class)
+        {
             return Short.parseShort(input);
-        } else if (fieldType == char.class || fieldType == Character.class) {
-            if (input.length() == 1) {
+        } else if (fieldType == char.class || fieldType == Character.class)
+        {
+            if (input.length() == 1)
+            {
                 return input.charAt(0);
-            } else {
+            } else
+            {
                 throw new IllegalArgumentException("Input must be a single character");
             }
-        } else if (fieldType == BigDecimal.class) {
+        } else if (fieldType == BigDecimal.class)
+        {
             return new BigDecimal(input);
-        } else if (fieldType.isEnum()) {
+        } else if (fieldType.isEnum())
+        {
             // This is a bit more complex for enums
             return parseEnum(input, (Class<? extends Enum>) fieldType);
-        } else if (List.class.isAssignableFrom(fieldType)) {
+        } else if (List.class.isAssignableFrom(fieldType))
+        {
             // Handle simple list of strings for now
             // For more complex types, we'd need generic type information
             Type genericType = field.getGenericType();
-            if (genericType instanceof ParameterizedType) {
+            if (genericType instanceof ParameterizedType)
+            {
                 Type[] typeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
-                if (typeArguments.length > 0) {
+                if (typeArguments.length > 0)
+                {
                     Class<?> listElementType = (Class<?>) typeArguments[0];
                     return parseList(input, listElementType, field);
                 }
             }
             // Default to List<String>
             return parseList(input, String.class, field);
-        } else {
+        } else
+        {
             // For complex objects, recursively call readValue
             // This requires the class to have a no-arg constructor
             System.out.println("Entering nested object '" + fieldType.getSimpleName() + "':");
@@ -193,20 +229,24 @@ public class CliObjectMapper {
      * @throws IllegalArgumentException If the input does not match any enum
      *                                  constant.
      */
-    private <E extends Enum<E>> E parseEnum(String input, Class<E> enumClass) {
-        try {
+    private <E extends Enum<E>> E parseEnum(String input, Class<E> enumClass)
+    {
+        try
+        {
             return Enum.valueOf(enumClass, input);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e)
+        {
             // Provide a helpful error message listing valid options
             StringBuilder validOptions = new StringBuilder();
-            for (E enumConstant : enumClass.getEnumConstants()) {
-                if (validOptions.length() > 0) {
+            for (E enumConstant : enumClass.getEnumConstants())
+            {
+                if (validOptions.length() > 0)
+                {
                     validOptions.append(", ");
                 }
                 validOptions.append(enumConstant.name());
             }
-            throw new IllegalArgumentException("Invalid value for enum " + enumClass.getSimpleName()
-                    + ". Valid options are: " + validOptions.toString());
+            throw new IllegalArgumentException("Invalid value for enum " + enumClass.getSimpleName() + ". Valid options are: " + validOptions.toString());
         }
     }
 
@@ -221,16 +261,20 @@ public class CliObjectMapper {
      * @return A List of the specified element type.
      * @throws Exception If parsing fails.
      */
-    private List<?> parseList(String input, Class<?> elementType, Field field) throws Exception {
+    private List<?> parseList(String input, Class<?> elementType, Field field) throws Exception
+    {
         List<Object> list = new ArrayList<>();
-        if (input.isEmpty()) {
+        if (input.isEmpty())
+        {
             return list; // Return empty list
         }
 
         String[] items = input.split(",");
-        for (String item : items) {
+        for (String item : items)
+        {
             item = item.trim();
-            if (!item.isEmpty()) {
+            if (!item.isEmpty())
+            {
                 // Recursively parse each item based on its type
                 // This is a simplified approach for basic types
                 Object parsedItem = parseInput(item, elementType, field);

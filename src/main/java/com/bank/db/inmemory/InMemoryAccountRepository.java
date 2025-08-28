@@ -9,20 +9,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-public class InMemoryAccountRepository implements AccountRepository {
+public class InMemoryAccountRepository implements AccountRepository
+{
     private final Map<Long, Account> accountStore = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1); // Simple ID generator
 
-    private InMemoryAccountRepository() {
+    private InMemoryAccountRepository()
+    {
     }
 
-    public static InMemoryAccountRepository getInstance() {
+    public static InMemoryAccountRepository getInstance()
+    {
         return InMemoryAccountRepositorySingleton.INSTANCE;
     }
 
     @Override
-    public Account save(Account account) {
-        if (account.getId() == null) {
+    public Account save(Account account)
+    {
+        if (account.getId() == null)
+        {
             account.setId(idGenerator.getAndIncrement());
         }
         accountStore.put(account.getId(), account);
@@ -30,35 +35,37 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findById(Long id) {
+    public Optional<Account> findById(Long id)
+    {
         return Optional.ofNullable(accountStore.get(id));
     }
 
     @Override
-    public List<Account> findByUserId(Long userId) {
-        return accountStore.values().stream()
-                .filter(account -> userId.equals(account.getUserId()))
-                .collect(Collectors.toList());
+    public List<Account> findByUserId(Long userId)
+    {
+        return accountStore.values().stream().filter(account -> userId.equals(account.getUserId())).collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Account> findByAccountNumber(String accountNumber) {
-        return accountStore.values().stream()
-                .filter(account -> accountNumber.equals(account.getAccountNumber()))
-                .findFirst();
+    public Optional<Account> findByAccountNumber(String accountNumber)
+    {
+        return accountStore.values().stream().filter(account -> accountNumber.equals(account.getAccountNumber())).findFirst();
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id)
+    {
         accountStore.remove(id);
     }
 
     @Override
-    public List<Account> getAll() {
+    public List<Account> getAll()
+    {
         return accountStore.values().stream().toList();
     }
 
-    private static class InMemoryAccountRepositorySingleton {
+    private static class InMemoryAccountRepositorySingleton
+    {
         private static final InMemoryAccountRepository INSTANCE = new InMemoryAccountRepository();
     }
 }

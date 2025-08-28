@@ -136,6 +136,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Spotless Maven Plugin for Java Code Formatting -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <eclipse>
+                            <file>config/javaFormatMotadata.xml</file>
+                        </eclipse>
+                    </java>
+                </configuration>
+                <!--
+                To format the code, run: mvn spotless:apply
+                To check formatting, run: mvn spotless:check
+                -->
+            </plugin>
         </plugins>
     </build>
 

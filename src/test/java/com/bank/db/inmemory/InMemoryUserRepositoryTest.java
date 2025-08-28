@@ -9,17 +9,20 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryUserRepositoryTest {
+class InMemoryUserRepositoryTest
+{
 
     private InMemoryUserRepository userRepository;
 
     @BeforeEach
-    void setUp() {
+    void setUp()
+    {
         userRepository = InMemoryUserRepository.getInstance();
     }
 
     @Test
-    void testSave_NewUser_AssignsId() {
+    void testSave_NewUser_AssignsId()
+    {
         // Arrange
         User user = new User("testuser", "test@example.com");
 
@@ -34,7 +37,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testSave_ExistingUser_Updates() {
+    void testSave_ExistingUser_Updates()
+    {
         // Arrange
         User user = new User("testuser", "test@example.com");
         User savedUser = userRepository.save(user); // ID assigned here
@@ -52,7 +56,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindById_UserExists() {
+    void testFindById_UserExists()
+    {
         // Arrange
         User user = new User("testuser", "test@example.com");
         User savedUser = userRepository.save(user);
@@ -67,7 +72,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindById_UserNotExists() {
+    void testFindById_UserNotExists()
+    {
         // Arrange
         Long nonExistentId = 999L;
 
@@ -79,7 +85,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindByUsername_UserExists() {
+    void testFindByUsername_UserExists()
+    {
         // Arrange
         String username = "uniqueuser" + System.currentTimeMillis(); // Make it unique
         User user = new User(username, "test@example.com");
@@ -94,7 +101,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindByUsername_UserNotExists() {
+    void testFindByUsername_UserNotExists()
+    {
         // Arrange
         String nonExistentUsername = "nonexistent" + System.currentTimeMillis(); // Make it unique
 
@@ -106,7 +114,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindByEmail_UserExists() {
+    void testFindByEmail_UserExists()
+    {
         // Arrange
         String email = "unique" + System.currentTimeMillis() + "@example.com"; // Make it unique
         User user = new User("testuser", email);
@@ -121,7 +130,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindByEmail_UserNotExists() {
+    void testFindByEmail_UserNotExists()
+    {
         // Arrange
         String nonExistentEmail = "nonexistent" + System.currentTimeMillis() + "@example.com"; // Make it unique
 
@@ -133,7 +143,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testDeleteById_UserExists() {
+    void testDeleteById_UserExists()
+    {
         // Arrange
         User user = new User("testuser", "test@example.com");
         User savedUser = userRepository.save(user);
@@ -147,7 +158,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testDeleteById_UserNotExists() {
+    void testDeleteById_UserNotExists()
+    {
         // Arrange
         Long nonExistentId = 999L;
 
@@ -157,10 +169,11 @@ class InMemoryUserRepositoryTest {
 
 
     @Test
-    void testFindAll_WithUsers() {
+    void testFindAll_WithUsers()
+    {
         // Get initial count
         int usersSizeBefore = userRepository.findAll().size();
-        
+
         // Arrange
         String uniqueSuffix = String.valueOf(System.currentTimeMillis());
         User user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
@@ -187,7 +200,8 @@ class InMemoryUserRepositoryTest {
     }
 
     @Test
-    void testFindAll_ReturnsCopy() {
+    void testFindAll_ReturnsCopy()
+    {
         // Arrange
         String uniqueSuffix = String.valueOf(System.currentTimeMillis());
         User user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");

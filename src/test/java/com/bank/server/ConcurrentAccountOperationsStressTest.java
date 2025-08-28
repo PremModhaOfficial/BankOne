@@ -19,36 +19,40 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConcurrentAccountOperationsStressTest {
+public class ConcurrentAccountOperationsStressTest
+{
 
     private UserService userService;
     private AccountService accountService;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp()
+    {
         // Clear any existing data in the singleton instances
         InMemoryUserRepository userRepository = InMemoryUserRepository.getInstance();
         InMemoryAccountRepository accountRepository = InMemoryAccountRepository.getInstance();
-        
+
         // Use reflection to access the internal stores and clear them
-        try {
+        try
+        {
             Field userStoreField = InMemoryUserRepository.class.getDeclaredField("userStore");
             userStoreField.setAccessible(true);
             ((Map) userStoreField.get(userRepository)).clear();
-            
+
             Field accountStoreField = InMemoryAccountRepository.class.getDeclaredField("accountStore");
             accountStoreField.setAccessible(true);
             ((Map) accountStoreField.get(accountRepository)).clear();
-            
+
             // Reset the ID generators
             Field userIdGeneratorField = InMemoryUserRepository.class.getDeclaredField("idGenerator");
             userIdGeneratorField.setAccessible(true);
             ((AtomicLong) userIdGeneratorField.get(userRepository)).set(1);
-            
+
             Field accountIdGeneratorField = InMemoryAccountRepository.class.getDeclaredField("idGenerator");
             accountIdGeneratorField.setAccessible(true);
             ((AtomicLong) accountIdGeneratorField.get(accountRepository)).set(1);
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             throw new RuntimeException("Failed to clear singleton instances", e);
         }
 
@@ -58,7 +62,8 @@ public class ConcurrentAccountOperationsStressTest {
     }
 
     @Test
-    public void testHighConcurrencyDeposits() throws Exception {
+    public void testHighConcurrencyDeposits() throws Exception
+    {
         // Create a user and account
         User user = userService.createUser("testuser", "test@example.com");
         Long userId = user.getId();
@@ -70,13 +75,11 @@ public class ConcurrentAccountOperationsStressTest {
         int numberOfDeposits = 1000;
         BigDecimal depositAmount = new BigDecimal("5.0");
 
-        CompletableFuture<?>[] depositFutures = IntStream.range(0, numberOfDeposits)
-                .mapToObj(i -> CompletableFuture.runAsync(() -> {
-                    Account acc = accountService.getAccountById(accountId).orElseThrow();
-                    acc.addAmount(depositAmount);
-                    accountService.updateAccount(acc);
-                }))
-                .toArray(CompletableFuture[]::new);
+        CompletableFuture<?>[] depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
+            Account acc = accountService.getAccountById(accountId).orElseThrow();
+            acc.addAmount(depositAmount);
+            accountService.updateAccount(acc);
+        })).toArray(CompletableFuture[]::new);
 
         // Wait for all deposits to complete
         CompletableFuture.allOf(depositFutures).join();
@@ -84,12 +87,12 @@ public class ConcurrentAccountOperationsStressTest {
         // Verify final balance
         BigDecimal expectedBalance = depositAmount.multiply(new BigDecimal(numberOfDeposits));
         Account updatedAccount = accountService.getAccountById(accountId).orElseThrow();
-        assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()),
-                "Final balance should match expected amount");
+        assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }
 
     @Test
-    public void testHighConcurrencyWithdrawals() throws Exception {
+    public void testHighConcurrencyWithdrawals() throws Exception
+    {
         // Create a user and account with initial balance
         User user = userService.createUser("testuser", "test@example.com");
         Long userId = user.getId();
@@ -102,27 +105,24 @@ public class ConcurrentAccountOperationsStressTest {
         int numberOfWithdrawals = 1000;
         BigDecimal withdrawalAmount = new BigDecimal("5.0");
 
-        CompletableFuture<?>[] withdrawalFutures = IntStream.range(0, numberOfWithdrawals)
-                .mapToObj(i -> CompletableFuture.runAsync(() -> {
-                    Account acc = accountService.getAccountById(accountId).orElseThrow();
-                    acc.withdrawAmount(withdrawalAmount);
-                    accountService.updateAccount(acc);
-                }))
-                .toArray(CompletableFuture[]::new);
+        CompletableFuture<?>[] withdrawalFutures = IntStream.range(0, numberOfWithdrawals).mapToObj(i -> CompletableFuture.runAsync(() -> {
+            Account acc = accountService.getAccountById(accountId).orElseThrow();
+            acc.withdrawAmount(withdrawalAmount);
+            accountService.updateAccount(acc);
+        })).toArray(CompletableFuture[]::new);
 
         // Wait for all withdrawals to complete
         CompletableFuture.allOf(withdrawalFutures).join();
 
         // Verify final balance
-        BigDecimal expectedBalance = initialBalance
-                .subtract(withdrawalAmount.multiply(new BigDecimal(numberOfWithdrawals)));
+        BigDecimal expectedBalance = initialBalance.subtract(withdrawalAmount.multiply(new BigDecimal(numberOfWithdrawals)));
         Account updatedAccount = accountService.getAccountById(accountId).orElseThrow();
-        assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()),
-                "Final balance should match expected amount");
+        assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }
 
     @Test
-    public void testHighConcurrencyTransfers() throws Exception {
+    public void testHighConcurrencyTransfers() throws Exception
+    {
         // Create users and accounts
         User user1 = userService.createUser("user1", "user1@example.com");
         User user2 = userService.createUser("user2", "user2@example.com");
@@ -149,21 +149,19 @@ public class ConcurrentAccountOperationsStressTest {
         latch.await();
 
         // Verify final balances
-        BigDecimal expectedBalance1 = initialBalance1
-                .subtract(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
+        BigDecimal expectedBalance1 = initialBalance1.subtract(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
         BigDecimal expectedBalance2 = initialBalance2.add(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
 
         Account updatedAccount1 = accountService.getAccountById(accountId1).orElseThrow();
         Account updatedAccount2 = accountService.getAccountById(accountId2).orElseThrow();
 
-        assertEquals(0, expectedBalance1.compareTo(updatedAccount1.getBalance()),
-                "Final balance of account1 should match expected amount");
-        assertEquals(0, expectedBalance2.compareTo(updatedAccount2.getBalance()),
-                "Final balance of account2 should match expected amount");
+        assertEquals(0, expectedBalance1.compareTo(updatedAccount1.getBalance()), "Final balance of account1 should match expected amount");
+        assertEquals(0, expectedBalance2.compareTo(updatedAccount2.getBalance()), "Final balance of account2 should match expected amount");
     }
 
     @Test
-    public void testMixedOperations() throws Exception {
+    public void testMixedOperations() throws Exception
+    {
         // Create users and accounts
         User user1 = userService.createUser("user1", "user1@example.com");
         User user2 = userService.createUser("user2", "user2@example.com");
@@ -201,8 +199,7 @@ public class ConcurrentAccountOperationsStressTest {
         // Since we're doing mixed operations that should conserve total balance, verify
         // it
         BigDecimal initialTotal = initialBalance1.add(initialBalance2).add(initialBalance3);
-        BigDecimal finalTotal = updatedAccount1.getBalance().add(updatedAccount2.getBalance())
-                .add(updatedAccount3.getBalance());
+        BigDecimal finalTotal = updatedAccount1.getBalance().add(updatedAccount2.getBalance()).add(updatedAccount3.getBalance());
 
         // Print detailed information for debugging
         System.out.println("Initial balances:");
@@ -218,8 +215,6 @@ public class ConcurrentAccountOperationsStressTest {
         System.out.println("Final total: " + finalTotal);
         System.out.println("Difference: " + initialTotal.subtract(finalTotal));
 
-        assertEquals(0, initialTotal.compareTo(finalTotal),
-                "Total balance should be conserved across all accounts. Difference: "
-                        + initialTotal.subtract(finalTotal));
+        assertEquals(0, initialTotal.compareTo(finalTotal), "Total balance should be conserved across all accounts. Difference: " + initialTotal.subtract(finalTotal));
     }
 }

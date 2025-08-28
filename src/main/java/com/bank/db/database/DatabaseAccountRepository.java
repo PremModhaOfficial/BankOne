@@ -7,35 +7,42 @@ import java.util.Optional;
 
 // Placeholder for a future database implementation.
 // This class won't compile until you add actual database logic (e.g., JDBC, JPA).
-public class DatabaseAccountRepository implements AccountRepository {
+public class DatabaseAccountRepository implements AccountRepository
+{
 
     @Override
-    public Account save(Account account) {
+    public Account save(Account account)
+    {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
 
     @Override
-    public Optional<Account> findById(Long id) {
+    public Optional<Account> findById(Long id)
+    {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
 
     @Override
-    public List<Account> findByUserId(Long userId) {
+    public List<Account> findByUserId(Long userId)
+    {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
 
     @Override
-    public Optional<Account> findByAccountNumber(String accountNumber) {
+    public Optional<Account> findByAccountNumber(String accountNumber)
+    {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id)
+    {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
 
     @Override
-    public List<Account> getAll() {
+    public List<Account> getAll()
+    {
         throw new UnsupportedOperationException("Unimplemented method 'getAll'");
     }
 }

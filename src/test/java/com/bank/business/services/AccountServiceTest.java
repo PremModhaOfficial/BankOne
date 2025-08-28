@@ -15,7 +15,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class AccountServiceTest {
+class AccountServiceTest
+{
 
     @Mock
     private AccountRepository accountRepository;
@@ -23,13 +24,15 @@ class AccountServiceTest {
     private AccountService accountService;
 
     @BeforeEach
-    void setUp() {
+    void setUp()
+    {
         MockitoAnnotations.openMocks(this);
         accountService = new AccountService(accountRepository);
     }
 
     @Test
-    void testCreateAccount() {
+    void testCreateAccount()
+    {
         // Arrange
         Long userId = 1L;
         String accountNumber = "ACC123456";
@@ -58,7 +61,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testGetAccountById_AccountExists() {
+    void testGetAccountById_AccountExists()
+    {
         // Arrange
         Long accountId = 1L;
         Account mockAccount = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.CHECKING);
@@ -76,7 +80,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testGetAccountById_AccountNotFound() {
+    void testGetAccountById_AccountNotFound()
+    {
         // Arrange
         Long accountId = 999L;
         when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
@@ -90,7 +95,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testGetAccountsByUserId() {
+    void testGetAccountsByUserId()
+    {
         // Arrange
         Long userId = 1L;
         Account acc1 = new Account(userId, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
@@ -110,7 +116,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testGetAccountByAccountNumber_AccountExists() {
+    void testGetAccountByAccountNumber_AccountExists()
+    {
         // Arrange
         String accountNumber = "ACC999";
         Account mockAccount = new Account(2L, accountNumber, BigDecimal.ZERO, Account.AccountType.SAVINGS);
@@ -128,7 +135,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testUpdateAccount() {
+    void testUpdateAccount()
+    {
         // Arrange
         Account accountToUpdate = new Account(1L, "OLDACC", BigDecimal.TEN, Account.AccountType.CHECKING);
         accountToUpdate.setId(1L);
@@ -146,7 +154,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testDeleteAccount() {
+    void testDeleteAccount()
+    {
         // Arrange
         Long accountId = 1L;
 
@@ -158,7 +167,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testGetAllAccounts() {
+    void testGetAllAccounts()
+    {
         // Arrange
         Account acc1 = new Account(1L, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
         acc1.setId(1L);

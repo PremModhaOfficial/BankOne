@@ -19,21 +19,25 @@ import java.util.concurrent.CompletableFuture;
  * This client handles basic operations like user registration and login.
  * It also manages authentication tokens for subsequent requests.
  */
-public class BankApiClient {
+public class BankApiClient
+{
 
     private final String baseUrl;
     private final HttpClient httpClient;
     private User LoggedInUser;
 
-    public User getLoggedInUser() {
+    public User getLoggedInUser()
+    {
         return LoggedInUser;
     }
 
-    public void setLoggedInUser(User loggedInUser) {
+    public void setLoggedInUser(User loggedInUser)
+    {
         LoggedInUser = loggedInUser;
     }
 
-    public BankApiClient(String baseUrl) {
+    public BankApiClient(String baseUrl)
+    {
         this.baseUrl = baseUrl;
         this.httpClient = HttpClient.newHttpClient();
 
@@ -45,14 +49,16 @@ public class BankApiClient {
      * login logic on the server side and return a token.
      *
      * @param identifier The username or email.
-     * @param email   The plain text email.
+     * @param email      The plain text email.
      * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
      *         response.
      *         The response body should contain the authentication token.
      */
-    public CompletableFuture<HttpResponse<String>> login(String identifier, String email) {
+    public CompletableFuture<HttpResponse<String>> login(String identifier, String email)
+    {
         String url = baseUrl + "/login";
-        try {
+        try
+        {
             // Create a simple form-encoded body for login
             Map<String, String> formData = new HashMap<>();
             formData.put("identifier", identifier); // Could be username or email
@@ -60,14 +66,11 @@ public class BankApiClient {
 
             String formDataString = encodeFormData(formData);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(HttpRequest.BodyPublishers.ofString(formDataString))
-                    .build();
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(formDataString)).build();
 
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             CompletableFuture<HttpResponse<String>> failedFuture = new CompletableFuture<>();
             failedFuture.completeExceptionally(e);
             return failedFuture;
@@ -80,10 +83,13 @@ public class BankApiClient {
      * @param data The map of form data.
      * @return The URL-encoded string.
      */
-    private String encodeFormData(Map<String, String> data) {
+    private String encodeFormData(Map<String, String> data)
+    {
         StringBuilder encodedData = new StringBuilder();
-        for (Map.Entry<String, String> entry : data.entrySet()) {
-            if (!encodedData.isEmpty()) {
+        for (Map.Entry<String, String> entry : data.entrySet())
+        {
+            if (!encodedData.isEmpty())
+            {
                 encodedData.append("&");
             }
             encodedData.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
@@ -101,11 +107,10 @@ public class BankApiClient {
      * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
      *         response.
      */
-    public CompletableFuture<HttpResponse<String>> get(String endpoint) /**/{
+    public CompletableFuture<HttpResponse<String>> get(String endpoint)
+    /**/ {
         String url = baseUrl + endpoint;
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(URI.create(url)).GET();
 
         HttpRequest request = requestBuilder.build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
@@ -120,16 +125,17 @@ public class BankApiClient {
      * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
      *         response.
      */
-    public CompletableFuture<HttpResponse<String>> post(String endpoint, JsonNode body) {
+    public CompletableFuture<HttpResponse<String>> post(String endpoint, JsonNode body)
+    {
         String url = baseUrl + endpoint;
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "application/json");
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/json");
 
-        try {
+        try
+        {
             String jsonBody = Json.stringify(body);
             requestBuilder.POST(HttpRequest.BodyPublishers.ofString(jsonBody));
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             CompletableFuture<HttpResponse<String>> failedFuture = new CompletableFuture<>();
             failedFuture.completeExceptionally(e);
             return failedFuture;

@@ -14,7 +14,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class UserServiceTest {
+class UserServiceTest
+{
 
     @Mock
     private UserRepository userRepository;
@@ -22,13 +23,15 @@ class UserServiceTest {
     private UserService userService;
 
     @BeforeEach
-    void setUp() {
+    void setUp()
+    {
         MockitoAnnotations.openMocks(this);
         userService = new UserService(userRepository);
     }
 
     @Test
-    void testCreateUser_DefaultNonAdmin() {
+    void testCreateUser_DefaultNonAdmin()
+    {
         // Arrange
         String username = "testuser";
         String email = "test@example.com";
@@ -54,7 +57,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testCreateUser_WithAdminFlag() {
+    void testCreateUser_WithAdminFlag()
+    {
         // Arrange
         String username = "adminuser";
         String email = "admin@example.com";
@@ -81,7 +85,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetUserById_UserExists() {
+    void testGetUserById_UserExists()
+    {
         // Arrange
         Long userId = 1L;
         User mockUser = new User("testuser", "test@example.com");
@@ -99,7 +104,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetUserById_UserNotFound() {
+    void testGetUserById_UserNotFound()
+    {
         // Arrange
         Long userId = 999L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -113,7 +119,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetUserByUsername_UserExists() {
+    void testGetUserByUsername_UserExists()
+    {
         // Arrange
         String username = "testuser";
         User mockUser = new User(username, "test@example.com");
@@ -131,7 +138,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetUserByEmail_UserExists() {
+    void testGetUserByEmail_UserExists()
+    {
         // Arrange
         String email = "test@example.com";
         User mockUser = new User("testuser", email);
@@ -149,7 +157,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetAllUsers() {
+    void testGetAllUsers()
+    {
         // Arrange
         User user1 = new User("user1", "u1@example.com");
         user1.setId(1L);
@@ -168,7 +177,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testUpdateUser() {
+    void testUpdateUser()
+    {
         // Arrange
         User userToUpdate = new User("olduser", "old@example.com");
         userToUpdate.setId(1L);
@@ -186,7 +196,8 @@ class UserServiceTest {
     }
 
     @Test
-    void testDeleteUser() {
+    void testDeleteUser()
+    {
         // Arrange
         Long userId = 1L;
 

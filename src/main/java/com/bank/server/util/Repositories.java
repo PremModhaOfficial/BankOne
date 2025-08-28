@@ -3,15 +3,18 @@ package com.bank.server.util;
 import com.bank.business.repositories.AccountRepository;
 import com.bank.business.repositories.UserRepository;
 
-public record Repositories(UserRepository userRepository, AccountRepository accountRepository) {
+public record Repositories(UserRepository userRepository, AccountRepository accountRepository)
+{
 
     @Override
-    public UserRepository userRepository() {
+    public UserRepository userRepository()
+    {
         return userRepository;
     }
 
     @Override
-    public AccountRepository accountRepository() {
+    public AccountRepository accountRepository()
+    {
         return accountRepository;
 
     }
