@@ -69,10 +69,10 @@ public class BankApiClient
             var request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(formDataString)).build();
 
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Exception e)
+        } catch (Exception exception)
         {
             var failedFuture = new CompletableFuture<HttpResponse<String>>();
-            failedFuture.completeExceptionally(e);
+            failedFuture.completeExceptionally(exception);
             return failedFuture;
         }
     }

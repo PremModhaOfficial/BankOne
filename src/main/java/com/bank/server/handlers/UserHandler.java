@@ -2,7 +2,6 @@ package com.bank.server.handlers;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
@@ -152,7 +151,7 @@ public class UserHandler implements HttpHandler
         try
         {
             // Extract user ID from path
-            String[] parts = exchange.getRequestURI().getPath().split("/");
+            var parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
@@ -187,7 +186,7 @@ public class UserHandler implements HttpHandler
         {
             // Check for admin authorization (simplified)
             // In a real app, you'd check the JWT token
-            List<User> users = userService.getAllUsers();
+            var users = userService.getAllUsers();
             var jsonResponse = Json.stringify(Json.toJson(users));
             sendResponse(exchange, 200, jsonResponse);
         } catch (Exception e)

@@ -24,11 +24,11 @@ class InMemoryAccountRepositoryTest
     void testSave_NewAccount_AssignsId()
     {
         // Arrange
-        Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
+        var account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
 
 
         // Act
-        Account savedAccount = accountRepository.save(account);
+        var savedAccount = accountRepository.save(account);
 
         // Assert
         assertNotNull(savedAccount.getId());
@@ -41,14 +41,14 @@ class InMemoryAccountRepositoryTest
     {
         // Arrange
         var initialBalance = BigDecimal.TEN;
-        Account account = new Account(1L, "ACC123", initialBalance, Account.AccountType.SAVINGS);
-        Account savedAccount = accountRepository.save(account); // ID assigned here
-        Long assignedId = savedAccount.getId();
-        BigDecimal additionalBalance = new BigDecimal("50.00");
+        var account = new Account(1L, "ACC123", initialBalance, Account.AccountType.SAVINGS);
+        var savedAccount = accountRepository.save(account); // ID assigned here
+        var assignedId = savedAccount.getId();
+        var additionalBalance = new BigDecimal("50.00");
         savedAccount.addAmount(additionalBalance);
 
         // Act
-        Account updatedAccount = accountRepository.save(savedAccount);
+        var updatedAccount = accountRepository.save(savedAccount);
 
         // Assert
         assertSame(savedAccount, updatedAccount);
@@ -60,12 +60,12 @@ class InMemoryAccountRepositoryTest
     void testFindById_AccountExists()
     {
         // Arrange
-        Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
-        Account savedAccount = accountRepository.save(account);
-        Long id = savedAccount.getId();
+        var account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
+        var savedAccount = accountRepository.save(account);
+        var id = savedAccount.getId();
 
         // Act
-        Account foundAccount = accountRepository.findById(id);
+        var foundAccount = accountRepository.findById(id);
 
         // Assert
         assertNotNull(foundAccount);
@@ -76,10 +76,10 @@ class InMemoryAccountRepositoryTest
     void testFindById_AccountNotExists()
     {
         // Arrange
-        Long nonExistentId = 999L;
+        var nonExistentId = 999L;
 
         // Act
-        Account foundAccount = accountRepository.findById(nonExistentId);
+        var foundAccount = accountRepository.findById(nonExistentId);
 
         // Assert
         assertNull(foundAccount);
@@ -89,17 +89,17 @@ class InMemoryAccountRepositoryTest
     void testFindByUserId()
     {
         // Arrange
-        Long userId1 = 100000000L;
-        Long userId2 = 200000000L;
-        Account acc1 = new Account(userId1, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
-        Account acc2 = new Account(userId1, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
-        Account acc3 = new Account(userId2, "ACC3", BigDecimal.ZERO, Account.AccountType.SAVINGS);
+        var userId1 = 100000000L;
+        var userId2 = 200000000L;
+        var acc1 = new Account(userId1, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
+        var acc2 = new Account(userId1, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
+        var acc3 = new Account(userId2, "ACC3", BigDecimal.ZERO, Account.AccountType.SAVINGS);
         accountRepository.save(acc1);
         accountRepository.save(acc2);
         accountRepository.save(acc3);
 
         // Act
-        List<Account> accountsForUser1 = accountRepository.findByUserId(userId1);
+        var accountsForUser1 = accountRepository.findByUserId(userId1);
 
         // Assert
         assertEquals(2, accountsForUser1.size());
@@ -112,12 +112,12 @@ class InMemoryAccountRepositoryTest
     void testFindByAccountNumber_AccountExists()
     {
         // Arrange
-        String accountNumber = "UNIQUE_ACC_NUM";
-        Account account = new Account(1L, accountNumber, BigDecimal.ZERO, Account.AccountType.CHECKING);
+        var accountNumber = "UNIQUE_ACC_NUM";
+        var account = new Account(1L, accountNumber, BigDecimal.ZERO, Account.AccountType.CHECKING);
         accountRepository.save(account);
 
         // Act
-        Account foundAccount = accountRepository.findByAccountNumber(accountNumber);
+        var foundAccount = accountRepository.findByAccountNumber(accountNumber);
 
         // Assert
         assertNotNull(foundAccount);
@@ -128,10 +128,10 @@ class InMemoryAccountRepositoryTest
     void testFindByAccountNumber_AccountNotExists()
     {
         // Arrange
-        String nonExistentAccountNumber = "NON_EXISTENT";
+        var nonExistentAccountNumber = "NON_EXISTENT";
 
         // Act
-        Account foundAccount = accountRepository.findByAccountNumber(nonExistentAccountNumber);
+        var foundAccount = accountRepository.findByAccountNumber(nonExistentAccountNumber);
 
         // Assert
         assertNull(foundAccount);
@@ -141,9 +141,9 @@ class InMemoryAccountRepositoryTest
     void testDeleteById_AccountExists()
     {
         // Arrange
-        Account account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
-        Account savedAccount = accountRepository.save(account);
-        Long id = savedAccount.getId();
+        var account = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.SAVINGS);
+        var savedAccount = accountRepository.save(account);
+        var id = savedAccount.getId();
 
         // Act
         accountRepository.deleteById(id);
@@ -156,7 +156,7 @@ class InMemoryAccountRepositoryTest
     void testDeleteById_AccountNotExists()
     {
         // Arrange
-        Long nonExistentId = 999L;
+        var nonExistentId = 999L;
 
         // Act & Assert (should not throw)
         assertDoesNotThrow(() -> accountRepository.deleteById(nonExistentId));

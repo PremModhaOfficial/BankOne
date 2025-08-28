@@ -32,10 +32,14 @@ public class ConfigurationManager
         return configurationManager;
     }
 
+    /**
+     * @param filePath
+     * @throws HttpConfigurationException
+     */
     public void loadConfiguration(String filePath) throws HttpConfigurationException
     {
 
-        try (FileReader fileReader = new FileReader(filePath))
+        try (var fileReader = new FileReader(filePath))
         {
             var sb = new StringBuffer();
             int i;

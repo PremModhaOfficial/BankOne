@@ -24,10 +24,10 @@ class InMemoryUserRepositoryTest
     void testSave_NewUser_AssignsId()
     {
         // Arrange
-        User user = new User("testuser", "test@example.com");
+        var user = new User("testuser", "test@example.com");
 
         // Act
-        User savedUser = userRepository.save(user);
+        var savedUser = userRepository.save(user);
 
         // Assert
         assertNotNull(savedUser.getId());
@@ -40,14 +40,14 @@ class InMemoryUserRepositoryTest
     void testSave_ExistingUser_Updates()
     {
         // Arrange
-        User user = new User("testuser", "test@example.com");
-        User savedUser = userRepository.save(user); // ID assigned here
-        Long assignedId = savedUser.getId();
-        String updatedEmail = "newemail@example.com";
+        var user = new User("testuser", "test@example.com");
+        var savedUser = userRepository.save(user); // ID assigned here
+        var assignedId = savedUser.getId();
+        var updatedEmail = "newemail@example.com";
         savedUser.setEmail(updatedEmail);
 
         // Act
-        User updatedUser = userRepository.save(savedUser);
+        var updatedUser = userRepository.save(savedUser);
 
         // Assert
         assertSame(savedUser, updatedUser);
@@ -59,12 +59,12 @@ class InMemoryUserRepositoryTest
     void testFindById_UserExists()
     {
         // Arrange
-        User user = new User("testuser", "test@example.com");
-        User savedUser = userRepository.save(user);
-        Long id = savedUser.getId();
+        var user = new User("testuser", "test@example.com");
+        var savedUser = userRepository.save(user);
+        var id = savedUser.getId();
 
         // Act
-        User foundUser = userRepository.findById(id);
+        var foundUser = userRepository.findById(id);
 
         // Assert
         assertTrue(foundUser != null);
@@ -75,10 +75,10 @@ class InMemoryUserRepositoryTest
     void testFindById_UserNotExists()
     {
         // Arrange
-        Long nonExistentId = 999L;
+        var nonExistentId = 999L;
 
         // Act
-        User foundUser = userRepository.findById(nonExistentId);
+        var foundUser = userRepository.findById(nonExistentId);
 
         // Assert
         assertFalse(foundUser != null);
@@ -88,12 +88,12 @@ class InMemoryUserRepositoryTest
     void testFindByUsername_UserExists()
     {
         // Arrange
-        String username = "uniqueuser" + System.currentTimeMillis(); // Make it unique
-        User user = new User(username, "test@example.com");
+        var username = "uniqueuser" + System.currentTimeMillis(); // Make it unique
+        var user = new User(username, "test@example.com");
         userRepository.save(user);
 
         // Act
-        User foundUser = userRepository.findByUsername(username);
+        var foundUser = userRepository.findByUsername(username);
 
         // Assert
         assertTrue(foundUser != null);
@@ -104,10 +104,10 @@ class InMemoryUserRepositoryTest
     void testFindByUsername_UserNotExists()
     {
         // Arrange
-        String nonExistentUsername = "nonexistent" + System.currentTimeMillis(); // Make it unique
+        var nonExistentUsername = "nonexistent" + System.currentTimeMillis(); // Make it unique
 
         // Act
-        User foundUser = userRepository.findByUsername(nonExistentUsername);
+        var foundUser = userRepository.findByUsername(nonExistentUsername);
 
         // Assert
         assertFalse(foundUser != null);
@@ -117,12 +117,12 @@ class InMemoryUserRepositoryTest
     void testFindByEmail_UserExists()
     {
         // Arrange
-        String email = "unique" + System.currentTimeMillis() + "@example.com"; // Make it unique
-        User user = new User("testuser", email);
+        var email = "unique" + System.currentTimeMillis() + "@example.com"; // Make it unique
+        var user = new User("testuser", email);
         userRepository.save(user);
 
         // Act
-        User foundUser = userRepository.findByEmail(email);
+        var foundUser = userRepository.findByEmail(email);
 
         // Assert
         assertTrue(foundUser != null);
@@ -133,10 +133,10 @@ class InMemoryUserRepositoryTest
     void testFindByEmail_UserNotExists()
     {
         // Arrange
-        String nonExistentEmail = "nonexistent" + System.currentTimeMillis() + "@example.com"; // Make it unique
+        var nonExistentEmail = "nonexistent" + System.currentTimeMillis() + "@example.com"; // Make it unique
 
         // Act
-        User foundUser = userRepository.findByEmail(nonExistentEmail);
+        var foundUser = userRepository.findByEmail(nonExistentEmail);
 
         // Assert
         assertFalse(foundUser != null);
@@ -146,9 +146,9 @@ class InMemoryUserRepositoryTest
     void testDeleteById_UserExists()
     {
         // Arrange
-        User user = new User("testuser", "test@example.com");
-        User savedUser = userRepository.save(user);
-        Long id = savedUser.getId();
+        var user = new User("testuser", "test@example.com");
+        var savedUser = userRepository.save(user);
+        var id = savedUser.getId();
 
         // Act
         userRepository.deleteById(id);
@@ -161,7 +161,7 @@ class InMemoryUserRepositoryTest
     void testDeleteById_UserNotExists()
     {
         // Arrange
-        Long nonExistentId = 999L;
+        var nonExistentId = 999L;
 
         // Act & Assert (should not throw)
         assertDoesNotThrow(() -> userRepository.deleteById(nonExistentId));
@@ -175,16 +175,16 @@ class InMemoryUserRepositoryTest
         int usersSizeBefore = userRepository.findAll().size();
 
         // Arrange
-        String uniqueSuffix = String.valueOf(System.currentTimeMillis());
-        User user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
-        User user2 = new User("user2" + uniqueSuffix, "u2" + uniqueSuffix + "@example.com", true); // Admin user
-        User user3 = new User("user3" + uniqueSuffix, "u3" + uniqueSuffix + "@example.com");
+        var uniqueSuffix = String.valueOf(System.currentTimeMillis());
+        var user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
+        var user2 = new User("user2" + uniqueSuffix, "u2" + uniqueSuffix + "@example.com", true); // Admin user
+        var user3 = new User("user3" + uniqueSuffix, "u3" + uniqueSuffix + "@example.com");
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);
 
         // Act
-        List<User> users = userRepository.findAll();
+        var users = userRepository.findAll();
 
         // Assert
         assertNotNull(users);
@@ -194,7 +194,7 @@ class InMemoryUserRepositoryTest
         assertTrue(users.contains(user2));
         assertTrue(users.contains(user3));
         // Verify the admin user is correctly identified
-        User foundAdmin = users.stream().filter(User::isAdmin).findFirst().orElse(null);
+        var foundAdmin = users.stream().filter(User::isAdmin).findFirst().orElse(null);
         assertTrue(foundAdmin != null);
         assertEquals(user2, foundAdmin);
     }
@@ -203,17 +203,17 @@ class InMemoryUserRepositoryTest
     void testFindAll_ReturnsCopy()
     {
         // Arrange
-        String uniqueSuffix = String.valueOf(System.currentTimeMillis());
-        User user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
+        var uniqueSuffix = String.valueOf(System.currentTimeMillis());
+        var user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
         userRepository.save(user1);
-        List<User> usersFromRepo = userRepository.findAll();
-        int expectedSize = usersFromRepo.size();
+        var usersFromRepo = userRepository.findAll();
+        var expectedSize = usersFromRepo.size();
 
         // Act - Modify the returned list
         usersFromRepo.clear();
 
         // Assert - The internal store should not be affected
-        List<User> usersFromRepoAgain = userRepository.findAll();
+        var usersFromRepoAgain = userRepository.findAll();
         assertEquals(expectedSize, usersFromRepoAgain.size());
         assertTrue(usersFromRepoAgain.contains(user1));
     }

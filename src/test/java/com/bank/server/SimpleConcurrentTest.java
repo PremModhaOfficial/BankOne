@@ -26,8 +26,8 @@ public class SimpleConcurrentTest
     public void setUp()
     {
         // Set up in-memory repositories
-        InMemoryUserRepository userRepository = InMemoryUserRepository.getInstance();
-        InMemoryAccountRepository accountRepository = InMemoryAccountRepository.getInstance();
+        var userRepository = InMemoryUserRepository.getInstance();
+        var accountRepository = InMemoryAccountRepository.getInstance();
 
         // Set up services
         userService = new UserService(userRepository);
@@ -38,18 +38,18 @@ public class SimpleConcurrentTest
     public void testConcurrentAccountDeposits() throws Exception
     {
         // Create a user and account
-        User user = userService.createUser("testuser", "test@example.com");
-        Long userId = user.getId();
+        var user = userService.createUser("testuser", "test@example.com");
+        var userId = user.getId();
 
-        Account account = accountService.createAccount(userId, "ACC123", new BigDecimal("0.0"), Account.AccountType.SAVINGS);
-        Long accountId = account.getId();
+        var account = accountService.createAccount(userId, "ACC123", new BigDecimal("0.0"), Account.AccountType.SAVINGS);
+        var accountId = account.getId();
 
         // Perform concurrent deposits
         int numberOfDeposits = 10;
-        BigDecimal depositAmount = new BigDecimal("5.0");
+        var depositAmount = new BigDecimal("5.0");
 
-        CompletableFuture<?>[] depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
-            Account acc = accountService.getAccountById(accountId);
+        var depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
+            var acc = accountService.getAccountById(accountId);
             if (acc != null) {
                 acc.addAmount(depositAmount);
                 accountService.updateAccount(acc);
@@ -60,8 +60,8 @@ public class SimpleConcurrentTest
         CompletableFuture.allOf(depositFutures).join();
 
         // Verify final balance
-        BigDecimal expectedBalance = depositAmount.multiply(new BigDecimal(numberOfDeposits));
-        Account updatedAccount = accountService.getAccountById(accountId);
+        var expectedBalance = depositAmount.multiply(new BigDecimal(numberOfDeposits));
+        var updatedAccount = accountService.getAccountById(accountId);
         assertNotNull(updatedAccount, "Account should exist");
         assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }

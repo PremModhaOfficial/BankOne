@@ -29,26 +29,26 @@ public class ConcurrentAccountOperationsStressTest
     public void setUp()
     {
         // Clear any existing data in the singleton instances
-        InMemoryUserRepository userRepository = InMemoryUserRepository.getInstance();
-        InMemoryAccountRepository accountRepository = InMemoryAccountRepository.getInstance();
+        var userRepository = InMemoryUserRepository.getInstance();
+        var accountRepository = InMemoryAccountRepository.getInstance();
 
         // Use reflection to access the internal stores and clear them
         try
         {
-            Field userStoreField = InMemoryUserRepository.class.getDeclaredField("userStore");
+            var userStoreField = InMemoryUserRepository.class.getDeclaredField("userStore");
             userStoreField.setAccessible(true);
             ((Map) userStoreField.get(userRepository)).clear();
 
-            Field accountStoreField = InMemoryAccountRepository.class.getDeclaredField("accountStore");
+            var accountStoreField = InMemoryAccountRepository.class.getDeclaredField("accountStore");
             accountStoreField.setAccessible(true);
             ((Map) accountStoreField.get(accountRepository)).clear();
 
             // Reset the ID generators
-            Field userIdGeneratorField = InMemoryUserRepository.class.getDeclaredField("idGenerator");
+            var userIdGeneratorField = InMemoryUserRepository.class.getDeclaredField("idGenerator");
             userIdGeneratorField.setAccessible(true);
             ((AtomicLong) userIdGeneratorField.get(userRepository)).set(1);
 
-            Field accountIdGeneratorField = InMemoryAccountRepository.class.getDeclaredField("idGenerator");
+            var accountIdGeneratorField = InMemoryAccountRepository.class.getDeclaredField("idGenerator");
             accountIdGeneratorField.setAccessible(true);
             ((AtomicLong) accountIdGeneratorField.get(accountRepository)).set(1);
         } catch (Exception e)
@@ -65,18 +65,18 @@ public class ConcurrentAccountOperationsStressTest
     public void testHighConcurrencyDeposits() throws Exception
     {
         // Create a user and account
-        User user = userService.createUser("testuser", "test@example.com");
-        Long userId = user.getId();
+        var user = userService.createUser("testuser", "test@example.com");
+        var userId = user.getId();
 
-        Account account = accountService.createAccount(userId, new BigDecimal("0.0"), Account.AccountType.SAVINGS);
-        Long accountId = account.getId();
+        var account = accountService.createAccount(userId, new BigDecimal("0.0"), Account.AccountType.SAVINGS);
+        var accountId = account.getId();
 
         // Perform high concurrency deposits
         int numberOfDeposits = 1000;
-        BigDecimal depositAmount = new BigDecimal("5.0");
+        var depositAmount = new BigDecimal("5.0");
 
-        CompletableFuture<?>[] depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
-            Account acc = accountService.getAccountById(accountId);
+        var depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
+            var acc = accountService.getAccountById(accountId);
             if (acc != null) {
                 acc.addAmount(depositAmount);
                 accountService.updateAccount(acc);
@@ -87,8 +87,8 @@ public class ConcurrentAccountOperationsStressTest
         CompletableFuture.allOf(depositFutures).join();
 
         // Verify final balance
-        BigDecimal expectedBalance = depositAmount.multiply(new BigDecimal(numberOfDeposits));
-        Account updatedAccount = accountService.getAccountById(accountId);
+        var expectedBalance = depositAmount.multiply(new BigDecimal(numberOfDeposits));
+        var updatedAccount = accountService.getAccountById(accountId);
         assertNotNull(updatedAccount, "Account should exist");
         assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }
@@ -97,19 +97,19 @@ public class ConcurrentAccountOperationsStressTest
     public void testHighConcurrencyWithdrawals() throws Exception
     {
         // Create a user and account with initial balance
-        User user = userService.createUser("testuser", "test@example.com");
-        Long userId = user.getId();
-        BigDecimal initialBalance = new BigDecimal("10000.0");
+        var user = userService.createUser("testuser", "test@example.com");
+        var userId = user.getId();
+        var initialBalance = new BigDecimal("10000.0");
 
-        Account account = accountService.createAccount(userId, initialBalance, Account.AccountType.SAVINGS);
-        Long accountId = account.getId();
+        var account = accountService.createAccount(userId, initialBalance, Account.AccountType.SAVINGS);
+        var accountId = account.getId();
 
         // Perform high concurrency withdrawals
         int numberOfWithdrawals = 1000;
-        BigDecimal withdrawalAmount = new BigDecimal("5.0");
+        var withdrawalAmount = new BigDecimal("5.0");
 
-        CompletableFuture<?>[] withdrawalFutures = IntStream.range(0, numberOfWithdrawals).mapToObj(i -> CompletableFuture.runAsync(() -> {
-            Account acc = accountService.getAccountById(accountId);
+        var withdrawalFutures = IntStream.range(0, numberOfWithdrawals).mapToObj(i -> CompletableFuture.runAsync(() -> {
+            var acc = accountService.getAccountById(accountId);
             if (acc != null) {
                 acc.withdrawAmount(withdrawalAmount);
                 accountService.updateAccount(acc);
@@ -120,8 +120,8 @@ public class ConcurrentAccountOperationsStressTest
         CompletableFuture.allOf(withdrawalFutures).join();
 
         // Verify final balance
-        BigDecimal expectedBalance = initialBalance.subtract(withdrawalAmount.multiply(new BigDecimal(numberOfWithdrawals)));
-        Account updatedAccount = accountService.getAccountById(accountId);
+        var expectedBalance = initialBalance.subtract(withdrawalAmount.multiply(new BigDecimal(numberOfWithdrawals)));
+        var updatedAccount = accountService.getAccountById(accountId);
         assertNotNull(updatedAccount, "Account should exist");
         assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }
@@ -130,36 +130,36 @@ public class ConcurrentAccountOperationsStressTest
     public void testHighConcurrencyTransfers() throws Exception
     {
         // Create users and accounts
-        User user1 = userService.createUser("user1", "user1@example.com");
-        User user2 = userService.createUser("user2", "user2@example.com");
+        var user1 = userService.createUser("user1", "user1@example.com");
+        var user2 = userService.createUser("user2", "user2@example.com");
 
-        Long userId1 = user1.getId();
-        Long userId2 = user2.getId();
+        var userId1 = user1.getId();
+        var userId2 = user2.getId();
 
-        BigDecimal initialBalance1 = new BigDecimal("10000.0");
-        BigDecimal initialBalance2 = new BigDecimal("5000.0");
+        var initialBalance1 = new BigDecimal("10000.0");
+        var initialBalance2 = new BigDecimal("5000.0");
 
-        Account account1 = accountService.createAccount(userId1, initialBalance1, Account.AccountType.SAVINGS);
-        Account account2 = accountService.createAccount(userId2, initialBalance2, Account.AccountType.SAVINGS);
+        var account1 = accountService.createAccount(userId1, initialBalance1, Account.AccountType.SAVINGS);
+        var account2 = accountService.createAccount(userId2, initialBalance2, Account.AccountType.SAVINGS);
 
-        Long accountId1 = account1.getId();
-        Long accountId2 = account2.getId();
+        var accountId1 = account1.getId();
+        var accountId2 = account2.getId();
 
         // Perform high concurrency transfers from account1 to account2
         int numberOfTransfers = 500;
-        BigDecimal transferAmount = new BigDecimal("10.0");
+        var transferAmount = new BigDecimal("10.0");
 
-        CountDownLatch latch = new CountDownLatch(numberOfTransfers);
+        var latch = new CountDownLatch(numberOfTransfers);
 
         // Wait for all transfers to complete
         latch.await();
 
         // Verify final balances
-        BigDecimal expectedBalance1 = initialBalance1.subtract(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
-        BigDecimal expectedBalance2 = initialBalance2.add(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
+        var expectedBalance1 = initialBalance1.subtract(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
+        var expectedBalance2 = initialBalance2.add(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
 
-        Account updatedAccount1 = accountService.getAccountById(accountId1);
-        Account updatedAccount2 = accountService.getAccountById(accountId2);
+        var updatedAccount1 = accountService.getAccountById(accountId1);
+        var updatedAccount2 = accountService.getAccountById(accountId2);
 
         assertNotNull(updatedAccount1, "Account1 should exist");
         assertNotNull(updatedAccount2, "Account2 should exist");
@@ -171,38 +171,38 @@ public class ConcurrentAccountOperationsStressTest
     public void testMixedOperations() throws Exception
     {
         // Create users and accounts
-        User user1 = userService.createUser("user1", "user1@example.com");
-        User user2 = userService.createUser("user2", "user2@example.com");
-        User user3 = userService.createUser("user3", "user3@example.com");
+        var user1 = userService.createUser("user1", "user1@example.com");
+        var user2 = userService.createUser("user2", "user2@example.com");
+        var user3 = userService.createUser("user3", "user3@example.com");
 
-        Long userId1 = user1.getId();
-        Long userId2 = user2.getId();
-        Long userId3 = user3.getId();
+        var userId1 = user1.getId();
+        var userId2 = user2.getId();
+        var userId3 = user3.getId();
 
-        BigDecimal initialBalance1 = new BigDecimal("10000.0");
-        BigDecimal initialBalance2 = new BigDecimal("5000.0");
-        BigDecimal initialBalance3 = new BigDecimal("3000.0");
+        var initialBalance1 = new BigDecimal("10000.0");
+        var initialBalance2 = new BigDecimal("5000.0");
+        var initialBalance3 = new BigDecimal("3000.0");
 
-        Account account1 = accountService.createAccount(userId1, initialBalance1, Account.AccountType.SAVINGS);
-        Account account2 = accountService.createAccount(userId2, initialBalance2, Account.AccountType.SAVINGS);
-        Account account3 = accountService.createAccount(userId3, initialBalance3, Account.AccountType.SAVINGS);
+        var account1 = accountService.createAccount(userId1, initialBalance1, Account.AccountType.SAVINGS);
+        var account2 = accountService.createAccount(userId2, initialBalance2, Account.AccountType.SAVINGS);
+        var account3 = accountService.createAccount(userId3, initialBalance3, Account.AccountType.SAVINGS);
 
-        Long accountId1 = account1.getId();
-        Long accountId2 = account2.getId();
-        Long accountId3 = account3.getId();
+        var accountId1 = account1.getId();
+        var accountId2 = account2.getId();
+        var accountId3 = account3.getId();
 
         // Perform mixed operations that should conserve total balance
         int numberOfOperations = 1000;
 
-        CountDownLatch latch = new CountDownLatch(numberOfOperations);
+        var latch = new CountDownLatch(numberOfOperations);
 
         // Wait for all operations to complete
         latch.await();
 
         // Verify final balances (exact values depend on the operations)
-        Account updatedAccount1 = accountService.getAccountById(accountId1);
-        Account updatedAccount2 = accountService.getAccountById(accountId2);
-        Account updatedAccount3 = accountService.getAccountById(accountId3);
+        var updatedAccount1 = accountService.getAccountById(accountId1);
+        var updatedAccount2 = accountService.getAccountById(accountId2);
+        var updatedAccount3 = accountService.getAccountById(accountId3);
 
         assertNotNull(updatedAccount1, "Account1 should exist");
         assertNotNull(updatedAccount2, "Account2 should exist");
@@ -210,8 +210,8 @@ public class ConcurrentAccountOperationsStressTest
 
         // Since we're doing mixed operations that should conserve total balance, verify
         // it
-        BigDecimal initialTotal = initialBalance1.add(initialBalance2).add(initialBalance3);
-        BigDecimal finalTotal = updatedAccount1.getBalance().add(updatedAccount2.getBalance()).add(updatedAccount3.getBalance());
+        var initialTotal = initialBalance1.add(initialBalance2).add(initialBalance3);
+        var finalTotal = updatedAccount1.getBalance().add(updatedAccount2.getBalance()).add(updatedAccount3.getBalance());
 
         // Print detailed information for debugging
         System.out.println("Initial balances:");

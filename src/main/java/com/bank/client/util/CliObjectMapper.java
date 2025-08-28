@@ -43,7 +43,7 @@ public class CliObjectMapper
     {
         try
         {
-            T instance = clazz.getDeclaredConstructor().newInstance();
+            var instance = clazz.getDeclaredConstructor().newInstance();
             populateObject(instance, clazz);
             return instance;
         } catch (Exception e)

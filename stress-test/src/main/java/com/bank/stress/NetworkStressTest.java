@@ -22,8 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Network-based stress test for the banking system that communicates with the
  * HTTP server instead of directly accessing services.
  */
-public class NetworkStressTest
-{
+public class NetworkStressTest {
 
     private static final String SERVER_URL = "http://localhost:8080";
     private static final long NUMBER_OF_USERS = 500; // Reduced for network testing
@@ -41,22 +40,19 @@ public class NetworkStressTest
     private AtomicInteger successfulOperations = new AtomicInteger(0);
     private AtomicInteger failedOperations = new AtomicInteger(0);
 
-    public static void main(String[] args) throws Exception
-    {
+    public static void main(String[] args) throws Exception {
         var stressTest = new NetworkStressTest();
         stressTest.runStressTest();
     }
 
-    public void runStressTest() throws Exception
-    {
+    public void runStressTest() throws Exception {
         System.out.println("Starting network-based stress test...");
         System.out.println("Server URL: " + SERVER_URL);
 
         // Initialize the system
         initialize();
 
-        try
-        {
+        try {
             // Create users
             createUsers();
 
@@ -70,15 +66,13 @@ public class NetworkStressTest
 
             // Print results
             printResults(startTime, endTime);
-        } finally
-        {
+        } finally {
             // Cleanup
             cleanup();
         }
     }
 
-    private void initialize()
-    {
+    private void initialize() {
         System.out.println("Initializing HTTP client...");
 
         httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -93,43 +87,40 @@ public class NetworkStressTest
         System.out.println("HTTP client initialized");
     }
 
-    private void createUsers() throws Exception
-    {
+    private void createUsers() throws Exception {
         System.out.println("Creating users...");
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        for (long i = 0; i < NUMBER_OF_USERS; i++)
-        {
+        for (long i = 0; i < NUMBER_OF_USERS; i++) {
             final long userIndex = i;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                try
-                {
+                try {
                     String userJson = String.format(
-                            "{\"username\":\"stress_user_%d\",\"email\":\"stress%d@example.com\"}", userIndex, userIndex);
+                            "{\"username\":\"stress_user_%d\",\"email\":\"stress%d@example.com\"}", userIndex,
+                            userIndex);
 
-                    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/users")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(userJson)).build();
+                    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/users"))
+                            .header("Content-Type", "application/json")
+                            .POST(HttpRequest.BodyPublishers.ofString(userJson)).build();
 
                     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                    if (response.statusCode() == 201)
-                    {
+                    if (response.statusCode() == 201) {
                         // Parse the user ID from the response
                         JsonNode jsonNode = objectMapper.readTree(response.body());
                         long userId = jsonNode.get("id").asLong();
-                        synchronized (userIds)
-                        {
+                        synchronized (userIds) {
                             userIds.add(userId);
                         }
                         System.out.println("Created user " + userId);
-                    } else
-                    {
-                        System.err.println("Failed to create user, status: " + response.statusCode() + ", response: " + response.body());
+                    } else {
+                        System.err.println("Failed to create user, status: " + response.statusCode() + ", response: "
+                                + response.body());
                     }
-                } catch (Exception e)
-                {
-                    System.err.println("Error creating user " + userIndex + ": " + e.getMessage());
-                    e.printStackTrace();
+                } catch (Exception exception) {
+                    System.err.println("Error creating user " + userIndex + ": " + exception.getMessage());
+                    exception.printStackTrace();
                 }
             }, executorService);
 
@@ -142,43 +133,38 @@ public class NetworkStressTest
         System.out.println("Created " + userIds.size() + " users");
     }
 
-    private void createAccounts() throws Exception
-    {
+    private void createAccounts() throws Exception {
         System.out.println("Creating accounts...");
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        for (Long userId : userIds)
-        {
-            for (int j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++)
-            {
+        for (Long userId : userIds) {
+            for (int j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++) {
                 final Long finalUserId = userId;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    try
-                    {
+                    try {
                         String accountJson = String.format(
                                 "{\"userId\":%d,\"balance\":1000.0,\"type\":\"SAVINGS\"}", finalUserId);
 
-                        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(accountJson)).build();
+                        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts"))
+                                .header("Content-Type", "application/json")
+                                .POST(HttpRequest.BodyPublishers.ofString(accountJson)).build();
 
                         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                        if (response.statusCode() == 201)
-                        {
+                        if (response.statusCode() == 201) {
                             // Parse the account ID from the response
                             JsonNode jsonNode = objectMapper.readTree(response.body());
                             long accountId = jsonNode.get("id").asLong();
-                            synchronized (accountIds)
-                            {
+                            synchronized (accountIds) {
                                 accountIds.add(accountId);
                             }
                             System.out.println("Created account " + accountId + " for user " + finalUserId);
-                        } else
-                        {
-                            System.err.println("Failed to create account for user " + finalUserId + ", status: " + response.statusCode() + ", response: " + response.body());
+                        } else {
+                            System.err.println("Failed to create account for user " + finalUserId + ", status: "
+                                    + response.statusCode() + ", response: " + response.body());
                         }
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         System.err.println("Error creating account for user " + finalUserId + ": " + e.getMessage());
                     }
                 }, executorService);
@@ -193,15 +179,13 @@ public class NetworkStressTest
         System.out.println("Created " + accountIds.size() + " accounts");
     }
 
-    private void executeConcurrentOperations() throws InterruptedException
-    {
+    private void executeConcurrentOperations() throws InterruptedException {
         System.out.println("Executing concurrent operations...");
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         // Submit tasks to the executor service
-        for (int i = 0; i < NUMBER_OF_THREADS; i++)
-        {
+        for (int i = 0; i < NUMBER_OF_THREADS; i++) {
             final int threadId = i;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 performOperations(threadId);
@@ -213,22 +197,18 @@ public class NetworkStressTest
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
-    private void performOperations(int threadId)
-    {
+    private void performOperations(int threadId) {
         System.out.println("Thread " + threadId + " started");
 
-        for (int i = 0; i < OPERATIONS_PER_THREAD; i++)
-        {
+        for (int i = 0; i < OPERATIONS_PER_THREAD; i++) {
             totalOperations.incrementAndGet();
 
-            try
-            {
+            try {
                 // Randomly select an operation
                 int operationType = (int) (Math.random() * 3);
 
                 boolean success = false;
-                switch (operationType)
-                {
+                switch (operationType) {
                     case 0:
                         success = performDeposit();
                         break;
@@ -240,15 +220,12 @@ public class NetworkStressTest
                         break;
                 }
 
-                if (success)
-                {
+                if (success) {
                     successfulOperations.incrementAndGet();
-                } else
-                {
+                } else {
                     failedOperations.incrementAndGet();
                 }
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 System.err.println("Error in thread " + threadId + " operation " + i + ": " + e.getMessage());
                 failedOperations.incrementAndGet();
             }
@@ -257,10 +234,8 @@ public class NetworkStressTest
         System.out.println("Thread " + threadId + " completed");
     }
 
-    private boolean performDeposit()
-    {
-        try
-        {
+    private boolean performDeposit() {
+        try {
             // Select a random account
             if (accountIds.isEmpty())
                 return false;
@@ -272,22 +247,22 @@ public class NetworkStressTest
 
             String depositJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/deposit")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(depositJson)).build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/deposit"))
+                    .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(depositJson))
+                    .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             return response.statusCode() == 200;
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println("Error performing deposit: " + e.getMessage());
             return false;
         }
     }
 
-    private boolean performWithdrawal()
-    {
-        try
-        {
+    private boolean performWithdrawal() {
+        try {
             // Select a random account
             if (accountIds.isEmpty())
                 return false;
@@ -299,29 +274,28 @@ public class NetworkStressTest
 
             String withdrawJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/withdraw")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(withdrawJson)).build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/withdraw"))
+                    .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(withdrawJson))
+                    .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             return response.statusCode() == 200;
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println("Error performing withdrawal: " + e.getMessage());
             return false;
         }
     }
 
-    private boolean performTransfer()
-    {
-        try
-        {
+    private boolean performTransfer() {
+        try {
             // Select two different random accounts
             if (accountIds.size() < 2)
                 return false;
             int fromAccountIndex = (int) (Math.random() * accountIds.size());
             int toAccountIndex;
-            do
-            {
+            do {
                 toAccountIndex = (int) (Math.random() * accountIds.size());
             } while (toAccountIndex == fromAccountIndex);
 
@@ -331,22 +305,24 @@ public class NetworkStressTest
             // Generate a random transfer amount
             BigDecimal amount = new BigDecimal(Math.random() * 25);
 
-            String transferJson = String.format("{\"toAccountId\":%d,\"amount\":%f}", toAccountId, amount.doubleValue());
+            String transferJson = String.format("{\"toAccountId\":%d,\"amount\":%f}", toAccountId,
+                    amount.doubleValue());
 
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts/" + fromAccountId + "/transfer")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(transferJson)).build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(SERVER_URL + "/accounts/" + fromAccountId + "/transfer"))
+                    .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(transferJson))
+                    .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             return response.statusCode() == 200;
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println("Error performing transfer: " + e.getMessage());
             return false;
         }
     }
 
-    private void printResults(long startTime, long endTime)
-    {
+    private void printResults(long startTime, long endTime) {
         long duration = endTime - startTime;
         long totalOps = totalOperations.get();
         int successOps = successfulOperations.get();
@@ -361,18 +337,16 @@ public class NetworkStressTest
         System.out.println("Failed operations: " + failedOps);
         System.out.println("Success rate: " + String.format("%.2f", successRate) + "%");
         System.out.println("Throughput: " + String.format("%.2f", throughput) + " ops/sec");
-        System.out.println("Average response time: " + String.format("%.2f", totalOps > 0 ? (double) duration / totalOps : 0) + " ms");
+        System.out.println("Average response time: "
+                + String.format("%.2f", totalOps > 0 ? (double) duration / totalOps : 0) + " ms");
     }
 
-    private void cleanup() throws InterruptedException
-    {
+    private void cleanup() throws InterruptedException {
         System.out.println("Cleaning up...");
 
-        if (executorService != null)
-        {
+        if (executorService != null) {
             executorService.shutdown();
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
-            {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
         }

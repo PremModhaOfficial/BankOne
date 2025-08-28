@@ -33,21 +33,21 @@ class AccountServiceTest
     void testCreateAccount()
     {
         // Arrange
-        Long userId = 1L;
-        String accountNumber = "ACC123456";
-        BigDecimal initialBalance = new BigDecimal("1000.00");
-        Account.AccountType type = Account.AccountType.SAVINGS;
-        Account savedAccount = new Account(userId, accountNumber, initialBalance, type);
+        var userId = 1L;
+        var accountNumber = "ACC123456";
+        var initialBalance = new BigDecimal("1000.00");
+        var type = Account.AccountType.SAVINGS;
+        var savedAccount = new Account(userId, accountNumber, initialBalance, type);
         savedAccount.setId(1L); // Simulate ID assignment by repo
 
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> {
-            Account account = invocation.getArgument(0);
+            var account = invocation.getArgument(0);
             account.setId(1L); // Simulate ID assignment
             return account;
         });
 
         // Act
-        Account result = accountService.createAccount(userId, accountNumber, initialBalance, type);
+        var result = accountService.createAccount(userId, accountNumber, initialBalance, type);
 
         // Assert
         assertNotNull(result);
@@ -63,14 +63,14 @@ class AccountServiceTest
     void testGetAccountById_AccountExists()
     {
         // Arrange
-        Long accountId = 1L;
-        Account mockAccount = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.CHECKING);
+        var accountId = 1L;
+        var mockAccount = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.CHECKING);
         mockAccount.setId(accountId);
 
         when(accountRepository.findById(accountId)).thenReturn(mockAccount);
 
         // Act
-        Account result = accountService.getAccountById(accountId);
+        var result = accountService.getAccountById(accountId);
 
         // Assert
         assertNotNull(result);
@@ -82,11 +82,11 @@ class AccountServiceTest
     void testGetAccountById_AccountNotFound()
     {
         // Arrange
-        Long accountId = 999L;
+        var accountId = 999L;
         when(accountRepository.findById(accountId)).thenReturn(null);
 
         // Act
-        Account result = accountService.getAccountById(accountId);
+        var result = accountService.getAccountById(accountId);
 
         // Assert
         assertNull(result);
@@ -97,17 +97,17 @@ class AccountServiceTest
     void testGetAccountsByUserId()
     {
         // Arrange
-        Long userId = 1L;
-        Account acc1 = new Account(userId, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
+        var userId = 1L;
+        var acc1 = new Account(userId, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
         acc1.setId(1L);
-        Account acc2 = new Account(userId, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
+        var acc2 = new Account(userId, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
         acc2.setId(2L);
-        List<Account> mockAccounts = Arrays.asList(acc1, acc2);
+        var mockAccounts = Arrays.asList(acc1, acc2);
 
         when(accountRepository.findByUserId(userId)).thenReturn(mockAccounts);
 
         // Act
-        List<Account> result = accountService.getAccountsByUserId(userId);
+        var result = accountService.getAccountsByUserId(userId);
 
         // Assert
         assertEquals(mockAccounts, result);
@@ -118,14 +118,14 @@ class AccountServiceTest
     void testGetAccountByAccountNumber_AccountExists()
     {
         // Arrange
-        String accountNumber = "ACC999";
-        Account mockAccount = new Account(2L, accountNumber, BigDecimal.ZERO, Account.AccountType.SAVINGS);
+        var accountNumber = "ACC999";
+        var mockAccount = new Account(2L, accountNumber, BigDecimal.ZERO, Account.AccountType.SAVINGS);
         mockAccount.setId(5L);
 
         when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(mockAccount);
 
         // Act
-        Account result = accountService.getAccountByAccountNumber(accountNumber);
+        var result = accountService.getAccountByAccountNumber(accountNumber);
 
         // Assert
         assertNotNull(result);
@@ -137,13 +137,13 @@ class AccountServiceTest
     void testUpdateAccount()
     {
         // Arrange
-        Account accountToUpdate = new Account(1L, "OLDACC", BigDecimal.TEN, Account.AccountType.CHECKING);
+        var accountToUpdate = new Account(1L, "OLDACC", BigDecimal.TEN, Account.AccountType.CHECKING);
         accountToUpdate.setId(1L);
 
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        Account updatedAccount = accountService.updateAccount(accountToUpdate);
+        var updatedAccount = accountService.updateAccount(accountToUpdate);
 
         // Assert
         assertSame(accountToUpdate, updatedAccount); // Should return the same object instance
@@ -156,7 +156,7 @@ class AccountServiceTest
     void testDeleteAccount()
     {
         // Arrange
-        Long accountId = 1L;
+        var accountId = 1L;
 
         // Act
         accountService.deleteAccount(accountId);
@@ -169,16 +169,16 @@ class AccountServiceTest
     void testGetAllAccounts()
     {
         // Arrange
-        Account acc1 = new Account(1L, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
+        var acc1 = new Account(1L, "ACC1", BigDecimal.ONE, Account.AccountType.SAVINGS);
         acc1.setId(1L);
-        Account acc2 = new Account(2L, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
+        var acc2 = new Account(2L, "ACC2", BigDecimal.TEN, Account.AccountType.CHECKING);
         acc2.setId(2L);
-        List<Account> mockAccounts = Arrays.asList(acc1, acc2);
+        var mockAccounts = Arrays.asList(acc1, acc2);
 
         when(accountRepository.getAll()).thenReturn(mockAccounts);
 
         // Act
-        List<Account> result = accountService.getAllAccounts();
+        var result = accountService.getAllAccounts();
 
         // Assert
         assertEquals(mockAccounts, result);

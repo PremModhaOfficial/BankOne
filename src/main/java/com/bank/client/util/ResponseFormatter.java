@@ -172,7 +172,7 @@ public class ResponseFormatter
 
         // Calculate column widths
         var colWidths = new int[fieldNames.size()];
-        for (int i = 0; i < fieldNames.size(); i++)
+        for (var i = 0; i < fieldNames.size(); i++)
         {
             var fieldName = fieldNames.get(i);
             colWidths[i] = Math.max(fieldName.length(), 8); // Minimum width of 8
@@ -194,7 +194,7 @@ public class ResponseFormatter
 
         // Header row
         sb.append("│");
-        for (int i = 0; i < fieldNames.size(); i++)
+        for (var i = 0; i < fieldNames.size(); i++)
         {
             var fieldName = capitalizeFirst(fieldNames.get(i));
             sb.append(String.format(" %-" + colWidths[i] + "s │", fieldName));
@@ -210,8 +210,8 @@ public class ResponseFormatter
             sb.append("│");
             for (var i = 0; i < fieldNames.size(); i++)
             {
-                String fieldName = fieldNames.get(i);
-                String value = "";
+                var fieldName = fieldNames.get(i);
+                var value = "";
                 if (item.has(fieldName))
                 {
                     value = formatJsonValue(item.get(fieldName));
@@ -234,9 +234,9 @@ public class ResponseFormatter
     {
         var sb = new StringBuilder();
         sb.append(left);
-        for (int i = 0; i < colWidths.length; i++)
+        for (var i = 0; i < colWidths.length; i++)
         {
-            for (int j = 0; j < colWidths[i] + 2; j++)
+            for (var j = 0; j < colWidths[i] + 2; j++)
             {
                 sb.append("─");
             }
@@ -265,7 +265,7 @@ public class ResponseFormatter
             // Format numbers nicely
             if (value.isDouble() || value.isFloat())
             {
-                double doubleValue = value.asDouble();
+                var doubleValue = value.asDouble();
                 if (doubleValue == (long) doubleValue)
                 {
                     return String.valueOf((long) doubleValue);

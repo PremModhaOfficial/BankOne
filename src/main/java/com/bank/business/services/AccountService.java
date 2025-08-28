@@ -112,7 +112,7 @@ public class AccountService
                     {
                         try
                         {
-                            boolean success = fromAccount.withdrawAmount(amount);
+                            var success = fromAccount.withdrawAmount(amount);
                             if (success)
                             {
                                 toAccount.addAmount(amount);

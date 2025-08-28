@@ -33,19 +33,19 @@ class UserServiceTest
     void testCreateUser_DefaultNonAdmin()
     {
         // Arrange
-        String username = "testuser";
-        String email = "test@example.com";
-        User savedUser = new User(username, email, false); // Explicitly non-admin
+        var username = "testuser";
+        var email = "test@example.com";
+        var savedUser = new User(username, email, false); // Explicitly non-admin
         savedUser.setId(1L); // Simulate ID assignment by repo
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User user = invocation.getArgument(0);
+            var user = invocation.getArgument(0);
             user.setId(1L); // Simulate ID assignment
             return user;
         });
 
         // Act
-        User result = userService.createUser(username, email);
+        var result = userService.createUser(username, email);
 
         // Assert
         assertNotNull(result);
@@ -60,20 +60,20 @@ class UserServiceTest
     void testCreateUser_WithAdminFlag()
     {
         // Arrange
-        String username = "adminuser";
-        String email = "admin@example.com";
-        boolean isAdmin = true;
-        User savedUser = new User(username, email, isAdmin);
+        var username = "adminuser";
+        var email = "admin@example.com";
+        var isAdmin = true;
+        var savedUser = new User(username, email, isAdmin);
         savedUser.setId(1L); // Simulate ID assignment by repo
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User user = invocation.getArgument(0);
+            var user = invocation.getArgument(0);
             user.setId(1L); // Simulate ID assignment
             return user;
         });
 
         // Act
-        User result = userService.createUser(username, email, isAdmin);
+        var result = userService.createUser(username, email, isAdmin);
 
         // Assert
         assertNotNull(result);
@@ -88,14 +88,14 @@ class UserServiceTest
     void testGetUserById_UserExists()
     {
         // Arrange
-        Long userId = 1L;
-        User mockUser = new User("testuser", "test@example.com");
+        var userId = 1L;
+        var mockUser = new User("testuser", "test@example.com");
         mockUser.setId(userId);
 
         when(userRepository.findById(userId)).thenReturn((mockUser));
 
         // Act
-        User result = userService.getUserById(userId);
+        var result = userService.getUserById(userId);
 
         // Assert
         assertTrue(result != null);
@@ -107,11 +107,11 @@ class UserServiceTest
     void testGetUserById_UserNotFound()
     {
         // Arrange
-        Long userId = 999L;
+        var userId = 999L;
         when(userRepository.findById(userId)).thenReturn(null);
 
         // Act
-        User result = userService.getUserById(userId);
+        var result = userService.getUserById(userId);
 
         // Assert
         assertFalse(result != null);
@@ -122,14 +122,14 @@ class UserServiceTest
     void testGetUserByUsername_UserExists()
     {
         // Arrange
-        String username = "testuser";
-        User mockUser = new User(username, "test@example.com");
+        var username = "testuser";
+        var mockUser = new User(username, "test@example.com");
         mockUser.setId(1L);
 
         when(userRepository.findByUsername(username)).thenReturn(null);
 
         // Act
-        User result = userService.getUserByUsername(username);
+        var result = userService.getUserByUsername(username);
 
         // Assert
         assertTrue(result != null);
@@ -141,14 +141,14 @@ class UserServiceTest
     void testGetUserByEmail_UserExists()
     {
         // Arrange
-        String email = "test@example.com";
-        User mockUser = new User("testuser", email);
+        var email = "test@example.com";
+        var mockUser = new User("testuser", email);
         mockUser.setId(1L);
 
         when(userRepository.findByEmail(email)).thenReturn(null);
 
         // Act
-        User result = userService.getUserByEmail(email);
+        var result = userService.getUserByEmail(email);
 
         // Assert
         assertTrue(result != null);
@@ -160,16 +160,16 @@ class UserServiceTest
     void testGetAllUsers()
     {
         // Arrange
-        User user1 = new User("user1", "u1@example.com");
+        var user1 = new User("user1", "u1@example.com");
         user1.setId(1L);
-        User adminUser = new User("admin", "admin@example.com", true);
+        var adminUser = new User("admin", "admin@example.com", true);
         adminUser.setId(2L);
-        List<User> mockUsers = Arrays.asList(user1, adminUser);
+        var mockUsers = Arrays.asList(user1, adminUser);
 
         when(userRepository.findAll()).thenReturn(mockUsers);
 
         // Act
-        List<User> result = userService.getAllUsers();
+        var result = userService.getAllUsers();
 
         // Assert
         assertEquals(mockUsers, result);
@@ -180,13 +180,13 @@ class UserServiceTest
     void testUpdateUser()
     {
         // Arrange
-        User userToUpdate = new User("olduser", "old@example.com");
+        var userToUpdate = new User("olduser", "old@example.com");
         userToUpdate.setId(1L);
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        User updatedUser = userService.updateUser(userToUpdate);
+        var updatedUser = userService.updateUser(userToUpdate);
 
         // Assert
         assertSame(userToUpdate, updatedUser); // Should return the same object instance
@@ -199,7 +199,7 @@ class UserServiceTest
     void testDeleteUser()
     {
         // Arrange
-        Long userId = 1L;
+        var userId = 1L;
 
         // Act
         userService.deleteUser(userId);
