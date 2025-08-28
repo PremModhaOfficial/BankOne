@@ -103,7 +103,14 @@ public class AccountHandler implements HttpHandler
 
             // Extract values directly from JSON
             Long userId = jsonNode.get("userId").asLong();
-            BigDecimal initialBalance = new BigDecimal(jsonNode.get("initialBalance").asText());
+            BigDecimal initialBalance;
+            if (jsonNode.has("initialBalance"))
+            {
+                initialBalance = new BigDecimal(jsonNode.get("initialBalance").asText());
+            } else
+            {
+                initialBalance = new BigDecimal(jsonNode.get("balance").asText());
+            }
             Account.AccountType type = Account.AccountType.valueOf(jsonNode.get("type").asText());
 
             // Create account - account number will be auto-generated if not provided

@@ -91,17 +91,14 @@ public class HttpClient
 
         switch (choice)
         {
-            case 1 ->
-            {
+            case 1 -> {
                 return performLogin(client, scanner);
             }
-            case 2 ->
-            {
+            case 2 -> {
                 return performRegistration(client, mapper);
             }
 
-            case 3 ->
-            {
+            case 3 -> {
                 System.out.println("Exiting...");
                 System.exit(0);
                 return null;
@@ -172,6 +169,7 @@ public class HttpClient
         try
         {
             User userRequest = mapper.readValue(User.class);
+            LOGGER.debug("User gave values : {}", userRequest);
             System.out.println("Attempting to register user: " + userRequest.getUsername());
             JsonNode jsonBody = Json.toJson(userRequest);
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/users", jsonBody);
@@ -359,6 +357,7 @@ public class HttpClient
                         user.getId(), initialBalance, type);
 
                 JsonNode jsonBody = Json.toJson(request);
+                LOGGER.debug("JSON for account creation request: {}", jsonBody);
                 CompletableFuture<HttpResponse<String>> futureResponse = client.post("/accounts", jsonBody);
                 HttpResponse<String> response = futureResponse.join();
 
@@ -385,7 +384,6 @@ public class HttpClient
     private static Account.AccountType getAccountType(Scanner scanner)
     {
         System.out.println("Enter account type \n[1] SAVINGS \n[2] CHECKING");
-
         String nextLine = scanner.nextLine();
         if (nextLine.equals("1"))
         {
@@ -511,17 +509,18 @@ public class HttpClient
             if (response.statusCode() == 200)
             {
                 System.out.println("Transfer successful!");
-                System.out.println("Response:");
-                System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
+                LOGGER.info("Transfer successful!");
+                LOGGER.debug(ResponseFormatter.formatJsonResponse(response.body()));
             } else if (response.statusCode() == 400)
             {
                 System.out.println("Transfer failed: Insufficient funds");
-                System.out.println("Response:");
-                System.out.println(ResponseFormatter.formatJsonResponse(response.body()));
+                LOGGER.info("Transfer failed: Insufficient funds");
+                LOGGER.debug(ResponseFormatter.formatJsonResponse(response.body()));
             } else
             {
-                System.out.println("Failed to make transfer. Server responded with status: " + response.statusCode());
-                System.out.println("Response Body: " + response.body());
+                System.out.println("FAILED TO COMPLETE TRANSACTION");
+                LOGGER.error("Failed to make transfer. Server responded with status: {}", response.statusCode());
+                LOGGER.error("Response Body: {}", response.body());
             }
         } catch (NumberFormatException e)
         {

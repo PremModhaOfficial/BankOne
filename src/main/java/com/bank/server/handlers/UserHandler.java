@@ -90,7 +90,17 @@ public class UserHandler implements HttpHandler
             JsonNode jsonNode = Json.parse(requestBody);
 
             LOGGER.debug("JSON is {}", requestBody);
-            User request = new User(jsonNode.get("username").asText(), jsonNode.get("email").asText());
+            var email = jsonNode.get("email").asText();
+            var username = jsonNode.get("username").asText();
+            boolean isAdmin;
+            if (jsonNode.has("admin"))
+            {
+                isAdmin = jsonNode.get("admin").asBoolean();
+            } else
+            {
+                isAdmin = false;
+            }
+            User request = new User(username, email, isAdmin);
 
             LOGGER.info("Requested Creating user: {}", request);
 
