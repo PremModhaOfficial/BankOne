@@ -55,12 +55,12 @@ public class Json
         try
         {
             return objectMapper.treeToValue(conf, clazz);
-        } catch (JsonProcessingException e)
+        } catch (JsonProcessingException jsonProcessingException)
         {
-            throw new HttpConfigurationException("Processing Exception: " + e.getMessage());
-        } catch (IllegalArgumentException e)
+            throw new HttpConfigurationException("Processing Exception: " + jsonProcessingException.getMessage());
+        } catch (IllegalArgumentException illegalArgumentException)
         {
-            throw new HttpConfigurationException("IllegalArgumentException: " + e.getMessage());
+            throw new HttpConfigurationException("IllegalArgumentException: " + illegalArgumentException.getMessage());
         }
     }
 

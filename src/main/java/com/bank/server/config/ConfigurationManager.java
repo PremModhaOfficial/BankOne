@@ -49,17 +49,17 @@ public class ConfigurationManager
                 {
                     sb.append((char) i);
                 }
-            } catch (IOException e)
+            } catch (IOException ioException)
             {
-                throw new HttpConfigurationException(e);
+                throw new HttpConfigurationException(ioException);
             }
             JsonNode conf = null;
             try
             {
                 conf = Json.parse(sb.toString());
-            } catch (IOException e)
+            } catch (IOException ioException)
             {
-                throw new HttpConfigurationException(e);
+                throw new HttpConfigurationException(ioException);
             }
 
             currentConfiguration = Json.fromJson(conf, Configuration.class);

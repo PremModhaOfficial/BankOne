@@ -35,16 +35,16 @@ public class PingHandler implements HttpHandler
             try
             {
                 handleRequest(exchange);
-            } catch (IOException e)
-            {
-                LOGGER.error("Error handling Ping request: {}", e.getMessage(), e);
-                try
-                {
-                    sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-                } catch (IOException ioException)
-                {
-                    LOGGER.error("Failed to send Ping error response: {}", ioException.getMessage(), ioException);
-                }
+             } catch (IOException ioException)
+             {
+                 LOGGER.error("Error handling Ping request: {}", ioException.getMessage(), ioException);
+                 try
+                 {
+                     sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + ioException.getMessage() + "\"}");
+                 } catch (IOException responseException)
+                 {
+                     LOGGER.error("Failed to send Ping error response: {}", responseException.getMessage(), responseException);
+                 }
             }
         });
     }

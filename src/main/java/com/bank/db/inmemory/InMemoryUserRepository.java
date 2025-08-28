@@ -40,7 +40,7 @@ public class InMemoryUserRepository implements UserRepository
         try
         {
 
-        } catch (Exception e)
+        } catch (Exception repositoryException)
         {
         }
 

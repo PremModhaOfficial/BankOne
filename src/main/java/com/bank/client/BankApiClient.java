@@ -134,10 +134,10 @@ public class BankApiClient
         {
             var jsonBody = Json.stringify(body);
             requestBuilder.POST(HttpRequest.BodyPublishers.ofString(jsonBody));
-        } catch (Exception e)
+        } catch (Exception exception)
         {
             var failedFuture = new CompletableFuture<HttpResponse<String>>();
-            failedFuture.completeExceptionally(e);
+            failedFuture.completeExceptionally(exception);
             return failedFuture;
         }
 

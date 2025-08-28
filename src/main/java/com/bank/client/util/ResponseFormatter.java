@@ -33,7 +33,7 @@ public class ResponseFormatter
             // Try to parse and format as JSON
             var jsonNode = Json.parse(jsonString);
             return Json.stringifyPretty(jsonNode);
-        } catch (Exception e)
+        } catch (Exception jsonParsingException)
         {
             // If parsing fails, return the original string
             return jsonString;
@@ -130,9 +130,9 @@ public class ResponseFormatter
             }
 
             return formatGenericTable(jsonNode, fieldNames);
-        } catch (Exception e)
+        } catch (Exception jsonFormattingException)
         {
-            LOGGER.warn("Failed to format JSON array table: {}", e.getMessage());
+            LOGGER.warn("Failed to format JSON array table: {}", jsonFormattingException.getMessage());
             return formatJsonResponse(jsonString);
         }
     }

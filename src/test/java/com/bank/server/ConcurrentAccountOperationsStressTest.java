@@ -51,9 +51,9 @@ public class ConcurrentAccountOperationsStressTest
             var accountIdGeneratorField = InMemoryAccountRepository.class.getDeclaredField("idGenerator");
             accountIdGeneratorField.setAccessible(true);
             ((AtomicLong) accountIdGeneratorField.get(accountRepository)).set(1);
-        } catch (Exception e)
+        } catch (Exception setupException)
         {
-            throw new RuntimeException("Failed to clear singleton instances", e);
+            throw new RuntimeException("Failed to clear singleton instances", setupException);
         }
 
         // Set up services with the cleared instances

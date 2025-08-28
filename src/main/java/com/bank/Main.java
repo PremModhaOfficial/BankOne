@@ -25,9 +25,9 @@ public class Main
         try
         {
             ConfigurationManager.getInstance().loadConfiguration(CONFIG_PATH);
-        } catch (HttpConfigurationException e)
+        } catch (HttpConfigurationException configException)
         {
-            LOGGER.error("couldn't start Server:: error: {}", String.valueOf(e));
+            LOGGER.error("couldn't start Server:: error: {}", String.valueOf(configException));
         }
     }
 
@@ -57,7 +57,7 @@ public class Main
         try
         {
             Thread.currentThread().join();
-        } catch (InterruptedException e)
+        } catch (InterruptedException interruptedException)
         {
             LOGGER.info("Server interrupted, shutting down...");
             server.stop(0);

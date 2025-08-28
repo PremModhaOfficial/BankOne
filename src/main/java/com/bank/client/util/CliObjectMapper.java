@@ -46,9 +46,9 @@ public class CliObjectMapper
             var instance = clazz.getDeclaredConstructor().newInstance();
             populateObject(instance, clazz);
             return instance;
-        } catch (Exception e)
+        } catch (Exception objectCreationException)
         {
-            throw new RuntimeException("Failed to create or populate object of type: " + clazz.getSimpleName(), e);
+            throw new RuntimeException("Failed to create or populate object of type: " + clazz.getSimpleName(), objectCreationException);
         }
     }
 
@@ -110,22 +110,22 @@ public class CliObjectMapper
                     value = parseInput(input, fieldType, field);
                     validInput = true;
                 }
-            } catch (IllegalArgumentException e)
+            } catch (IllegalArgumentException illegalArgumentException)
             {
                 System.out.println("Invalid input type for '" + fieldName + "'. Expected: " + fieldType.getSimpleName() + ". Please try again.");
-            } catch (Exception e)
+            } catch (Exception inputProcessingException)
             {
-                System.out.println("An error occurred while processing input for '" + fieldName + "': " + e.getMessage() + ". Please try again.");
+                System.out.println("An error occurred while processing input for '" + fieldName + "': " + inputProcessingException.getMessage() + ". Please try again.");
             }
         }
 
         try
         {
             field.set(instance, value);
-        } catch (IllegalAccessException e)
+        } catch (IllegalAccessException illegalAccessException)
         {
             // This should not happen due to setAccessible(true)
-            throw new RuntimeException("Failed to set field: " + fieldName, e);
+            throw new RuntimeException("Failed to set field: " + fieldName, illegalAccessException);
         }
     }
 
@@ -233,7 +233,7 @@ public class CliObjectMapper
         try
         {
             return Enum.valueOf(enumClass, input);
-        } catch (IllegalArgumentException e)
+        } catch (IllegalArgumentException illegalArgumentException)
         {
             // Provide a helpful error message listing valid options
             var validOptions = new StringBuilder();

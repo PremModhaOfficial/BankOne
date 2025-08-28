@@ -24,9 +24,9 @@ public class DatabaseUserRepository implements UserRepository
             {
                 instance = DriverManager.getConnection(URL);
 
-            } catch (SQLException e)
+            } catch (SQLException sqlException)
             {
-                e.printStackTrace();
+                sqlException.printStackTrace();
             }
         }
         return instance;

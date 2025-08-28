@@ -32,9 +32,9 @@ public class HttpClient
             ConfigurationManager.getInstance().loadConfiguration("src/main/resources/http.json");
             var port = ConfigurationManager.getInstance().getCurrentConfiguration().getPort();
             serverUrl = "http://localhost:" + port;
-        } catch (HttpConfigurationException e)
+        } catch (HttpConfigurationException configException)
         {
-            LOGGER.warn("Failed to load configuration, using default URL: {}", serverUrl, e);
+            LOGGER.warn("Failed to load configuration, using default URL: {}", serverUrl, configException);
         }
 
         // Initialize client
@@ -61,7 +61,7 @@ public class HttpClient
                 {
                     wantToExit = launchInterface(client, scanner);
                 }
-            } catch (ArrayIndexOutOfBoundsException e)
+            } catch (ArrayIndexOutOfBoundsException arrayIndexException)
             {
                 System.out.println("Please enter a number between 1 and 100");
 
@@ -83,7 +83,7 @@ public class HttpClient
         try
         {
             choice = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e)
+        } catch (NumberFormatException numberFormatException)
         {
             System.out.println("Invalid input. Please enter a number.");
             return null;
@@ -155,9 +155,9 @@ public class HttpClient
                 LOGGER.debug("Login failed response: {}", Json.stringifyPretty(Json.toJson(response.body())));
                 return null;
             }
-        } catch (Exception e)
+        } catch (Exception loginException)
         {
-            System.err.println("Error during login: " + e.getMessage());
+            System.err.println("Error during login: " + loginException.getMessage());
             return null;
         }
     }
@@ -204,9 +204,9 @@ public class HttpClient
                 System.out.println("Failed to register user. Server responded with status: " + response.statusCode());
                 return null;
             }
-        } catch (Exception e)
+        } catch (Exception registrationException)
         {
-            System.err.println("Error during user registration: " + e.getMessage());
+            System.err.println("Error during user registration: " + registrationException.getMessage());
             return null;
         }
     }
@@ -236,7 +236,7 @@ public class HttpClient
         try
         {
             choice = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e)
+        } catch (NumberFormatException numberFormatException)
         {
             System.out.println("Invalid input. Please enter a number.");
             return false;
@@ -310,9 +310,9 @@ public class HttpClient
             {
                 System.out.println("Failed to retrieve accounts. Status: " + response.statusCode());
             }
-        } catch (Exception e)
+        } catch (Exception accountRetrievalException)
         {
-            System.err.println("Error retrieving accounts: " + e.getMessage());
+            System.err.println("Error retrieving accounts: " + accountRetrievalException.getMessage());
         }
     }
 
@@ -339,9 +339,9 @@ public class HttpClient
             {
                 System.out.println("Failed to retrieve accounts. Status: " + response.statusCode());
             }
-        } catch (Exception e)
+        } catch (Exception accountRetrievalException)
         {
-            System.err.println("Error retrieving accounts: " + e.getMessage());
+            System.err.println("Error retrieving accounts: " + accountRetrievalException.getMessage());
         }
     }
 
@@ -383,7 +383,7 @@ public class HttpClient
                 {
                     System.out.println("Failed to create account. Status: " + response.statusCode());
                 }
-            } catch (Exception e)
+            } catch (Exception accountCreationException)
             {
                 System.out.println("Please try again. with valid input");
             }
@@ -433,12 +433,12 @@ public class HttpClient
             {
                 System.out.println("Failed to make deposit. Status: " + response.statusCode());
             }
-        } catch (NumberFormatException e)
+        } catch (NumberFormatException numberFormatException)
         {
             System.out.println("Invalid input. Please enter valid numbers.");
-        } catch (Exception e)
+        } catch (Exception depositException)
         {
-            System.err.println("Error making deposit: " + e.getMessage());
+            System.err.println("Error making deposit: " + depositException.getMessage());
         }
     }
 
@@ -478,12 +478,12 @@ public class HttpClient
             {
                 System.out.println("Failed to make withdrawal. Status: " + response.statusCode());
             }
-        } catch (NumberFormatException e)
+        } catch (NumberFormatException numberFormatException)
         {
             System.out.println("Invalid input. Please enter valid numbers.");
-        } catch (Exception e)
+        } catch (Exception withdrawalException)
         {
-            System.err.println("Error making withdrawal: " + e.getMessage());
+            System.err.println("Error making withdrawal: " + withdrawalException.getMessage());
         }
     }
 
@@ -527,12 +527,12 @@ public class HttpClient
                 LOGGER.error("Failed to make transfer. Server responded with status: {}", response.statusCode());
                 LOGGER.error("Response Body: {}", response.body());
             }
-        } catch (NumberFormatException e)
+        } catch (NumberFormatException numberFormatException)
         {
             System.out.println("Invalid input. Please enter valid numbers.");
-        } catch (Exception e)
+        } catch (Exception transferException)
         {
-            System.err.println("Error making transfer: " + e.getMessage());
+            System.err.println("Error making transfer: " + transferException.getMessage());
         }
     }
 
@@ -554,9 +554,9 @@ public class HttpClient
             {
                 System.out.println("Failed to retrieve users. Status: " + response.statusCode());
             }
-        } catch (Exception e)
+        } catch (Exception userRetrievalException)
         {
-            System.err.println("Error retrieving users: " + e.getMessage());
+            System.err.println("Error retrieving users: " + userRetrievalException.getMessage());
         }
     }
 }

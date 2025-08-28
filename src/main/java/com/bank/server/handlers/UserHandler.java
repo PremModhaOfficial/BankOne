@@ -32,16 +32,16 @@ public class UserHandler implements HttpHandler
             try
             {
                 handleRequest(exchange);
-            } catch (IOException e)
-            {
-                LOGGER.error("Error User handling request: {}", e.getMessage(), e);
-                try
-                {
-                    sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-                } catch (IOException ioException)
-                {
-                    LOGGER.error("Failed to user send error response: {}", ioException.getMessage(), ioException);
-                }
+             } catch (IOException ioException)
+             {
+                 LOGGER.error("Error User handling request: {}", ioException.getMessage(), ioException);
+                 try
+                 {
+                     sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + ioException.getMessage() + "\"}");
+                 } catch (IOException responseException)
+                 {
+                     LOGGER.error("Failed to user send error response: {}", responseException.getMessage(), responseException);
+                 }
             }
         });
     }
@@ -69,11 +69,11 @@ public class UserHandler implements HttpHandler
             {
                 sendResponse(exchange, 404, "{\"error\": \"Not Found\"}");
             }
-        } catch (Exception e)
-        {
-            LOGGER.error("Error processing request: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
+         } catch (Exception requestProcessingException)
+         {
+             LOGGER.error("Error processing request: {}", requestProcessingException.getMessage(), requestProcessingException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + requestProcessingException.getMessage() + "\"}");
+         }
     }
 
     private void handleCreateUser(HttpExchange exchange) throws IOException
@@ -102,11 +102,11 @@ public class UserHandler implements HttpHandler
             var user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
             var jsonResponse = Json.stringify(Json.toJson(user));
             sendResponse(exchange, 201, jsonResponse);
-        } catch (Exception e)
-        {
-            LOGGER.error("Error creating user: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: " + e.getMessage() + "\"}");
-        }
+         } catch (Exception userCreationException)
+         {
+             LOGGER.error("Error creating user: {}", userCreationException.getMessage(), userCreationException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: " + userCreationException.getMessage() + "\"}");
+         }
     }
 
     private void handleLogin(HttpExchange exchange) throws IOException
@@ -139,11 +139,11 @@ public class UserHandler implements HttpHandler
             {
                 sendResponse(exchange, 401, "{\"error\": \"User not found\"}");
             }
-        } catch (Exception e)
-        {
-            LOGGER.error("Error during login: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: " + e.getMessage() + "\"}");
-        }
+         } catch (Exception loginException)
+         {
+             LOGGER.error("Error during login: {}", loginException.getMessage(), loginException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: " + loginException.getMessage() + "\"}");
+         }
     }
 
     private void handleGetUserById(HttpExchange exchange) throws IOException
@@ -169,15 +169,15 @@ public class UserHandler implements HttpHandler
             {
                 sendResponse(exchange, 404, "{\"error\": \"User not found\"}");
             }
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Invalid user ID format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error getting user: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Invalid user ID format\"}");
+         } catch (Exception userRetrievalException)
+         {
+             LOGGER.error("Error getting user: {}", userRetrievalException.getMessage(), userRetrievalException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + userRetrievalException.getMessage() + "\"}");
+         }
     }
 
     private void handleGetAllUsers(HttpExchange exchange) throws IOException
@@ -189,11 +189,11 @@ public class UserHandler implements HttpHandler
             var users = userService.getAllUsers();
             var jsonResponse = Json.stringify(Json.toJson(users));
             sendResponse(exchange, 200, jsonResponse);
-        } catch (Exception e)
-        {
-            LOGGER.error("Error getting all users: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
+         } catch (Exception usersRetrievalException)
+         {
+             LOGGER.error("Error getting all users: {}", usersRetrievalException.getMessage(), usersRetrievalException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + usersRetrievalException.getMessage() + "\"}");
+         }
     }
 
     private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException

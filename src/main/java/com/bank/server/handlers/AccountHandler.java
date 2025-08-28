@@ -34,16 +34,16 @@ public class AccountHandler implements HttpHandler
             try
             {
                 handleRequest(exchange);
-            } catch (IOException e)
-            {
-                LOGGER.error("Error handling request: {}", e.getMessage(), e);
-                try
-                {
-                    sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-                } catch (IOException ioException)
-                {
-                    LOGGER.error("Failed to send error response: {}", ioException.getMessage(), ioException);
-                }
+             } catch (IOException ioException)
+             {
+                 LOGGER.error("Error handling request: {}", ioException.getMessage(), ioException);
+                 try
+                 {
+                     sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + ioException.getMessage() + "\"}");
+                 } catch (IOException responseException)
+                 {
+                     LOGGER.error("Failed to send error response: {}", responseException.getMessage(), responseException);
+                 }
             }
         });
     }
@@ -82,11 +82,11 @@ public class AccountHandler implements HttpHandler
             {
                 sendResponse(exchange, 404, "{\"error\": \"Not Found\"}");
             }
-        } catch (Exception e)
-        {
-            LOGGER.error("Error processing request: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
+         } catch (Exception requestProcessingException)
+         {
+             LOGGER.error("Error processing request: {}", requestProcessingException.getMessage(), requestProcessingException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + requestProcessingException.getMessage() + "\"}");
+         }
     }
 
     /**
@@ -125,15 +125,15 @@ public class AccountHandler implements HttpHandler
 
             var jsonResponse = Json.stringify(Json.toJson(account));
             sendResponse(exchange, 201, jsonResponse);
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error creating account: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
+         } catch (Exception accountCreationException)
+         {
+             LOGGER.error("Error creating account: {}", accountCreationException.getMessage(), accountCreationException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + accountCreationException.getMessage() + "\"}");
+         }
     }
 
     /**
@@ -163,34 +163,34 @@ public class AccountHandler implements HttpHandler
             {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
             }
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid account ID format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error getting account: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid account ID format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID format\"}");
+         } catch (Exception accountRetrievalException)
+         {
+             LOGGER.error("Error getting account: {}", accountRetrievalException.getMessage(), accountRetrievalException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + accountRetrievalException.getMessage() + "\"}");
+         }
     }
 
-    private void handleGetAllAccounts(HttpExchange exchange) throws IOException
-    {
-        try
-        {
-            var accounts = accountService.getAllAccounts();
-            var jsonResponse = Json.stringify(Json.toJson(accounts));
-            sendResponse(exchange, 200, jsonResponse);
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error getting accounts: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
-    }
+     private void handleGetAllAccounts(HttpExchange exchange) throws IOException
+     {
+         try
+         {
+             var accounts = accountService.getAllAccounts();
+             var jsonResponse = Json.stringify(Json.toJson(accounts));
+             sendResponse(exchange, 200, jsonResponse);
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
+         } catch (Exception accountsRetrievalException)
+         {
+             LOGGER.error("Error getting accounts: {}", accountsRetrievalException.getMessage(), accountsRetrievalException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + accountsRetrievalException.getMessage() + "\"}");
+         }
+     }
 
     /**
      * @param exchange
@@ -231,16 +231,16 @@ public class AccountHandler implements HttpHandler
             var accounts = accountService.getAccountsByUserId(userId);
             var jsonResponse = Json.stringify(Json.toJson(accounts));
             sendResponse(exchange, 200, jsonResponse);
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid user ID format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error getting accounts: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
-    }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid user ID format\"}");
+         } catch (Exception accountsByUserRetrievalException)
+         {
+             LOGGER.error("Error getting accounts: {}", accountsByUserRetrievalException.getMessage(), accountsByUserRetrievalException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + accountsByUserRetrievalException.getMessage() + "\"}");
+         }
+     }
 
     private void handleDeposit(HttpExchange exchange) throws IOException
     {
@@ -285,16 +285,16 @@ public class AccountHandler implements HttpHandler
 
             var jsonResponse = Json.stringify(response);
             sendResponse(exchange, 200, jsonResponse);
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid account ID or amount format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error processing deposit: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
-    }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid account ID or amount format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
+         } catch (Exception depositProcessingException)
+         {
+             LOGGER.error("Error processing deposit: {}", depositProcessingException.getMessage(), depositProcessingException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + depositProcessingException.getMessage() + "\"}");
+         }
+     }
 
     /**
      * @param exchange
@@ -343,16 +343,16 @@ public class AccountHandler implements HttpHandler
                 var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid account ID or amount format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error processing withdrawal: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
-    }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid account ID or amount format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
+         } catch (Exception withdrawalProcessingException)
+         {
+             LOGGER.error("Error processing withdrawal: {}", withdrawalProcessingException.getMessage(), withdrawalProcessingException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + withdrawalProcessingException.getMessage() + "\"}");
+         }
+     }
 
     private void handleTransfer(HttpExchange exchange) throws IOException
     {
@@ -416,16 +416,16 @@ public class AccountHandler implements HttpHandler
                 var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }
-        } catch (NumberFormatException e)
-        {
-            LOGGER.error("Invalid account ID or amount format: {}", e.getMessage(), e);
-            sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
-        } catch (Exception e)
-        {
-            LOGGER.error("Error processing transfer: {}", e.getMessage(), e);
-            sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + e.getMessage() + "\"}");
-        }
-    }
+         } catch (NumberFormatException numberFormatException)
+         {
+             LOGGER.error("Invalid account ID or amount format: {}", numberFormatException.getMessage(), numberFormatException);
+             sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid account ID or amount format\"}");
+         } catch (Exception transferProcessingException)
+         {
+             LOGGER.error("Error processing transfer: {}", transferProcessingException.getMessage(), transferProcessingException);
+             sendResponse(exchange, 500, "{\"error\": \"Internal Server Error: " + transferProcessingException.getMessage() + "\"}");
+         }
+     }
 
     /**
      * @param exchange

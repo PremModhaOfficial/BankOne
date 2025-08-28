@@ -1,8 +1,5 @@
 package com.bank.stress;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,6 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Network-based stress test for the banking system that communicates with the
@@ -164,8 +163,9 @@ public class NetworkStressTest {
                             System.err.println("Failed to create account for user " + finalUserId + ", status: "
                                     + response.statusCode() + ", response: " + response.body());
                         }
-                    } catch (Exception e) {
-                        System.err.println("Error creating account for user " + finalUserId + ": " + e.getMessage());
+                    } catch (Exception exception) {
+                        System.err.println(
+                                "Error creating account for user " + finalUserId + ": " + exception.getMessage());
                     }
                 }, executorService);
 
@@ -225,8 +225,8 @@ public class NetworkStressTest {
                 } else {
                     failedOperations.incrementAndGet();
                 }
-            } catch (Exception e) {
-                System.err.println("Error in thread " + threadId + " operation " + i + ": " + e.getMessage());
+            } catch (Exception exception) {
+                System.err.println("Error in thread " + threadId + " operation " + i + ": " + exception.getMessage());
                 failedOperations.incrementAndGet();
             }
         }
@@ -255,8 +255,8 @@ public class NetworkStressTest {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             return response.statusCode() == 200;
-        } catch (Exception e) {
-            System.err.println("Error performing deposit: " + e.getMessage());
+        } catch (Exception exception) {
+            System.err.println("Error performing deposit: " + exception.getMessage());
             return false;
         }
     }
@@ -282,8 +282,8 @@ public class NetworkStressTest {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             return response.statusCode() == 200;
-        } catch (Exception e) {
-            System.err.println("Error performing withdrawal: " + e.getMessage());
+        } catch (Exception exception) {
+            System.err.println("Error performing withdrawal: " + exception.getMessage());
             return false;
         }
     }
@@ -316,8 +316,8 @@ public class NetworkStressTest {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             return response.statusCode() == 200;
-        } catch (Exception e) {
-            System.err.println("Error performing transfer: " + e.getMessage());
+        } catch (Exception exception) {
+            System.err.println("Error performing transfer: " + exception.getMessage());
             return false;
         }
     }
