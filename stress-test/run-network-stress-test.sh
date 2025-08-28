@@ -14,11 +14,11 @@ if [ ! -f "pom.xml" ]; then
 fi
 
 # Check if JAR exists
-if [ ! -f "target/stress-test-1.0-SNAPSHOT.jar" ]; then
-    echo "Error: Network stress test JAR not found. Please build it first:"
-    echo "  mvn clean package"
-    exit 1
+if [  -f "target/stress-test-1.0-SNAPSHOT.jar" ]; then
+    echo "info: Network stress test JAR  found. Need to rebuild it first:"
+    echo "running  mvn clean package"
 fi
+mvn clean package
 
 # Make sure the server is running
 echo "Please make sure the Bank server is running on http://localhost:8080"

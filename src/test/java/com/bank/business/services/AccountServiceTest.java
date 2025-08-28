@@ -10,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -68,14 +67,14 @@ class AccountServiceTest
         Account mockAccount = new Account(1L, "ACC123", BigDecimal.TEN, Account.AccountType.CHECKING);
         mockAccount.setId(accountId);
 
-        when(accountRepository.findById(accountId)).thenReturn(Optional.of(mockAccount));
+        when(accountRepository.findById(accountId)).thenReturn(mockAccount);
 
         // Act
-        Optional<Account> result = accountService.getAccountById(accountId);
+        Account result = accountService.getAccountById(accountId);
 
         // Assert
-        assertTrue(result.isPresent());
-        assertEquals(mockAccount, result.get());
+        assertNotNull(result);
+        assertEquals(mockAccount, result);
         verify(accountRepository, times(1)).findById(accountId);
     }
 
@@ -84,13 +83,13 @@ class AccountServiceTest
     {
         // Arrange
         Long accountId = 999L;
-        when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
+        when(accountRepository.findById(accountId)).thenReturn(null);
 
         // Act
-        Optional<Account> result = accountService.getAccountById(accountId);
+        Account result = accountService.getAccountById(accountId);
 
         // Assert
-        assertFalse(result.isPresent());
+        assertNull(result);
         verify(accountRepository, times(1)).findById(accountId);
     }
 
@@ -123,14 +122,14 @@ class AccountServiceTest
         Account mockAccount = new Account(2L, accountNumber, BigDecimal.ZERO, Account.AccountType.SAVINGS);
         mockAccount.setId(5L);
 
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.of(mockAccount));
+        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(mockAccount);
 
         // Act
-        Optional<Account> result = accountService.getAccountByAccountNumber(accountNumber);
+        Account result = accountService.getAccountByAccountNumber(accountNumber);
 
         // Assert
-        assertTrue(result.isPresent());
-        assertEquals(mockAccount, result.get());
+        assertNotNull(result);
+        assertEquals(mockAccount, result);
         verify(accountRepository, times(1)).findByAccountNumber(accountNumber);
     }
 

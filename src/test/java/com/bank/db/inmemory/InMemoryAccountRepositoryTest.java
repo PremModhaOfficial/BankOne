@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,11 +65,11 @@ class InMemoryAccountRepositoryTest
         Long id = savedAccount.getId();
 
         // Act
-        Optional<Account> foundAccount = accountRepository.findById(id);
+        Account foundAccount = accountRepository.findById(id);
 
         // Assert
-        assertTrue(foundAccount.isPresent());
-        assertEquals(savedAccount, foundAccount.get());
+        assertNotNull(foundAccount);
+        assertEquals(savedAccount, foundAccount);
     }
 
     @Test
@@ -80,10 +79,10 @@ class InMemoryAccountRepositoryTest
         Long nonExistentId = 999L;
 
         // Act
-        Optional<Account> foundAccount = accountRepository.findById(nonExistentId);
+        Account foundAccount = accountRepository.findById(nonExistentId);
 
         // Assert
-        assertFalse(foundAccount.isPresent());
+        assertNull(foundAccount);
     }
 
     @Test
@@ -118,11 +117,11 @@ class InMemoryAccountRepositoryTest
         accountRepository.save(account);
 
         // Act
-        Optional<Account> foundAccount = accountRepository.findByAccountNumber(accountNumber);
+        Account foundAccount = accountRepository.findByAccountNumber(accountNumber);
 
         // Assert
-        assertTrue(foundAccount.isPresent());
-        assertEquals(account, foundAccount.get());
+        assertNotNull(foundAccount);
+        assertEquals(account, foundAccount);
     }
 
     @Test
@@ -132,10 +131,10 @@ class InMemoryAccountRepositoryTest
         String nonExistentAccountNumber = "NON_EXISTENT";
 
         // Act
-        Optional<Account> foundAccount = accountRepository.findByAccountNumber(nonExistentAccountNumber);
+        Account foundAccount = accountRepository.findByAccountNumber(nonExistentAccountNumber);
 
         // Assert
-        assertFalse(foundAccount.isPresent());
+        assertNull(foundAccount);
     }
 
     @Test
@@ -150,7 +149,7 @@ class InMemoryAccountRepositoryTest
         accountRepository.deleteById(id);
 
         // Assert
-        assertFalse(accountRepository.findById(id).isPresent());
+        assertNull(accountRepository.findById(id));
     }
 
     @Test

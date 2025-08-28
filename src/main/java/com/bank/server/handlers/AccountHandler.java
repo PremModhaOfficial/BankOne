@@ -5,8 +5,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,6 @@ import com.bank.business.services.UserService;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -150,11 +149,11 @@ public class AccountHandler implements HttpHandler
             }
 
             Long accountId = Long.parseLong(parts[2]);
-            Optional<Account> accountOptional = accountService.getAccountById(accountId);
+            Account account = accountService.getAccountById(accountId);
 
-            if (accountOptional.isPresent())
+            if (account != null)
             {
-                String jsonResponse = Json.stringify(Json.toJson(accountOptional.get()));
+                String jsonResponse = Json.stringify(Json.toJson(account));
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
@@ -259,13 +258,12 @@ public class AccountHandler implements HttpHandler
                 return;
             }
 
-            Optional<Account> accountOptional = accountService.getAccountById(accountId);
-            if (accountOptional.isEmpty())
+            Account account = accountService.getAccountById(accountId);
+            if (account == null)
             {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
-            Account account = accountOptional.get();
 
             account.addAmount(amount);
 
@@ -308,14 +306,12 @@ public class AccountHandler implements HttpHandler
             JsonNode jsonNode = Json.parse(requestBody);
             BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
 
-            Optional<Account> accountOptional = accountService.getAccountById(accountId);
-            if (accountOptional.isEmpty())
+            Account account = accountService.getAccountById(accountId);
+            if (account == null)
             {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
-
-            Account account = accountOptional.get();
             boolean success = account.withdrawAmount(amount);
 
             ObjectNode response = Json.defaultObjectMapper().createObjectNode();
@@ -373,16 +369,16 @@ public class AccountHandler implements HttpHandler
                 return;
             }
 
-            Optional<Account> fromAccountOptional = accountService.getAccountById(fromAccountId);
-            if (fromAccountOptional.isEmpty())
+            Account fromAccount = accountService.getAccountById(fromAccountId);
+            if (fromAccount == null)
             {
                 sendResponse(exchange, 404, "{\"error\": \"Source account not found\"}");
                 return;
             }
 
             // Verify that the destination account exists
-            Optional<Account> toAccountOptional = accountService.getAccountById(toAccountId);
-            if (toAccountOptional.isEmpty())
+            Account toAccount = accountService.getAccountById(toAccountId);
+            if (toAccount == null)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Destination account not found\"}");
                 return;
@@ -396,14 +392,13 @@ public class AccountHandler implements HttpHandler
 
             if (success)
             {
-                Account updatedFromAccount = accountService.getAccountById(fromAccountId).orElseThrow();
+                Account updatedFromAccount = accountService.getAccountById(fromAccountId);
                 response.put("message", "Transfer successful");
                 response.put("balance", updatedFromAccount.getBalance().toString());
                 String jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
-                Account fromAccount = fromAccountOptional.get();
                 response.put("message", "Insufficient funds or account not found");
                 response.put("balance", fromAccount.getBalance().toString());
                 String jsonResponse = Json.stringify(response);

@@ -76,9 +76,11 @@ public class ConcurrentAccountOperationsStressTest
         BigDecimal depositAmount = new BigDecimal("5.0");
 
         CompletableFuture<?>[] depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
-            Account acc = accountService.getAccountById(accountId).orElseThrow();
-            acc.addAmount(depositAmount);
-            accountService.updateAccount(acc);
+            Account acc = accountService.getAccountById(accountId);
+            if (acc != null) {
+                acc.addAmount(depositAmount);
+                accountService.updateAccount(acc);
+            }
         })).toArray(CompletableFuture[]::new);
 
         // Wait for all deposits to complete
@@ -86,7 +88,8 @@ public class ConcurrentAccountOperationsStressTest
 
         // Verify final balance
         BigDecimal expectedBalance = depositAmount.multiply(new BigDecimal(numberOfDeposits));
-        Account updatedAccount = accountService.getAccountById(accountId).orElseThrow();
+        Account updatedAccount = accountService.getAccountById(accountId);
+        assertNotNull(updatedAccount, "Account should exist");
         assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }
 
@@ -106,9 +109,11 @@ public class ConcurrentAccountOperationsStressTest
         BigDecimal withdrawalAmount = new BigDecimal("5.0");
 
         CompletableFuture<?>[] withdrawalFutures = IntStream.range(0, numberOfWithdrawals).mapToObj(i -> CompletableFuture.runAsync(() -> {
-            Account acc = accountService.getAccountById(accountId).orElseThrow();
-            acc.withdrawAmount(withdrawalAmount);
-            accountService.updateAccount(acc);
+            Account acc = accountService.getAccountById(accountId);
+            if (acc != null) {
+                acc.withdrawAmount(withdrawalAmount);
+                accountService.updateAccount(acc);
+            }
         })).toArray(CompletableFuture[]::new);
 
         // Wait for all withdrawals to complete
@@ -116,7 +121,8 @@ public class ConcurrentAccountOperationsStressTest
 
         // Verify final balance
         BigDecimal expectedBalance = initialBalance.subtract(withdrawalAmount.multiply(new BigDecimal(numberOfWithdrawals)));
-        Account updatedAccount = accountService.getAccountById(accountId).orElseThrow();
+        Account updatedAccount = accountService.getAccountById(accountId);
+        assertNotNull(updatedAccount, "Account should exist");
         assertEquals(0, expectedBalance.compareTo(updatedAccount.getBalance()), "Final balance should match expected amount");
     }
 
@@ -152,9 +158,11 @@ public class ConcurrentAccountOperationsStressTest
         BigDecimal expectedBalance1 = initialBalance1.subtract(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
         BigDecimal expectedBalance2 = initialBalance2.add(transferAmount.multiply(new BigDecimal(numberOfTransfers)));
 
-        Account updatedAccount1 = accountService.getAccountById(accountId1).orElseThrow();
-        Account updatedAccount2 = accountService.getAccountById(accountId2).orElseThrow();
+        Account updatedAccount1 = accountService.getAccountById(accountId1);
+        Account updatedAccount2 = accountService.getAccountById(accountId2);
 
+        assertNotNull(updatedAccount1, "Account1 should exist");
+        assertNotNull(updatedAccount2, "Account2 should exist");
         assertEquals(0, expectedBalance1.compareTo(updatedAccount1.getBalance()), "Final balance of account1 should match expected amount");
         assertEquals(0, expectedBalance2.compareTo(updatedAccount2.getBalance()), "Final balance of account2 should match expected amount");
     }
@@ -192,9 +200,13 @@ public class ConcurrentAccountOperationsStressTest
         latch.await();
 
         // Verify final balances (exact values depend on the operations)
-        Account updatedAccount1 = accountService.getAccountById(accountId1).orElseThrow();
-        Account updatedAccount2 = accountService.getAccountById(accountId2).orElseThrow();
-        Account updatedAccount3 = accountService.getAccountById(accountId3).orElseThrow();
+        Account updatedAccount1 = accountService.getAccountById(accountId1);
+        Account updatedAccount2 = accountService.getAccountById(accountId2);
+        Account updatedAccount3 = accountService.getAccountById(accountId3);
+
+        assertNotNull(updatedAccount1, "Account1 should exist");
+        assertNotNull(updatedAccount2, "Account2 should exist");
+        assertNotNull(updatedAccount3, "Account3 should exist");
 
         // Since we're doing mixed operations that should conserve total balance, verify
         // it

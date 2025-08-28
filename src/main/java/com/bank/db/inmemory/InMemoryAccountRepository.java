@@ -4,7 +4,6 @@ import com.bank.business.entities.Account;
 import com.bank.business.repositories.AccountRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -35,9 +34,9 @@ public class InMemoryAccountRepository implements AccountRepository
     }
 
     @Override
-    public Optional<Account> findById(Long id)
+    public Account findById(Long id)
     {
-        return Optional.ofNullable(accountStore.get(id));
+        return accountStore.get(id);
     }
 
     @Override
@@ -47,9 +46,9 @@ public class InMemoryAccountRepository implements AccountRepository
     }
 
     @Override
-    public Optional<Account> findByAccountNumber(String accountNumber)
+    public Account findByAccountNumber(String accountNumber)
     {
-        return accountStore.values().stream().filter(account -> accountNumber.equals(account.getAccountNumber())).findFirst();
+        return accountStore.values().stream().filter(account -> accountNumber.equals(account.getAccountNumber())).findFirst().orElse(null);
     }
 
     @Override

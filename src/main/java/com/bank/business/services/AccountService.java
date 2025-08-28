@@ -5,7 +5,6 @@ import com.bank.business.repositories.AccountRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -48,7 +47,7 @@ public class AccountService
         return savedAccount;
     }
 
-    public Optional<Account> getAccountById(Long id)
+    public Account getAccountById(Long id)
     {
         return accountRepository.findById(id);
     }
@@ -58,7 +57,7 @@ public class AccountService
         return accountRepository.findByUserId(userId);
     }
 
-    public Optional<Account> getAccountByAccountNumber(String accountNumber)
+    public Account getAccountByAccountNumber(String accountNumber)
     {
         return accountRepository.findByAccountNumber(accountNumber);
     }
@@ -90,16 +89,13 @@ public class AccountService
     public boolean transferAmount(Long fromAccountId, Long toAccountId, BigDecimal amount)
     {
         // Get both accounts
-        Optional<Account> fromAccountOpt = getAccountById(fromAccountId);
-        Optional<Account> toAccountOpt = getAccountById(toAccountId);
+        Account fromAccount = getAccountById(fromAccountId);
+        Account toAccount = getAccountById(toAccountId);
 
-        if (!fromAccountOpt.isPresent() || !toAccountOpt.isPresent())
+        if (fromAccount == null || toAccount == null)
         {
             return false;
         }
-
-        Account fromAccount = fromAccountOpt.get();
-        Account toAccount = toAccountOpt.get();
 
         // To ensure atomicity of the transfer operation, we need to synchronize on both
         // accounts

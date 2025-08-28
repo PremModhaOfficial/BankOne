@@ -3,7 +3,6 @@ package com.bank.db.database;
 import com.bank.business.entities.Account;
 import com.bank.business.repositories.AccountRepository;
 import java.util.List;
-import java.util.Optional;
 
 // Placeholder for a future database implementation.
 // This class won't compile until you add actual database logic (e.g., JDBC, JPA).
@@ -17,7 +16,7 @@ public class DatabaseAccountRepository implements AccountRepository
     }
 
     @Override
-    public Optional<Account> findById(Long id)
+    public Account findById(Long id)
     {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
@@ -29,7 +28,7 @@ public class DatabaseAccountRepository implements AccountRepository
     }
 
     @Override
-    public Optional<Account> findByAccountNumber(String accountNumber)
+    public Account findByAccountNumber(String accountNumber)
     {
         throw new UnsupportedOperationException("Database implementation not yet provided.");
     }
