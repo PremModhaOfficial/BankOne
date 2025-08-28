@@ -42,7 +42,7 @@ public class DatabaseUserRepository implements UserRepository
     }
 
     @Override
-    public Optional<User> findById(Long id)
+    public User findById(Long id)
     {
         // Implement database find by ID logic here.
         // For JDBC: Use PreparedStatement to SELECT.
@@ -51,7 +51,7 @@ public class DatabaseUserRepository implements UserRepository
     }
 
     @Override
-    public Optional<User> findByUsername(String username)
+    public User findByUsername(String username)
     {
         // Implement database find by username logic here.
         // For JDBC: Use PreparedStatement to SELECT.
@@ -60,7 +60,7 @@ public class DatabaseUserRepository implements UserRepository
     }
 
     @Override
-    public Optional<User> findByEmail(String email)
+    public User findByEmail(String email)
     {
         // Implement database find by email logic here.
         // For JDBC: Use PreparedStatement to SELECT.

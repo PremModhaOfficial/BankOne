@@ -114,15 +114,15 @@ public class UserHandler implements HttpHandler
             String userId = jsonNode.get("id").asText();
 
             // In a real app, you'd verify the password against the hashed version
-            Optional<User> userOptional = userService.getUserByUsername(userId);
-            if (userOptional.isEmpty())
+            User userOptional = userService.getUserByUsername(userId);
+            if (userOptional == null)
             {
                 userOptional = userService.getUserByEmail(userId);
             }
 
-            if (userOptional.isPresent())
+            if (userOptional != null)
             {
-                User user = userOptional.get();
+                User user = userOptional;
                 // Generate a simple session token (user ID:email:password for this simplified
                 // version)
                 ObjectNode userNode = Json.toJson(user).deepCopy();
@@ -155,11 +155,11 @@ public class UserHandler implements HttpHandler
             }
 
             Long userId = Long.parseLong(parts[2]);
-            Optional<User> userOptional = userService.getUserById(userId);
+            User userOptional = userService.getUserById(userId);
 
-            if (userOptional.isPresent())
+            if (userOptional != null)
             {
-                String jsonResponse = Json.stringify(Json.toJson(userOptional.get()));
+                String jsonResponse = Json.stringify(Json.toJson(userOptional));
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {

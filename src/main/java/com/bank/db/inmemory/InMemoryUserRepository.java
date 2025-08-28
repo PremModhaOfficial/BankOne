@@ -50,21 +50,21 @@ public class InMemoryUserRepository implements UserRepository
     }
 
     @Override
-    public Optional<User> findById(Long id)
+    public User findById(Long id)
     {
-        return Optional.ofNullable(userStore.get(id));
+        return userStore.get(id);
     }
 
     @Override
-    public Optional<User> findByUsername(String username)
+    public User findByUsername(String username)
     {
-        return userStore.values().stream().filter(user -> username.equals(user.getUsername())).findFirst();
+        return userStore.values().stream().filter(user -> username.equals(user.getUsername())).findFirst().orElse(null);
     }
 
     @Override
-    public Optional<User> findByEmail(String email)
+    public User findByEmail(String email)
     {
-        return userStore.values().stream().filter(user -> email.equals(user.getEmail())).findFirst();
+        return userStore.values().stream().filter(user -> email.equals(user.getEmail())).findFirst().orElse(null);
     }
 
     @Override

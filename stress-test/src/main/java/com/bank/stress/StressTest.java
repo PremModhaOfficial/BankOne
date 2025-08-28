@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * measure
  * throughput and identify performance bottlenecks.
  */
-public class StressTest {
+public class StressTest
+{
 
     private static final int NUMBER_OF_USERS = 10000;
     private static final int NUMBER_OF_ACCOUNTS_PER_USER = 59;
@@ -40,12 +41,14 @@ public class StressTest {
     private AtomicInteger successfulOperations = new AtomicInteger(0);
     private AtomicInteger failedOperations = new AtomicInteger(0);
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception
+    {
         StressTest stressTest = new StressTest();
         stressTest.runStressTest();
     }
 
-    public void runStressTest() throws Exception {
+    public void runStressTest() throws Exception
+    {
         System.out.println("Starting stress test...");
 
         // Initialize the system
@@ -66,7 +69,8 @@ public class StressTest {
         cleanup();
     }
 
-    private void initialize() {
+    private void initialize()
+    {
         System.out.println("Initializing system...");
 
         // Set up repositories and services
@@ -80,7 +84,8 @@ public class StressTest {
         accounts = new ArrayList<>();
 
         // Create users
-        for (int i = 0; i < NUMBER_OF_USERS; i++) {
+        for (int i = 0; i < NUMBER_OF_USERS; i++)
+        {
             User user = userService.createUser("user" + i, "user" + i + "@example.com");
             users.add(user);
         }
@@ -90,22 +95,23 @@ public class StressTest {
         executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
     }
 
-    private void createAccounts() {
+    private void createAccounts()
+    {
         System.out.println("Creating accounts...");
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        for (User user : users) {
-            for (int j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++) {
+        for (User user : users)
+        {
+            for (int j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++)
+            {
                 final User finalUser = user;
                 final int accountIndex = j;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     Account account = accountService.createAccount(
-                            finalUser.getId(),
-                            "ACC" + finalUser.getId() + "_" + accountIndex,
-                            new BigDecimal("1000.0"),
-                            Account.AccountType.SAVINGS);
-                    synchronized (accounts) {
+                            finalUser.getId(), "ACC" + finalUser.getId() + "_" + accountIndex, new BigDecimal("1000.0"), Account.AccountType.SAVINGS);
+                    synchronized (accounts)
+                    {
                         accounts.add(account);
                     }
                 }, executorService);
@@ -119,13 +125,15 @@ public class StressTest {
         System.out.println("Created " + accounts.size() + " accounts");
     }
 
-    private void executeConcurrentOperations() throws InterruptedException {
+    private void executeConcurrentOperations() throws InterruptedException
+    {
         System.out.println("Executing concurrent operations...");
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         // Submit tasks to the executor service
-        for (int i = 0; i < NUMBER_OF_THREADS; i++) {
+        for (int i = 0; i < NUMBER_OF_THREADS; i++)
+        {
             final int threadId = i;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 performOperations(threadId);
@@ -137,50 +145,63 @@ public class StressTest {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
-    private void performOperations(int threadId) {
+    private void performOperations(int threadId)
+    {
         System.out.println("Thread " + threadId + " started");
 
-        for (int i = 0; i < OPERATIONS_PER_THREAD; i++) {
+        for (int i = 0; i < OPERATIONS_PER_THREAD; i++)
+        {
             totalOperations.incrementAndGet();
 
-            try {
+            try
+            {
                 // Randomly select an operation
                 int operationType = (int) (Math.random() * 3);
 
                 boolean success = false;
-                switch (operationType) {
+                switch (operationType)
+                {
                     case 0:
-                        try {
+                        try
+                        {
                             performDeposit();
                             success = true;
-                        } catch (Exception e) {
+                        } catch (Exception e)
+                        {
                             // Operation failed
                         }
                         break;
                     case 1:
-                        try {
+                        try
+                        {
                             performWithdrawal();
                             success = true;
-                        } catch (Exception e) {
+                        } catch (Exception e)
+                        {
                             // Operation failed
                         }
                         break;
                     case 2:
-                        try {
+                        try
+                        {
                             performTransfer();
                             success = true;
-                        } catch (Exception e) {
+                        } catch (Exception e)
+                        {
                             // Operation failed
                         }
                         break;
                 }
 
-                if (success) {
+                if (success)
+                {
                     successfulOperations.incrementAndGet();
-                } else {
+                } else
+                {
                     failedOperations.incrementAndGet();
                 }
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 System.err.println("Error in thread " + threadId + " operation " + i + ": " + e.getMessage());
                 failedOperations.incrementAndGet();
             }
@@ -189,7 +210,8 @@ public class StressTest {
         System.out.println("Thread " + threadId + " completed");
     }
 
-    private void performDeposit() {
+    private void performDeposit()
+    {
         // Select a random account
         int accountIndex = (int) (Math.random() * accounts.size());
         Account account = accounts.get(accountIndex);
@@ -202,7 +224,8 @@ public class StressTest {
         accountService.updateAccount(account);
     }
 
-    private void performWithdrawal() {
+    private void performWithdrawal()
+    {
         // Select a random account
         int accountIndex = (int) (Math.random() * accounts.size());
         Account account = accounts.get(accountIndex);
@@ -215,11 +238,13 @@ public class StressTest {
         accountService.updateAccount(account);
     }
 
-    private void performTransfer() {
+    private void performTransfer()
+    {
         // Select two different random accounts
         int fromAccountIndex = (int) (Math.random() * accounts.size());
         int toAccountIndex;
-        do {
+        do
+        {
             toAccountIndex = (int) (Math.random() * accounts.size());
         } while (toAccountIndex == fromAccountIndex);
 
@@ -231,14 +256,16 @@ public class StressTest {
 
         // Perform the transfer
         boolean success = fromAccount.withdrawAmount(amount);
-        if (success) {
+        if (success)
+        {
             toAccount.addAmount(amount);
             accountService.updateAccount(fromAccount);
             accountService.updateAccount(toAccount);
         }
     }
 
-    private void printResults(long startTime, long endTime) {
+    private void printResults(long startTime, long endTime)
+    {
         long duration = endTime - startTime;
         long totalOps = totalOperations.get();
         int successOps = successfulOperations.get();
@@ -256,12 +283,15 @@ public class StressTest {
         System.out.println("Average response time: " + String.format("%.2f", totalOps > 0 ? (double) duration / totalOps : 0) + " ms");
     }
 
-    private void cleanup() throws InterruptedException {
+    private void cleanup() throws InterruptedException
+    {
         System.out.println("Cleaning up...");
 
-        if (executorService != null) {
+        if (executorService != null)
+        {
             executorService.shutdown();
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
+            {
                 executorService.shutdownNow();
             }
         }

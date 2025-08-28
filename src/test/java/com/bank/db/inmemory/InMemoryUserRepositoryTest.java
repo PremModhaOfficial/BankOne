@@ -64,11 +64,11 @@ class InMemoryUserRepositoryTest
         Long id = savedUser.getId();
 
         // Act
-        Optional<User> foundUser = userRepository.findById(id);
+        User foundUser = userRepository.findById(id);
 
         // Assert
-        assertTrue(foundUser.isPresent());
-        assertEquals(savedUser, foundUser.get());
+        assertTrue(foundUser != null);
+        assertEquals(savedUser, foundUser);
     }
 
     @Test
@@ -78,10 +78,10 @@ class InMemoryUserRepositoryTest
         Long nonExistentId = 999L;
 
         // Act
-        Optional<User> foundUser = userRepository.findById(nonExistentId);
+        User foundUser = userRepository.findById(nonExistentId);
 
         // Assert
-        assertFalse(foundUser.isPresent());
+        assertFalse(foundUser != null);
     }
 
     @Test
@@ -93,11 +93,11 @@ class InMemoryUserRepositoryTest
         userRepository.save(user);
 
         // Act
-        Optional<User> foundUser = userRepository.findByUsername(username);
+        User foundUser = userRepository.findByUsername(username);
 
         // Assert
-        assertTrue(foundUser.isPresent());
-        assertEquals(user, foundUser.get());
+        assertTrue(foundUser != null);
+        assertEquals(user, foundUser);
     }
 
     @Test
@@ -107,10 +107,10 @@ class InMemoryUserRepositoryTest
         String nonExistentUsername = "nonexistent" + System.currentTimeMillis(); // Make it unique
 
         // Act
-        Optional<User> foundUser = userRepository.findByUsername(nonExistentUsername);
+        User foundUser = userRepository.findByUsername(nonExistentUsername);
 
         // Assert
-        assertFalse(foundUser.isPresent());
+        assertFalse(foundUser != null);
     }
 
     @Test
@@ -122,11 +122,11 @@ class InMemoryUserRepositoryTest
         userRepository.save(user);
 
         // Act
-        Optional<User> foundUser = userRepository.findByEmail(email);
+        User foundUser = userRepository.findByEmail(email);
 
         // Assert
-        assertTrue(foundUser.isPresent());
-        assertEquals(user, foundUser.get());
+        assertTrue(foundUser != null);
+        assertEquals(user, foundUser);
     }
 
     @Test
@@ -136,10 +136,10 @@ class InMemoryUserRepositoryTest
         String nonExistentEmail = "nonexistent" + System.currentTimeMillis() + "@example.com"; // Make it unique
 
         // Act
-        Optional<User> foundUser = userRepository.findByEmail(nonExistentEmail);
+        User foundUser = userRepository.findByEmail(nonExistentEmail);
 
         // Assert
-        assertFalse(foundUser.isPresent());
+        assertFalse(foundUser != null);
     }
 
     @Test
@@ -154,7 +154,7 @@ class InMemoryUserRepositoryTest
         userRepository.deleteById(id);
 
         // Assert
-        assertFalse(userRepository.findById(id).isPresent());
+        assertFalse(userRepository.findById(id) != null);
     }
 
     @Test
@@ -194,9 +194,9 @@ class InMemoryUserRepositoryTest
         assertTrue(users.contains(user2));
         assertTrue(users.contains(user3));
         // Verify the admin user is correctly identified
-        Optional<User> foundAdmin = users.stream().filter(User::isAdmin).findFirst();
-        assertTrue(foundAdmin.isPresent());
-        assertEquals(user2, foundAdmin.get());
+        User foundAdmin = users.stream().filter(User::isAdmin).findFirst().orElse(null);
+        assertTrue(foundAdmin != null);
+        assertEquals(user2, foundAdmin);
     }
 
     @Test

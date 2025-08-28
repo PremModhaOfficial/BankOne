@@ -18,17 +18,17 @@ public class UserService
     public User createUser(String username, String email, boolean isAdmin)
     {
         // Check for existing user by username
-        Optional<User> existingUser = userRepository.findByUsername(username);
-        if (existingUser.isPresent())
+        User existingUser = userRepository.findByUsername(username);
+        if (existingUser != null)
         {
-            return existingUser.get();
+            return existingUser;
         }
 
         // Check for existing user by email
         existingUser = userRepository.findByEmail(email);
-        if (existingUser.isPresent())
+        if (existingUser != null)
         {
-            return existingUser.get();
+            return existingUser;
         }
 
         User user = new User(username, email, isAdmin);
@@ -41,17 +41,17 @@ public class UserService
         return createUser(username, email, false); // Defaults to non-admin
     }
 
-    public Optional<User> getUserById(Long id)
+    public User getUserById(Long id)
     {
         return userRepository.findById(id);
     }
 
-    public Optional<User> getUserByUsername(String username)
+    public User getUserByUsername(String username)
     {
         return userRepository.findByUsername(username);
     }
 
-    public Optional<User> getUserByEmail(String email)
+    public User getUserByEmail(String email)
     {
         return userRepository.findByEmail(email);
     }

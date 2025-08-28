@@ -92,14 +92,14 @@ class UserServiceTest
         User mockUser = new User("testuser", "test@example.com");
         mockUser.setId(userId);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findById(userId)).thenReturn((mockUser));
 
         // Act
-        Optional<User> result = userService.getUserById(userId);
+        User result = userService.getUserById(userId);
 
         // Assert
-        assertTrue(result.isPresent());
-        assertEquals(mockUser, result.get());
+        assertTrue(result != null);
+        assertEquals(mockUser, result);
         verify(userRepository, times(1)).findById(userId);
     }
 
@@ -108,13 +108,13 @@ class UserServiceTest
     {
         // Arrange
         Long userId = 999L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findById(userId)).thenReturn(null);
 
         // Act
-        Optional<User> result = userService.getUserById(userId);
+        User result = userService.getUserById(userId);
 
         // Assert
-        assertFalse(result.isPresent());
+        assertFalse(result != null);
         verify(userRepository, times(1)).findById(userId);
     }
 
@@ -126,14 +126,14 @@ class UserServiceTest
         User mockUser = new User(username, "test@example.com");
         mockUser.setId(1L);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(username)).thenReturn(null);
 
         // Act
-        Optional<User> result = userService.getUserByUsername(username);
+        User result = userService.getUserByUsername(username);
 
         // Assert
-        assertTrue(result.isPresent());
-        assertEquals(mockUser, result.get());
+        assertTrue(result != null);
+        assertEquals(mockUser, result);
         verify(userRepository, times(1)).findByUsername(username);
     }
 
@@ -145,14 +145,14 @@ class UserServiceTest
         User mockUser = new User("testuser", email);
         mockUser.setId(1L);
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByEmail(email)).thenReturn(null);
 
         // Act
-        Optional<User> result = userService.getUserByEmail(email);
+        User result = userService.getUserByEmail(email);
 
         // Assert
-        assertTrue(result.isPresent());
-        assertEquals(mockUser, result.get());
+        assertTrue(result != null);
+        assertEquals(mockUser, result);
         verify(userRepository, times(1)).findByEmail(email);
     }
 
