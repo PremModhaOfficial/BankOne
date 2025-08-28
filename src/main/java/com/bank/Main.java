@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
-import com.bank.server.util.PairOfRepos;
+import com.bank.server.config.RepositoryContainer;
 import com.bank.db.inmemory.InMemoryAccountRepository;
 import com.bank.db.inmemory.InMemoryUserRepository;
 import com.bank.server.CustomHttpServer;
@@ -70,15 +70,15 @@ public class Main
      * @param config
      * @return
      */
-    private static PairOfRepos getRepositories(Configuration config)
+    private static RepositoryContainer getRepositories(Configuration config)
     {
-        PairOfRepos repositories;
+        RepositoryContainer repositories;
         var storageType = config.getStorageConfig().getType();
         repositories = switch (storageType.toLowerCase())
         {
             case "in-memory" -> {
                 LOGGER.info("Using In-Memory storage.");
-                yield new PairOfRepos(
+                yield new RepositoryContainer(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
             case "database" -> {
@@ -88,7 +88,7 @@ public class Main
             }
             default -> {
                 LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
-                yield new PairOfRepos(
+                yield new RepositoryContainer(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
         };
