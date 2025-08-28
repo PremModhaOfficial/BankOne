@@ -1,15 +1,13 @@
 package com.bank.business.services;
 
-import com.bank.business.entities.Account;
-import com.bank.business.repositories.AccountRepository;
-
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bank.business.entities.Account;
+import com.bank.business.repositories.AccountRepository;
 
 public class AccountService
 {
@@ -25,7 +23,7 @@ public class AccountService
     {
         // Create account without explicit account number - it will be generated
 
-        Account account = new Account(userId, initialBalance, type);
+        var account = new Account(userId, initialBalance, type);
         LOGGER.debug("Created Account {}", account);
         return accountRepository.save(account);
     }
@@ -33,8 +31,8 @@ public class AccountService
     // Overloaded method for backward compatibility
     public Account createAccount(Long userId, String accountNumber, BigDecimal initialBalance, Account.AccountType type)
     {
-        Account account = new Account(userId, accountNumber, initialBalance, type);
-        Account savedAccount = accountRepository.save(account);
+        var account = new Account(userId, accountNumber, initialBalance, type);
+        var savedAccount = accountRepository.save(account);
 
         // Ensure account number is generated if not provided
         if (savedAccount.getAccountNumber() == null)
@@ -89,8 +87,8 @@ public class AccountService
     public boolean transferAmount(Long fromAccountId, Long toAccountId, BigDecimal amount)
     {
         // Get both accounts
-        Account fromAccount = getAccountById(fromAccountId);
-        Account toAccount = getAccountById(toAccountId);
+        var fromAccount = getAccountById(fromAccountId);
+        var toAccount = getAccountById(toAccountId);
 
         if (fromAccount == null || toAccount == null)
         {
@@ -100,29 +98,43 @@ public class AccountService
         // To ensure atomicity of the transfer operation, we need to synchronize on both
         // accounts
         // We'll use a consistent locking order to prevent deadlocks
-        var firstWriteLock = (fromAccount.getId() < toAccount.getId() ? fromAccount : toAccount).getReadWriteLock().readLock();
-        var secondWriteLock = (fromAccount.getId() < toAccount.getId() ? toAccount : fromAccount).getReadWriteLock().readLock();
+        var firstWriteLock = (fromAccount.getId() < toAccount.getId() ? fromAccount : toAccount).getReadWriteLock().writeLock();
+        var secondWriteLock = (fromAccount.getId() < toAccount.getId() ? toAccount : fromAccount).getReadWriteLock().writeLock();
 
-        if (firstWriteLock.tryLock())
+        while (true)
         {
-            if (secondWriteLock.tryLock())
-            {
-                // Perform the transfer atomically
-                boolean success = fromAccount.withdrawAmount(amount);
-                if (success)
-                {
-                    toAccount.addAmount(amount);
-                    // Update both accounts in the repository
-                    updateAccount(fromAccount);
-                    updateAccount(toAccount);
-                }
 
+            try
+            {
+                if (firstWriteLock.tryLock())
+                {
+                    if (secondWriteLock.tryLock())
+                    {
+                        try
+                        {
+                            boolean success = fromAccount.withdrawAmount(amount);
+                            if (success)
+                            {
+                                toAccount.addAmount(amount);
+                                // Update both accounts in the repository
+                                updateAccount(fromAccount);
+                                updateAccount(toAccount);
+                            }
+
+                            return success;
+
+                        } finally
+                        {
+                            secondWriteLock.unlock();
+                        }
+                    }
+                }
+            } finally
+            {
                 firstWriteLock.unlock();
-                secondWriteLock.unlock();
-                return success;
             }
+            return false;
         }
-        return false;
 
     }
 }

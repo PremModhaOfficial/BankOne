@@ -2,7 +2,6 @@ package com.bank.client.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,8 +64,8 @@ public class CliObjectMapper
 
         System.out.println("Please provide values for the fields of " + clazz.getSimpleName() + ":");
 
-        Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields)
+        var fields = clazz.getDeclaredFields();
+        for (var field : fields)
         {
             if (field.getName().toLowerCase().contains("id"))
             {
@@ -87,17 +86,17 @@ public class CliObjectMapper
      */
     private <T> void promptAndSetField(T instance, Field field)
     {
-        String fieldName = field.getName();
-        Class<?> fieldType = field.getType();
-        String fullPrompt = "Enter value for '" + fieldName + "' (" + fieldType.getSimpleName() + "): ";
+        var fieldName = field.getName();
+        var fieldType = field.getType();
+        var fullPrompt = "Enter value for '" + fieldName + "' (" + fieldType.getSimpleName() + "): ";
 
         Object value = null;
-        boolean validInput = false;
+        var validInput = false;
 
         while (!validInput)
         {
             System.out.print(fullPrompt);
-            String input = scanner.nextLine().trim();
+            var input = scanner.nextLine().trim();
 
             try
             {
@@ -197,13 +196,13 @@ public class CliObjectMapper
         {
             // Handle simple list of strings for now
             // For more complex types, we'd need generic type information
-            Type genericType = field.getGenericType();
+            var genericType = field.getGenericType();
             if (genericType instanceof ParameterizedType)
             {
-                Type[] typeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
+                var typeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
                 if (typeArguments.length > 0)
                 {
-                    Class<?> listElementType = (Class<?>) typeArguments[0];
+                    var listElementType = (Class<?>) typeArguments[0];
                     return parseList(input, listElementType, field);
                 }
             }
@@ -214,7 +213,7 @@ public class CliObjectMapper
             // For complex objects, recursively call readValue
             // This requires the class to have a no-arg constructor
             System.out.println("Entering nested object '" + fieldType.getSimpleName() + "':");
-            Object nestedInstance = fieldType.getDeclaredConstructor().newInstance();
+            var nestedInstance = fieldType.getDeclaredConstructor().newInstance();
             populateObject(nestedInstance, (Class<? super Object>) fieldType);
             return nestedInstance;
         }
@@ -237,7 +236,7 @@ public class CliObjectMapper
         } catch (IllegalArgumentException e)
         {
             // Provide a helpful error message listing valid options
-            StringBuilder validOptions = new StringBuilder();
+            var validOptions = new StringBuilder();
             for (E enumConstant : enumClass.getEnumConstants())
             {
                 if (validOptions.length() > 0)
@@ -263,13 +262,13 @@ public class CliObjectMapper
      */
     private List<?> parseList(String input, Class<?> elementType, Field field) throws Exception
     {
-        List<Object> list = new ArrayList<>();
+        var list = new ArrayList<Object>();
         if (input.isEmpty())
         {
             return list; // Return empty list
         }
 
-        String[] items = input.split(",");
+        var items = input.split(",");
         for (String item : items)
         {
             item = item.trim();
@@ -277,7 +276,7 @@ public class CliObjectMapper
             {
                 // Recursively parse each item based on its type
                 // This is a simplified approach for basic types
-                Object parsedItem = parseInput(item, elementType, field);
+                var parsedItem = parseInput(item, elementType, field);
                 list.add(parsedItem);
             }
         }

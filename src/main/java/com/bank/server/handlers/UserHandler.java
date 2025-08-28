@@ -1,23 +1,18 @@
 package com.bank.server.handlers;
 
-import com.bank.business.entities.User;
-import com.bank.business.services.UserService;
-
-import com.bank.server.util.Json;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Executor;
+import com.bank.business.entities.User;
+import com.bank.business.services.UserService;
+import com.bank.server.util.Json;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 public class UserHandler implements HttpHandler
 {
@@ -54,8 +49,8 @@ public class UserHandler implements HttpHandler
 
     private void handleRequest(HttpExchange exchange) throws IOException
     {
-        String method = exchange.getRequestMethod();
-        String path = exchange.getRequestURI().getPath();
+        var method = exchange.getRequestMethod();
+        var path = exchange.getRequestURI().getPath();
 
         try
         {
@@ -86,8 +81,8 @@ public class UserHandler implements HttpHandler
     {
         try
         {
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode jsonNode = Json.parse(requestBody);
+            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var jsonNode = Json.parse(requestBody);
 
             LOGGER.debug("JSON is {}", requestBody);
             var email = jsonNode.get("email").asText();
@@ -100,13 +95,13 @@ public class UserHandler implements HttpHandler
             {
                 isAdmin = false;
             }
-            User request = new User(username, email, isAdmin);
+            var request = new User(username, email, isAdmin);
 
             LOGGER.info("Requested Creating user: {}", request);
 
             // Create user - the service will handle duplicates appropriately
-            User user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
-            String jsonResponse = Json.stringify(Json.toJson(user));
+            var user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
+            var jsonResponse = Json.stringify(Json.toJson(user));
             sendResponse(exchange, 201, jsonResponse);
         } catch (Exception e)
         {
@@ -119,12 +114,12 @@ public class UserHandler implements HttpHandler
     {
         try
         {
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode jsonNode = Json.parse(requestBody);
-            String userId = jsonNode.get("id").asText();
+            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var jsonNode = Json.parse(requestBody);
+            var userId = jsonNode.get("id").asText();
 
             // In a real app, you'd verify the password against the hashed version
-            User userOptional = userService.getUserByUsername(userId);
+            var userOptional = userService.getUserByUsername(userId);
             if (userOptional == null)
             {
                 userOptional = userService.getUserByEmail(userId);
@@ -132,14 +127,14 @@ public class UserHandler implements HttpHandler
 
             if (userOptional != null)
             {
-                User user = userOptional;
+                var user = userOptional;
                 // Generate a simple session token (user ID:email:password for this simplified
                 // version)
-                ObjectNode userNode = Json.toJson(user).deepCopy();
-                ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+                var userNode = Json.toJson(user).deepCopy();
+                var response = Json.defaultObjectMapper().createObjectNode();
                 response.set("user", userNode);
 
-                String jsonResponse = Json.stringify(response);
+                var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
@@ -164,12 +159,12 @@ public class UserHandler implements HttpHandler
                 return;
             }
 
-            Long userId = Long.parseLong(parts[2]);
-            User userOptional = userService.getUserById(userId);
+            var userId = Long.parseLong(parts[2]);
+            var userOptional = userService.getUserById(userId);
 
             if (userOptional != null)
             {
-                String jsonResponse = Json.stringify(Json.toJson(userOptional));
+                var jsonResponse = Json.stringify(Json.toJson(userOptional));
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
@@ -193,7 +188,7 @@ public class UserHandler implements HttpHandler
             // Check for admin authorization (simplified)
             // In a real app, you'd check the JWT token
             List<User> users = userService.getAllUsers();
-            String jsonResponse = Json.stringify(Json.toJson(users));
+            var jsonResponse = Json.stringify(Json.toJson(users));
             sendResponse(exchange, 200, jsonResponse);
         } catch (Exception e)
         {
@@ -206,7 +201,7 @@ public class UserHandler implements HttpHandler
     {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(statusCode, response.getBytes(StandardCharsets.UTF_8).length);
-        try (OutputStream os = exchange.getResponseBody())
+        try (var os = exchange.getResponseBody())
         {
             os.write(response.getBytes(StandardCharsets.UTF_8));
         }

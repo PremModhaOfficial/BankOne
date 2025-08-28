@@ -31,7 +31,7 @@ public class ResponseFormatter
             }
 
             // Try to parse and format as JSON
-            JsonNode jsonNode = Json.parse(jsonString);
+            var jsonNode = Json.parse(jsonString);
             return Json.stringifyPretty(jsonNode);
         } catch (Exception e)
         {
@@ -83,7 +83,7 @@ public class ResponseFormatter
     /**
      * Formats JSON array response as a clean table, filtering out unwanted fields
      *
-     * @param jsonString The JSON string containing array data
+     * @param jsonString    The JSON string containing array data
      * @param excludeFields Fields to exclude from display (e.g., "readWriteLock")
      * @return Formatted table string or original string if formatting fails
      */
@@ -97,26 +97,29 @@ public class ResponseFormatter
             }
 
             // Parse JSON array
-            JsonNode jsonNode = Json.parse(jsonString);
+            var jsonNode = Json.parse(jsonString);
             if (!jsonNode.isArray() || jsonNode.size() == 0)
             {
                 return formatJsonResponse(jsonString);
             }
 
             // Get the first object to determine field structure
-            JsonNode firstObject = jsonNode.get(0);
-            List<String> fieldNames = new ArrayList<>();
+            var firstObject = jsonNode.get(0);
+            var fieldNames = new ArrayList<String>();
 
             // Collect all field names except excluded ones
             firstObject.fieldNames().forEachRemaining(fieldName -> {
-                boolean exclude = false;
-                for (String excludeField : excludeFields) {
-                    if (fieldName.equals(excludeField)) {
+                var exclude = false;
+                for (String excludeField : excludeFields)
+                {
+                    if (fieldName.equals(excludeField))
+                    {
                         exclude = true;
                         break;
                     }
                 }
-                if (!exclude) {
+                if (!exclude)
+                {
                     fieldNames.add(fieldName);
                 }
             });
@@ -127,8 +130,7 @@ public class ResponseFormatter
             }
 
             return formatGenericTable(jsonNode, fieldNames);
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             LOGGER.warn("Failed to format JSON array table: {}", e.getMessage());
             return formatJsonResponse(jsonString);
@@ -160,19 +162,19 @@ public class ResponseFormatter
     /**
      * Creates a formatted table from JSON array data
      *
-     * @param jsonArray The JSON array to format
+     * @param jsonArray  The JSON array to format
      * @param fieldNames List of field names to display
      * @return Formatted table string
      */
     private static String formatGenericTable(JsonNode jsonArray, List<String> fieldNames)
     {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
 
         // Calculate column widths
-        int[] colWidths = new int[fieldNames.size()];
+        var colWidths = new int[fieldNames.size()];
         for (int i = 0; i < fieldNames.size(); i++)
         {
-            String fieldName = fieldNames.get(i);
+            var fieldName = fieldNames.get(i);
             colWidths[i] = Math.max(fieldName.length(), 8); // Minimum width of 8
 
             // Check all rows for max content width
@@ -180,8 +182,8 @@ public class ResponseFormatter
             {
                 if (item.has(fieldName))
                 {
-                    JsonNode value = item.get(fieldName);
-                    String valueStr = formatJsonValue(value);
+                    var value = item.get(fieldName);
+                    var valueStr = formatJsonValue(value);
                     colWidths[i] = Math.max(colWidths[i], valueStr.length());
                 }
             }
@@ -194,7 +196,7 @@ public class ResponseFormatter
         sb.append("│");
         for (int i = 0; i < fieldNames.size(); i++)
         {
-            String fieldName = capitalizeFirst(fieldNames.get(i));
+            var fieldName = capitalizeFirst(fieldNames.get(i));
             sb.append(String.format(" %-" + colWidths[i] + "s │", fieldName));
         }
         sb.append("\n");
@@ -203,10 +205,10 @@ public class ResponseFormatter
         sb.append(createTableBorder(colWidths, "├", "┼", "┤")).append("\n");
 
         // Data rows
-        for (JsonNode item : jsonArray)
+        for (var item : jsonArray)
         {
             sb.append("│");
-            for (int i = 0; i < fieldNames.size(); i++)
+            for (var i = 0; i < fieldNames.size(); i++)
             {
                 String fieldName = fieldNames.get(i);
                 String value = "";
@@ -230,7 +232,7 @@ public class ResponseFormatter
      */
     private static String createTableBorder(int[] colWidths, String left, String middle, String right)
     {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         sb.append(left);
         for (int i = 0; i < colWidths.length; i++)
         {
@@ -255,12 +257,10 @@ public class ResponseFormatter
         if (value.isTextual())
         {
             return value.asText();
-        }
-        else if (value.isBoolean())
+        } else if (value.isBoolean())
         {
             return String.valueOf(value.asBoolean());
-        }
-        else if (value.isNumber())
+        } else if (value.isNumber())
         {
             // Format numbers nicely
             if (value.isDouble() || value.isFloat())
@@ -269,22 +269,18 @@ public class ResponseFormatter
                 if (doubleValue == (long) doubleValue)
                 {
                     return String.valueOf((long) doubleValue);
-                }
-                else
+                } else
                 {
                     return String.format("%.2f", doubleValue);
                 }
-            }
-            else
+            } else
             {
                 return value.asText();
             }
-        }
-        else if (value.isNull())
+        } else if (value.isNull())
         {
             return "";
-        }
-        else
+        } else
         {
             return value.toString();
         }

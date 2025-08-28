@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List; // Add import
-import java.util.Optional;
 
 import com.bank.business.entities.User;
 import com.bank.business.repositories.UserRepository;

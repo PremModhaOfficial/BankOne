@@ -43,7 +43,7 @@ public class NetworkStressTest
 
     public static void main(String[] args) throws Exception
     {
-        NetworkStressTest stressTest = new NetworkStressTest();
+        var stressTest = new NetworkStressTest();
         stressTest.runStressTest();
     }
 

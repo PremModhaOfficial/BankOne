@@ -3,7 +3,7 @@ package com.bank.server.util;
 import com.bank.business.repositories.AccountRepository;
 import com.bank.business.repositories.UserRepository;
 
-public record Repositories(UserRepository userRepository, AccountRepository accountRepository)
+public record PairOfRepos(UserRepository userRepository, AccountRepository accountRepository)
 {
 
     @Override

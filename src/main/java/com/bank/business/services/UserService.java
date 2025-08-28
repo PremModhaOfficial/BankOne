@@ -1,9 +1,9 @@
 package com.bank.business.services;
 
+import java.util.List; // Import List
+
 import com.bank.business.entities.User;
 import com.bank.business.repositories.UserRepository;
-import java.util.List; // Import List
-import java.util.Optional;
 
 public class UserService
 {
@@ -18,7 +18,7 @@ public class UserService
     public User createUser(String username, String email, boolean isAdmin)
     {
         // Check for existing user by username
-        User existingUser = userRepository.findByUsername(username);
+        var existingUser = userRepository.findByUsername(username);
         if (existingUser != null)
         {
             return existingUser;
@@ -31,7 +31,7 @@ public class UserService
             return existingUser;
         }
 
-        User user = new User(username, email, isAdmin);
+        var user = new User(username, email, isAdmin);
         return userRepository.save(user);
     }
 

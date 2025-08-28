@@ -37,7 +37,7 @@ public class ConfigurationManager
 
         try (FileReader fileReader = new FileReader(filePath))
         {
-            StringBuffer sb = new StringBuffer();
+            var sb = new StringBuffer();
             int i;
             try
             {

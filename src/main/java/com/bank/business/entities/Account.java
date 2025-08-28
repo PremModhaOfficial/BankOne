@@ -33,10 +33,10 @@ public class Account
 
     public Account(Long userId, BigDecimal balance, AccountType type)
     {
+        // Account number will be generated when ID is set
         this.userId = userId;
         this.balance = new AtomicReference<BigDecimal>(balance);
         this.type = type;
-        // Account number will be generated when ID is set
     }
 
     public Account(Long userId, String accountNumber, BigDecimal balance, AccountType type)
@@ -60,8 +60,8 @@ public class Account
     {
         while (true)
         {
-            BigDecimal currentBalance = this.balance.get();
-            BigDecimal newBalance = currentBalance.add(amount);
+            var currentBalance = this.balance.get();
+            var newBalance = currentBalance.add(amount);
 
             if (this.balance.compareAndSet(currentBalance, newBalance))
             {
@@ -77,8 +77,8 @@ public class Account
     {
         while (true)
         {
-            BigDecimal currentBalance = this.balance.get();
-            BigDecimal newBalance = currentBalance.subtract(amount);
+            var currentBalance = this.balance.get();
+            var newBalance = currentBalance.subtract(amount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0)
             {
                 return false;

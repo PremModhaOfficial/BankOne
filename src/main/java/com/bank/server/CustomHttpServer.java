@@ -83,7 +83,7 @@ public class CustomHttpServer
         @Override
         public Thread newThread(Runnable r)
         {
-            Thread t = new Thread(r, "CustomHttpServer-" + threadNumber.getAndIncrement());
+            var t = new Thread(r, "CustomHttpServer-" + threadNumber.getAndIncrement());
             t.setDaemon(false); // User threads, not daemon threads
             return t;
         }

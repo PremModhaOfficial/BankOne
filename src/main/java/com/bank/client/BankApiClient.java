@@ -1,9 +1,5 @@
 package com.bank.client;
 
-import com.bank.business.entities.User;
-import com.bank.server.util.Json;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -13,6 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import com.bank.business.entities.User;
+import com.bank.server.util.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * A simple HTTP client to communicate with the Bank server API.
@@ -56,22 +56,22 @@ public class BankApiClient
      */
     public CompletableFuture<HttpResponse<String>> login(String identifier, String email)
     {
-        String url = baseUrl + "/login";
+        var url = baseUrl + "/login";
         try
         {
             // Create a simple form-encoded body for login
-            Map<String, String> formData = new HashMap<>();
+            var formData = new HashMap<String, String>();
             formData.put("identifier", identifier); // Could be username or email
             formData.put("email", email);
 
-            String formDataString = encodeFormData(formData);
+            var formDataString = encodeFormData(formData);
 
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(formDataString)).build();
+            var request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(formDataString)).build();
 
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e)
         {
-            CompletableFuture<HttpResponse<String>> failedFuture = new CompletableFuture<>();
+            var failedFuture = new CompletableFuture<HttpResponse<String>>();
             failedFuture.completeExceptionally(e);
             return failedFuture;
         }
@@ -85,7 +85,7 @@ public class BankApiClient
      */
     private String encodeFormData(Map<String, String> data)
     {
-        StringBuilder encodedData = new StringBuilder();
+        var encodedData = new StringBuilder();
         for (Map.Entry<String, String> entry : data.entrySet())
         {
             if (!encodedData.isEmpty())
@@ -109,10 +109,10 @@ public class BankApiClient
      */
     public CompletableFuture<HttpResponse<String>> get(String endpoint)
     /**/ {
-        String url = baseUrl + endpoint;
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(URI.create(url)).GET();
+        var url = baseUrl + endpoint;
+        var requestBuilder = HttpRequest.newBuilder().uri(URI.create(url)).GET();
 
-        HttpRequest request = requestBuilder.build();
+        var request = requestBuilder.build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
@@ -127,21 +127,21 @@ public class BankApiClient
      */
     public CompletableFuture<HttpResponse<String>> post(String endpoint, JsonNode body)
     {
-        String url = baseUrl + endpoint;
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/json");
+        var url = baseUrl + endpoint;
+        var requestBuilder = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/json");
 
         try
         {
-            String jsonBody = Json.stringify(body);
+            var jsonBody = Json.stringify(body);
             requestBuilder.POST(HttpRequest.BodyPublishers.ofString(jsonBody));
         } catch (Exception e)
         {
-            CompletableFuture<HttpResponse<String>> failedFuture = new CompletableFuture<>();
+            var failedFuture = new CompletableFuture<HttpResponse<String>>();
             failedFuture.completeExceptionally(e);
             return failedFuture;
         }
 
-        HttpRequest request = requestBuilder.build();
+        var request = requestBuilder.build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 }

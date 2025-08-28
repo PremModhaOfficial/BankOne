@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
-import com.bank.server.util.Repositories;
+import com.bank.server.util.PairOfRepos;
 import com.bank.db.inmemory.InMemoryAccountRepository;
 import com.bank.db.inmemory.InMemoryUserRepository;
 import com.bank.server.CustomHttpServer;
@@ -35,18 +35,18 @@ public class Main
     {
         LOGGER.info("Server Starting");
 
-        Configuration config = ConfigurationManager.getInstance().getCurrentConfiguration();
+        var config = ConfigurationManager.getInstance().getCurrentConfiguration();
 
         // --- Dependency Injection Setup ---
-        Repositories repositories = getRepositories(config);
+        var repositories = getRepositories(config);
 
         // Initialize Services with the chosen repositories
 
         // Create and start the built-in HTTP server
-        int port = config.getPort();
-        int threadPoolSize = 10; // You can make this configurable if needed
+        var port = config.getPort();
+        var threadPoolSize = 10; // You can make this configurable if needed
 
-        CustomHttpServer server = new CustomHttpServer(
+        var server = new CustomHttpServer(
                 port, threadPoolSize, new UserService(repositories.userRepository()), new AccountService(repositories.accountRepository()));
         server.start();
 
@@ -66,28 +66,29 @@ public class Main
         LOGGER.info("Server Finished");
     }
 
-    private static Repositories getRepositories(Configuration config)
+    /**
+     * @param config
+     * @return
+     */
+    private static PairOfRepos getRepositories(Configuration config)
     {
-        Repositories repositories;
-        String storageType = config.getStorageConfig().getType();
+        PairOfRepos repositories;
+        var storageType = config.getStorageConfig().getType();
         repositories = switch (storageType.toLowerCase())
         {
-            case "in-memory" ->
-            {
+            case "in-memory" -> {
                 LOGGER.info("Using In-Memory storage.");
-                yield new Repositories(
+                yield new PairOfRepos(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
-            case "database" ->
-            {
+            case "database" -> {
                 // Placeholder for database setup.
                 LOGGER.info("Database storage selected. (Implementation is a placeholder)");
                 throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
             }
-            default ->
-            {
+            default -> {
                 LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
-                yield new Repositories(
+                yield new PairOfRepos(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
         };

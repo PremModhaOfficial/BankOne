@@ -1,14 +1,13 @@
 package com.bank.db.inmemory;
 
-import com.bank.business.entities.User;
-import com.bank.business.repositories.UserRepository;
-
 import java.util.ArrayList; // Add import
 import java.util.List; // Add import
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import com.bank.business.entities.User;
+import com.bank.business.repositories.UserRepository;
 
 public class InMemoryUserRepository implements UserRepository
 {

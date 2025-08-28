@@ -1,7 +1,6 @@
 package com.bank.business.entities;
 
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class User
@@ -20,7 +19,7 @@ public class User
     {
         if (o == null || getClass() != o.getClass())
             return false;
-        User user = (User) o;
+        var user = (User) o;
         return Objects.equals(username, user.username) && Objects.equals(email, user.email);
     }
 
@@ -111,7 +110,7 @@ public class User
             {
                 return false;
             }
-            Matcher matcher = pattern.matcher(email);
+            var matcher = pattern.matcher(email);
             return matcher.matches();
         }
     }

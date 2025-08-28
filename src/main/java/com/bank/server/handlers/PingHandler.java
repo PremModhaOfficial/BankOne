@@ -53,16 +53,22 @@ public class PingHandler implements HttpHandler
     {
         // Simulate some work (e.g., database access, computation)
 
-        String response = "PONG";
+        var response = "PONG";
         sendResponse(exchange, 200, response);
     }
 
+    /**
+     * @param exchange
+     * @param statusCode
+     * @param response
+     * @throws IOException
+     */
     private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException
     {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(statusCode, response.getBytes(StandardCharsets.UTF_8).length);
 
-        try (OutputStream os = exchange.getResponseBody())
+        try (var os = exchange.getResponseBody())
         {
             os.write(response.getBytes(StandardCharsets.UTF_8));
         }

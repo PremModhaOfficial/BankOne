@@ -3,13 +3,12 @@ package com.bank.server.util;
 
 import java.io.IOException;
 
+import com.bank.server.config.HttpConfigurationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.bank.server.config.HttpConfigurationException;
 
 public class Json
 {
@@ -17,7 +16,7 @@ public class Json
 
     public static ObjectMapper defaultObjectMapper()
     {
-        ObjectMapper om = new ObjectMapper();
+        var om = new ObjectMapper();
 
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -41,7 +40,7 @@ public class Json
 
     private static String generateJson(JsonNode jsonNode, boolean pretty) throws JsonProcessingException
     {
-        ObjectWriter ow = objectMapper.writer();
+        var ow = objectMapper.writer();
         if (pretty)
         {
             ow = ow.with(SerializationFeature.INDENT_OUTPUT);

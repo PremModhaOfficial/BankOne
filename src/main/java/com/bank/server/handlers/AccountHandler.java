@@ -1,10 +1,8 @@
 package com.bank.server.handlers;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
@@ -14,8 +12,6 @@ import com.bank.business.entities.Account;
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
 import com.bank.server.util.Json;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -54,8 +50,8 @@ public class AccountHandler implements HttpHandler
 
     private void handleRequest(HttpExchange exchange) throws IOException
     {
-        String method = exchange.getRequestMethod();
-        String path = exchange.getRequestURI().getPath();
+        var method = exchange.getRequestMethod();
+        var path = exchange.getRequestURI().getPath();
 
         LOGGER.debug("REQUEST {}@{}", method, path);
 
@@ -93,15 +89,19 @@ public class AccountHandler implements HttpHandler
         }
     }
 
+    /**
+     * @param exchange
+     * @throws IOException
+     */
     private void handleCreateAccount(HttpExchange exchange) throws IOException
     {
         try
         {
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode jsonNode = Json.parse(requestBody);
+            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var jsonNode = Json.parse(requestBody);
 
             // Extract values directly from JSON
-            Long userId = jsonNode.get("userId").asLong();
+            var userId = jsonNode.get("userId").asLong();
             BigDecimal initialBalance;
             if (jsonNode.has("initialBalance"))
             {
@@ -110,20 +110,20 @@ public class AccountHandler implements HttpHandler
             {
                 initialBalance = new BigDecimal(jsonNode.get("balance").asText());
             }
-            Account.AccountType type = Account.AccountType.valueOf(jsonNode.get("type").asText());
+            var type = Account.AccountType.valueOf(jsonNode.get("type").asText());
 
             // Create account - account number will be auto-generated if not provided
             Account account;
             if (jsonNode.has("accountNumber") && !jsonNode.get("accountNumber").isNull())
             {
-                String accountNumber = jsonNode.get("accountNumber").asText();
+                var accountNumber = jsonNode.get("accountNumber").asText();
                 account = accountService.createAccount(userId, accountNumber, initialBalance, type);
             } else
             {
                 account = accountService.createAccount(userId, initialBalance, type);
             }
 
-            String jsonResponse = Json.stringify(Json.toJson(account));
+            var jsonResponse = Json.stringify(Json.toJson(account));
             sendResponse(exchange, 201, jsonResponse);
         } catch (NumberFormatException e)
         {
@@ -136,24 +136,28 @@ public class AccountHandler implements HttpHandler
         }
     }
 
+    /**
+     * @param exchange
+     * @throws IOException
+     */
     private void handleGetAccountById(HttpExchange exchange) throws IOException
     {
         try
         {
             // Extract account ID from path
-            String[] parts = exchange.getRequestURI().getPath().split("/");
+            var parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
-            Long accountId = Long.parseLong(parts[2]);
-            Account account = accountService.getAccountById(accountId);
+            var accountId = Long.parseLong(parts[2]);
+            var account = accountService.getAccountById(accountId);
 
             if (account != null)
             {
-                String jsonResponse = Json.stringify(Json.toJson(account));
+                var jsonResponse = Json.stringify(Json.toJson(account));
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
@@ -174,8 +178,8 @@ public class AccountHandler implements HttpHandler
     {
         try
         {
-            List<Account> accounts = accountService.getAllAccounts();
-            String jsonResponse = Json.stringify(Json.toJson(accounts));
+            var accounts = accountService.getAllAccounts();
+            var jsonResponse = Json.stringify(Json.toJson(accounts));
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e)
         {
@@ -188,25 +192,29 @@ public class AccountHandler implements HttpHandler
         }
     }
 
+    /**
+     * @param exchange
+     * @throws IOException
+     */
     private void handleGetAccountsByUser(HttpExchange exchange) throws IOException
     {
         try
         {
             // Get user ID from query parameter or request body
-            String query = exchange.getRequestURI().getQuery();
+            var query = exchange.getRequestURI().getQuery();
             Long userId = null;
 
             if (query != null && query.startsWith("userId="))
             {
-                String userIdStr = query.substring(7);
+                var userIdStr = query.substring(7);
                 userId = Long.parseLong(userIdStr);
             } else
             {
                 // Try to extract from request body
-                String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                 if (!requestBody.isEmpty())
                 {
-                    JsonNode jsonNode = Json.parse(requestBody);
+                    var jsonNode = Json.parse(requestBody);
                     if (jsonNode.has("userId"))
                     {
                         userId = jsonNode.get("userId").asLong();
@@ -220,8 +228,8 @@ public class AccountHandler implements HttpHandler
                 return;
             }
 
-            List<Account> accounts = accountService.getAccountsByUserId(userId);
-            String jsonResponse = Json.stringify(Json.toJson(accounts));
+            var accounts = accountService.getAccountsByUserId(userId);
+            var jsonResponse = Json.stringify(Json.toJson(accounts));
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e)
         {
@@ -239,18 +247,18 @@ public class AccountHandler implements HttpHandler
         try
         {
             // Extract account ID from path
-            String[] parts = exchange.getRequestURI().getPath().split("/");
+            var parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
-            Long accountId = Long.parseLong(parts[2]);
+            var accountId = Long.parseLong(parts[2]);
 
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode jsonNode = Json.parse(requestBody);
-            BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
+            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var jsonNode = Json.parse(requestBody);
+            var amount = new BigDecimal(jsonNode.get("amount").asText());
 
             if (amount.compareTo(BigDecimal.ZERO) < 0)
             {
@@ -258,7 +266,7 @@ public class AccountHandler implements HttpHandler
                 return;
             }
 
-            Account account = accountService.getAccountById(accountId);
+            var account = accountService.getAccountById(accountId);
             if (account == null)
             {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
@@ -270,12 +278,12 @@ public class AccountHandler implements HttpHandler
             // Update the account in the service
             accountService.updateAccount(account);
 
-            ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+            var response = Json.defaultObjectMapper().createObjectNode();
             response.put("success", true);
             response.put("message", "Deposit successful");
             response.put("balance", account.getBalance().toString());
 
-            String jsonResponse = Json.stringify(response);
+            var jsonResponse = Json.stringify(response);
             sendResponse(exchange, 200, jsonResponse);
         } catch (NumberFormatException e)
         {
@@ -288,33 +296,37 @@ public class AccountHandler implements HttpHandler
         }
     }
 
+    /**
+     * @param exchange
+     * @throws IOException
+     */
     private void handleWithdraw(HttpExchange exchange) throws IOException
     {
         try
         {
             // Extract account ID from path
-            String[] parts = exchange.getRequestURI().getPath().split("/");
+            var parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
-            Long accountId = Long.parseLong(parts[2]);
+            var accountId = Long.parseLong(parts[2]);
 
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode jsonNode = Json.parse(requestBody);
-            BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
+            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var jsonNode = Json.parse(requestBody);
+            var amount = new BigDecimal(jsonNode.get("amount").asText());
 
-            Account account = accountService.getAccountById(accountId);
+            var account = accountService.getAccountById(accountId);
             if (account == null)
             {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
                 return;
             }
-            boolean success = account.withdrawAmount(amount);
+            var success = account.withdrawAmount(amount);
 
-            ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+            var response = Json.defaultObjectMapper().createObjectNode();
             response.put("success", success);
             response.put("balance", account.getBalance().toString());
 
@@ -323,12 +335,12 @@ public class AccountHandler implements HttpHandler
                 response.put("message", "Withdrawal successful");
                 // Update the account in the service
                 accountService.updateAccount(account);
-                String jsonResponse = Json.stringify(response);
+                var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
                 response.put("message", "Insufficient funds");
-                String jsonResponse = Json.stringify(response);
+                var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }
         } catch (NumberFormatException e)
@@ -347,21 +359,21 @@ public class AccountHandler implements HttpHandler
         try
         {
             // Extract account ID from path (source account)
-            String[] parts = exchange.getRequestURI().getPath().split("/");
+            var parts = exchange.getRequestURI().getPath().split("/");
             if (parts.length < 3)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Bad Request: Invalid path\"}");
                 return;
             }
 
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
             LOGGER.debug("GOT requestBody: {}", requestBody);
-            JsonNode jsonNode = Json.parse(requestBody);
+            var jsonNode = Json.parse(requestBody);
 
-            Long fromAccountId = Long.parseLong(parts[2]);
-            Long toAccountId = jsonNode.get("toAccountId").asLong();
-            BigDecimal amount = new BigDecimal(jsonNode.get("amount").asText());
+            var fromAccountId = Long.parseLong(parts[2]);
+            var toAccountId = jsonNode.get("toAccountId").asLong();
+            var amount = new BigDecimal(jsonNode.get("amount").asText());
 
             if (amount.compareTo(BigDecimal.ZERO) < 0)
             {
@@ -369,7 +381,7 @@ public class AccountHandler implements HttpHandler
                 return;
             }
 
-            Account fromAccount = accountService.getAccountById(fromAccountId);
+            var fromAccount = accountService.getAccountById(fromAccountId);
             if (fromAccount == null)
             {
                 sendResponse(exchange, 404, "{\"error\": \"Source account not found\"}");
@@ -377,7 +389,7 @@ public class AccountHandler implements HttpHandler
             }
 
             // Verify that the destination account exists
-            Account toAccount = accountService.getAccountById(toAccountId);
+            var toAccount = accountService.getAccountById(toAccountId);
             if (toAccount == null)
             {
                 sendResponse(exchange, 400, "{\"error\": \"Destination account not found\"}");
@@ -385,23 +397,23 @@ public class AccountHandler implements HttpHandler
             }
 
             // Perform the atomic transfer
-            boolean success = accountService.transferAmount(fromAccountId, toAccountId, amount);
+            var success = accountService.transferAmount(fromAccountId, toAccountId, amount);
 
-            ObjectNode response = Json.defaultObjectMapper().createObjectNode();
+            var response = Json.defaultObjectMapper().createObjectNode();
             response.put("success", success);
 
             if (success)
             {
-                Account updatedFromAccount = accountService.getAccountById(fromAccountId);
+                var updatedFromAccount = accountService.getAccountById(fromAccountId);
                 response.put("message", "Transfer successful");
                 response.put("balance", updatedFromAccount.getBalance().toString());
-                String jsonResponse = Json.stringify(response);
+                var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 200, jsonResponse);
             } else
             {
                 response.put("message", "Insufficient funds or account not found");
                 response.put("balance", fromAccount.getBalance().toString());
-                String jsonResponse = Json.stringify(response);
+                var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }
         } catch (NumberFormatException e)
@@ -415,11 +427,17 @@ public class AccountHandler implements HttpHandler
         }
     }
 
+    /**
+     * @param exchange
+     * @param statusCode
+     * @param response
+     * @throws IOException
+     */
     private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException
     {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(statusCode, response.getBytes(StandardCharsets.UTF_8).length);
-        try (OutputStream os = exchange.getResponseBody())
+        try (var os = exchange.getResponseBody())
         {
             os.write(response.getBytes(StandardCharsets.UTF_8));
         }
