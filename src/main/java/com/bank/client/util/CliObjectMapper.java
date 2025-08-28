@@ -1,4 +1,4 @@
-package com.bank.clientInterface.util;
+package com.bank.client.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

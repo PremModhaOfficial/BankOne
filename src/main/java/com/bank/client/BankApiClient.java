@@ -1,4 +1,4 @@
-package com.bank.clientInterface;
+package com.bank.client;
 
 import com.bank.business.entities.User;
 import com.bank.server.util.Json;

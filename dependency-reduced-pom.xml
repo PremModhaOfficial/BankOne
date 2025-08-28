@@ -13,18 +13,11 @@
           <includes>
             <include>**/*Test.java</include>
           </includes>
-          <argLine>-XX:+PrintCompilation</argLine>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-exec-plugin</artifactId>
         <version>3.5.1</version>
-        <configuration>
-          <arguments>
-            <argument>-Xmx2m</argument>
-            <argument>-XX:+PrintCompilation</argument>
-          </arguments>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>

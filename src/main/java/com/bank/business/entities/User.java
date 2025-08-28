@@ -1,13 +1,15 @@
 package com.bank.business.entities;
 
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class User
 {
     private Long id;
     private String username;
     private String email;
-    private boolean isAdmin; // New field for Admin role
+    private boolean isAdmin;
 
     public User()
     {
@@ -95,5 +97,22 @@ public class User
     public String toString()
     {
         return "User{" + "id=" + id + ", username='" + username + '\'' + ", email='" + email + '\'' + ", isAdmin=" + isAdmin + '}';
+    }
+
+    public static class EMAIL_VALIDATOR
+    {
+
+        private static final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+
+        public static boolean isValidEmail(String email)
+        {
+            if (email == null || email.isEmpty())
+            {
+                return false;
+            }
+            Matcher matcher = pattern.matcher(email);
+            return matcher.matches();
+        }
     }
 }

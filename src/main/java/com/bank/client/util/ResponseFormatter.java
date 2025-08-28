@@ -1,12 +1,10 @@
-package com.bank.clientInterface.util;
+package com.bank.client.util;
 
-import com.bank.business.entities.Account;
 import com.bank.server.util.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 

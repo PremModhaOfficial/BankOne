@@ -2,9 +2,9 @@ package com.bank;
 
 import com.bank.business.entities.Account;
 import com.bank.business.entities.User;
-import com.bank.clientInterface.BankApiClient;
-import com.bank.clientInterface.util.CliObjectMapper;
-import com.bank.clientInterface.util.ResponseFormatter;
+import com.bank.client.BankApiClient;
+import com.bank.client.util.CliObjectMapper;
+import com.bank.client.util.ResponseFormatter;
 import com.bank.server.config.ConfigurationManager;
 import com.bank.server.config.HttpConfigurationException;
 import com.bank.server.util.Json;
@@ -167,8 +167,16 @@ public class HttpClient
         System.out.println("Registering a new user:");
         try
         {
-            User userRequest = mapper.readValue(User.class);
-            LOGGER.debug("User gave values : {}", userRequest);
+            User userRequest;
+            while (true)
+            {
+                userRequest = mapper.readValue(User.class);
+                LOGGER.debug("User gave values : {}", userRequest);
+                if (User.EMAIL_VALIDATOR.isValidEmail(userRequest.getEmail()))
+                {
+                    break;
+                }
+            }
             System.out.println("Attempting to register user: " + userRequest.getUsername());
             JsonNode jsonBody = Json.toJson(userRequest);
             CompletableFuture<HttpResponse<String>> futureResponse = client.post("/users", jsonBody);
