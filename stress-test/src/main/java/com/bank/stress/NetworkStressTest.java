@@ -60,9 +60,9 @@ public class NetworkStressTest {
             createAccounts();
 
             // Start the stress test
-            long startTime = System.currentTimeMillis();
+            var startTime = System.currentTimeMillis();
             executeConcurrentOperations();
-            long endTime = System.currentTimeMillis();
+            var endTime = System.currentTimeMillis();
 
             // Print results
             printResults(startTime, endTime);
@@ -92,15 +92,15 @@ public class NetworkStressTest {
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        for (long i = 0; i < NUMBER_OF_USERS; i++) {
-            final long userIndex = i;
+        for (var i = 0; i < NUMBER_OF_USERS; i++) {
+            final var userIndex = i;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
-                    String userJson = String.format(
+                    var userJson = String.format(
                             "{\"username\":\"stress_user_%d\",\"email\":\"stress%d@example.com\"}", userIndex,
                             userIndex);
 
-                    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/users"))
+                    var request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/users"))
                             .header("Content-Type", "application/json")
                             .POST(HttpRequest.BodyPublishers.ofString(userJson)).build();
 
@@ -108,8 +108,8 @@ public class NetworkStressTest {
 
                     if (response.statusCode() == 201) {
                         // Parse the user ID from the response
-                        JsonNode jsonNode = objectMapper.readTree(response.body());
-                        long userId = jsonNode.get("id").asLong();
+                        var jsonNode = objectMapper.readTree(response.body());
+                        var userId = jsonNode.get("id").asLong();
                         synchronized (userIds) {
                             userIds.add(userId);
                         }
@@ -139,14 +139,14 @@ public class NetworkStressTest {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         for (Long userId : userIds) {
-            for (int j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++) {
-                final Long finalUserId = userId;
+            for (var j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++) {
+                final var finalUserId = userId;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     try {
-                        String accountJson = String.format(
+                        var accountJson = String.format(
                                 "{\"userId\":%d,\"balance\":1000.0,\"type\":\"SAVINGS\"}", finalUserId);
 
-                        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts"))
+                        var request = HttpRequest.newBuilder().uri(URI.create(SERVER_URL + "/accounts"))
                                 .header("Content-Type", "application/json")
                                 .POST(HttpRequest.BodyPublishers.ofString(accountJson)).build();
 
@@ -154,8 +154,8 @@ public class NetworkStressTest {
 
                         if (response.statusCode() == 201) {
                             // Parse the account ID from the response
-                            JsonNode jsonNode = objectMapper.readTree(response.body());
-                            long accountId = jsonNode.get("id").asLong();
+                            var jsonNode = objectMapper.readTree(response.body());
+                            var accountId = jsonNode.get("id").asLong();
                             synchronized (accountIds) {
                                 accountIds.add(accountId);
                             }
@@ -185,8 +185,8 @@ public class NetworkStressTest {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         // Submit tasks to the executor service
-        for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-            final int threadId = i;
+        for (var i = 0; i < NUMBER_OF_THREADS; i++) {
+            final var threadId = i;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 performOperations(threadId);
             }, executorService);
@@ -200,14 +200,14 @@ public class NetworkStressTest {
     private void performOperations(int threadId) {
         System.out.println("Thread " + threadId + " started");
 
-        for (int i = 0; i < OPERATIONS_PER_THREAD; i++) {
+        for (var i = 0; i < OPERATIONS_PER_THREAD; i++) {
             totalOperations.incrementAndGet();
 
             try {
                 // Randomly select an operation
-                int operationType = (int) (Math.random() * 3);
+                var operationType = (int) (Math.random() * 3);
 
-                boolean success = false;
+                var success = false;
                 switch (operationType) {
                     case 0:
                         success = performDeposit();
@@ -239,15 +239,15 @@ public class NetworkStressTest {
             // Select a random account
             if (accountIds.isEmpty())
                 return false;
-            int accountIndex = (int) (Math.random() * accountIds.size());
-            long accountId = accountIds.get(accountIndex);
+            var accountIndex = (int) (Math.random() * accountIds.size());
+            var accountId = accountIds.get(accountIndex);
 
             // Generate a random deposit amount
-            BigDecimal amount = new BigDecimal(Math.random() * 100);
+            var amount = new BigDecimal(Math.random() * 100);
 
-            String depositJson = String.format("{\"amount\":%f}", amount.doubleValue());
+            var depositJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            var request = HttpRequest.newBuilder()
                     .uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/deposit"))
                     .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(depositJson))
                     .build();
@@ -266,15 +266,15 @@ public class NetworkStressTest {
             // Select a random account
             if (accountIds.isEmpty())
                 return false;
-            int accountIndex = (int) (Math.random() * accountIds.size());
-            long accountId = accountIds.get(accountIndex);
+            var accountIndex = (int) (Math.random() * accountIds.size());
+            var accountId = accountIds.get(accountIndex);
 
             // Generate a random withdrawal amount
-            BigDecimal amount = new BigDecimal(Math.random() * 50);
+            var amount = new BigDecimal(Math.random() * 50);
 
-            String withdrawJson = String.format("{\"amount\":%f}", amount.doubleValue());
+            var withdrawJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            var request = HttpRequest.newBuilder()
                     .uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/withdraw"))
                     .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(withdrawJson))
                     .build();
@@ -293,22 +293,22 @@ public class NetworkStressTest {
             // Select two different random accounts
             if (accountIds.size() < 2)
                 return false;
-            int fromAccountIndex = (int) (Math.random() * accountIds.size());
+            var fromAccountIndex = (int) (Math.random() * accountIds.size());
             int toAccountIndex;
             do {
                 toAccountIndex = (int) (Math.random() * accountIds.size());
             } while (toAccountIndex == fromAccountIndex);
 
-            long fromAccountId = accountIds.get(fromAccountIndex);
-            long toAccountId = accountIds.get(toAccountIndex);
+            var fromAccountId = accountIds.get(fromAccountIndex);
+            var toAccountId = accountIds.get(toAccountIndex);
 
             // Generate a random transfer amount
-            BigDecimal amount = new BigDecimal(Math.random() * 25);
+            var amount = new BigDecimal(Math.random() * 25);
 
-            String transferJson = String.format("{\"toAccountId\":%d,\"amount\":%f}", toAccountId,
+            var transferJson = String.format("{\"toAccountId\":%d,\"amount\":%f}", toAccountId,
                     amount.doubleValue());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            var request = HttpRequest.newBuilder()
                     .uri(URI.create(SERVER_URL + "/accounts/" + fromAccountId + "/transfer"))
                     .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(transferJson))
                     .build();
@@ -323,14 +323,14 @@ public class NetworkStressTest {
     }
 
     private void printResults(long startTime, long endTime) {
-        long duration = endTime - startTime;
-        long totalOps = totalOperations.get();
-        int successOps = successfulOperations.get();
-        int failedOps = failedOperations.get();
-        double throughput = totalOps > 0 ? (double) totalOps / (duration / 1000.0) : 0;
-        double successRate = totalOps > 0 ? (double) successOps / totalOps * 100 : 0;
+        var duration = endTime - startTime;
+        var totalOps = totalOperations.get();
+        var successOps = successfulOperations.get();
+        var failedOps = failedOperations.get();
+        var throughput = totalOps > 0 ? (double) totalOps / (duration / 1000.0) : 0;
+        var successRate = totalOps > 0 ? (double) successOps / totalOps * 100 : 0;
 
-        System.out.println("\n=== NETWORK STRESS TEST RESULTS ===");
+        System.out.println("\n=== NETWORK STRESS var RESULTS ===");
         System.out.println("Duration: " + duration + " ms");
         System.out.println("Total operations: " + totalOps);
         System.out.println("Successful operations: " + successOps);

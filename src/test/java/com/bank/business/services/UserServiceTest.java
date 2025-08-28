@@ -39,7 +39,7 @@ class UserServiceTest
         savedUser.setId(1L); // Simulate ID assignment by repo
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            var user = invocation.getArgument(0);
+            User user = invocation.getArgument(0);
             user.setId(1L); // Simulate ID assignment
             return user;
         });
@@ -67,7 +67,7 @@ class UserServiceTest
         savedUser.setId(1L); // Simulate ID assignment by repo
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            var user = invocation.getArgument(0);
+            User user = invocation.getArgument(0);
             user.setId(1L); // Simulate ID assignment
             return user;
         });

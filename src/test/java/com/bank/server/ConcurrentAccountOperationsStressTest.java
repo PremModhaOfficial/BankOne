@@ -1,15 +1,8 @@
 package com.bank.server;
 
-import com.bank.business.entities.Account;
-import com.bank.business.entities.User;
-import com.bank.business.services.AccountService;
-import com.bank.business.services.UserService;
-import com.bank.db.inmemory.InMemoryAccountRepository;
-import com.bank.db.inmemory.InMemoryUserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -17,7 +10,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.bank.business.entities.Account;
+import com.bank.business.services.AccountService;
+import com.bank.business.services.UserService;
+import com.bank.db.inmemory.InMemoryAccountRepository;
+import com.bank.db.inmemory.InMemoryUserRepository;
 
 public class ConcurrentAccountOperationsStressTest
 {
@@ -72,12 +72,13 @@ public class ConcurrentAccountOperationsStressTest
         var accountId = account.getId();
 
         // Perform high concurrency deposits
-        int numberOfDeposits = 1000;
+        var numberOfDeposits = 1000;
         var depositAmount = new BigDecimal("5.0");
 
         var depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
             var acc = accountService.getAccountById(accountId);
-            if (acc != null) {
+            if (acc != null)
+            {
                 acc.addAmount(depositAmount);
                 accountService.updateAccount(acc);
             }
@@ -105,12 +106,13 @@ public class ConcurrentAccountOperationsStressTest
         var accountId = account.getId();
 
         // Perform high concurrency withdrawals
-        int numberOfWithdrawals = 1000;
+        var numberOfWithdrawals = 1000;
         var withdrawalAmount = new BigDecimal("5.0");
 
         var withdrawalFutures = IntStream.range(0, numberOfWithdrawals).mapToObj(i -> CompletableFuture.runAsync(() -> {
             var acc = accountService.getAccountById(accountId);
-            if (acc != null) {
+            if (acc != null)
+            {
                 acc.withdrawAmount(withdrawalAmount);
                 accountService.updateAccount(acc);
             }
@@ -146,7 +148,7 @@ public class ConcurrentAccountOperationsStressTest
         var accountId2 = account2.getId();
 
         // Perform high concurrency transfers from account1 to account2
-        int numberOfTransfers = 500;
+        var numberOfTransfers = 500;
         var transferAmount = new BigDecimal("10.0");
 
         var latch = new CountDownLatch(numberOfTransfers);
@@ -192,7 +194,7 @@ public class ConcurrentAccountOperationsStressTest
         var accountId3 = account3.getId();
 
         // Perform mixed operations that should conserve total balance
-        int numberOfOperations = 1000;
+        var numberOfOperations = 1000;
 
         var latch = new CountDownLatch(numberOfOperations);
 

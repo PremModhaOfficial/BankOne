@@ -1,13 +1,16 @@
 package com.bank.db.inmemory;
 
-import com.bank.business.entities.User;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
+import com.bank.business.entities.User;
 
 class InMemoryUserRepositoryTest
 {
@@ -172,7 +175,7 @@ class InMemoryUserRepositoryTest
     void testFindAll_WithUsers()
     {
         // Get initial count
-        int usersSizeBefore = userRepository.findAll().size();
+        var usersSizeBefore = userRepository.findAll().size();
 
         // Arrange
         var uniqueSuffix = String.valueOf(System.currentTimeMillis());

@@ -41,7 +41,7 @@ class AccountServiceTest
         savedAccount.setId(1L); // Simulate ID assignment by repo
 
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> {
-            var account = invocation.getArgument(0);
+            Account account = invocation.getArgument(0);
             account.setId(1L); // Simulate ID assignment
             return account;
         });

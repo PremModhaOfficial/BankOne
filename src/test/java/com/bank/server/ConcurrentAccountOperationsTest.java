@@ -53,7 +53,7 @@ public class ConcurrentAccountOperationsTest
             ((AtomicLong) accountIdGeneratorField.get(accountRepository)).set(1);
         } catch (Exception exception)
         {
-            throw new RuntimeException("Failed to clear singleton instances", e);
+            throw new RuntimeException("Failed to clear singleton instances", exception);
         }
 
         // Set up services with the cleared instances
@@ -72,7 +72,7 @@ public class ConcurrentAccountOperationsTest
         var accountId = account.getId();
 
         // Perform concurrent deposits
-        int numberOfDeposits = 100;
+        var numberOfDeposits = 100;
         var depositAmount = new BigDecimal("5.0");
 
         var depositFutures = IntStream.range(0, numberOfDeposits).mapToObj(i -> CompletableFuture.runAsync(() -> {
@@ -106,7 +106,7 @@ public class ConcurrentAccountOperationsTest
         var accountId = account.getId();
 
         // Perform concurrent withdrawals
-        int numberOfWithdrawals = 10;
+        var numberOfWithdrawals = 10;
         var withdrawalAmount = new BigDecimal("5.0");
 
         var withdrawalFutures = IntStream.range(0, numberOfWithdrawals).mapToObj(i -> CompletableFuture.runAsync(() -> {
@@ -148,7 +148,7 @@ public class ConcurrentAccountOperationsTest
         var accountId2 = account2.getId();
 
         // Perform concurrent transfers from account1 to account2
-        int numberOfTransfers = 50;
+        var numberOfTransfers = 50;
         var transferAmount = new BigDecimal("10.0");
 
         var transferFutures = IntStream.range(0, numberOfTransfers).mapToObj(i -> CompletableFuture.runAsync(() -> {
@@ -157,7 +157,7 @@ public class ConcurrentAccountOperationsTest
 
             if (fromAccount != null && toAccount != null)
             {
-                boolean success = fromAccount.withdrawAmount(transferAmount);
+                var success = fromAccount.withdrawAmount(transferAmount);
                 if (success)
                 {
                     toAccount.addAmount(transferAmount);
@@ -212,7 +212,7 @@ public class ConcurrentAccountOperationsTest
         var accountId3 = account3.getId();
 
         // Perform concurrent transfers from account1
-        int numberOfTransfers = 100;
+        var numberOfTransfers = 100;
         var transferAmount = new BigDecimal("10.0");
 
         var latch = new CountDownLatch(numberOfTransfers);
