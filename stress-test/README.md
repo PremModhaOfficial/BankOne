@@ -12,6 +12,7 @@ This stress testing suite provides multiple testing scenarios to evaluate the ba
 - Java 21+
 - Maven 3.6+
 - Running banking system server on `http://localhost:8080`
+- Main Bank project must be compiled separately (see main project README)
 
 ### Run a Smoke Test (Recommended First)
 ```bash
@@ -87,13 +88,13 @@ Options:
 ### Examples
 ```bash
 # Run with custom scenario and JSON output
-java -cp "../target/classes:stress-test/target/classes:../target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "../target/classes:target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
     --scenario HEAVY_TRANSFERS \
     --output JSON \
     --progress
 
 # Quick test without progress reporting
-java -cp "../target/classes:stress-test/target/classes:../target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "../target/classes:target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
     --scenario READ_HEAVY \
     --no-progress
 ```

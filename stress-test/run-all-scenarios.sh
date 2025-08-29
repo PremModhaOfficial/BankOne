@@ -15,15 +15,9 @@ echo "5. Heavy Transfers Test"
 echo "6. Transfer Stress Test"
 echo "=========================================="
 
-# Build the project first
-echo "Building project..."
-cd ../
-mvn clean compile -q
-cd stress-test
-
-# Build the stress test module
-echo "Building stress test module..."
-mvn compile -q
+# Build the stress test project and download dependencies
+echo "Building stress test project and downloading dependencies..."
+mvn clean compile dependency:copy-dependencies -q
 
 # Function to run a test scenario
 run_scenario() {
@@ -36,7 +30,8 @@ run_scenario() {
     echo "Scenario: $scenario"
     echo "=========================================="
 
-    java -cp "../target/classes:stress-test/target/classes:../target/dependency/*" \
+    # Run from the current directory with correct classpath
+    java -cp "target/classes:target/dependency/*" \
         com.bank.stress.NetworkStressTest \
         --scenario $scenario \
         --output BOTH \
@@ -48,7 +43,38 @@ run_scenario() {
 
 # Run smoke test first
 echo "Step 1: Smoke Test"
-./run-smoke-test.sh
+echo "=========================================="
+echo "🚀 Banking System - Smoke Test"
+echo "=========================================="
+echo "Quick verification test:"
+echo "- Minimal users and accounts"
+echo "- Short test duration"
+echo "- Basic functionality check"
+echo "=========================================="
+
+# Build the stress test project and download dependencies
+echo "Building stress test project and downloading dependencies..."
+mvn clean compile dependency:copy-dependencies -q
+
+# Run smoke test with minimal configuration
+echo "Running smoke test with minimal configuration..."
+java -cp "target/classes:target/dependency/*" \
+    -DNUMBER_OF_USERS=2 \
+    -DNUMBER_OF_ACCOUNTS_PER_USER=2 \
+    -DNUMBER_OF_THREADS=2 \
+    -DOPERATIONS_PER_THREAD=25 \
+    com.bank.stress.NetworkStressTest \
+    --scenario READ_HEAVY \
+    --output CONSOLE \
+    --no-progress
+
+echo "=========================================="
+echo "Smoke test completed successfully!"
+echo "The system is ready for full stress testing."
+echo ""
+echo "📁 Files Location:"
+echo "/home/prem-modha/projects/Motadata/BankOne/Bank/stress-test/"
+echo "=========================================="
 
 # Run all scenarios
 echo ""
@@ -69,6 +95,9 @@ echo "├── stress-test-results.csv     (Latest test results)"
 echo "├── stress-test-results.json    (Latest test results)"
 echo "├── logs/application.log        (Complete execution logs)"
 echo "└── Multiple result files from each scenario"
+echo ""
+echo "📁 Files Location:"
+echo "/home/prem-modha/projects/Motadata/BankOne/Bank/stress-test/"
 echo ""
 echo "📈 Comparative Analysis Available:"
 echo "- Compare performance across different scenarios"

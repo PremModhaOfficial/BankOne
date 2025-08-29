@@ -9,7 +9,7 @@ curl -X POST http://localhost:8080/users \
   -d '{
     "username": "testuser",
     "email": "test@example.com",
-    "password": "testpassword"
+    "password": "TestPass123"
   }' | jq .
 
 echo -e "\nLogging in..."
@@ -17,8 +17,8 @@ echo -e "\nLogging in..."
 LOGIN_RESPONSE=$(curl -X POST http://localhost:8080/login \
   -H "Content-Type: application/json" \
   -d '{
-    "identifier": "test@example.com",
-    "password": "testpassword"
+    "username": "testuser",
+    "password": "TestPass123"
   }')
 
 echo $LOGIN_RESPONSE | jq .

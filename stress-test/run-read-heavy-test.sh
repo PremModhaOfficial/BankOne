@@ -11,22 +11,19 @@ echo "Scenario: READ_HEAVY (80% deposits, 10% withdrawals, 10% transfers)"
 echo "Purpose: Test read-heavy workloads and system responsiveness"
 echo "=========================================="
 
-# Build the project first
-echo "Building project..."
-cd ../
+# Build the stress test project
+echo "Building stress test project..."
 mvn clean compile -q
-cd stress-test
-
-# Build the stress test module
-echo "Building stress test module..."
-mvn compile -q
 
 # Run the read-heavy test
 echo "Starting read-heavy test..."
-java -cp "../target/classes:stress-test/target/classes:../target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "../target/classes:target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
     --scenario READ_HEAVY \
     --output BOTH \
     --progress
+
+# Return to stress-test directory for file operations
+cd stress-test
 
 echo "=========================================="
 echo "Read-heavy test completed!"

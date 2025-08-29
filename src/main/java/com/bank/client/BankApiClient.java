@@ -44,29 +44,31 @@ public class BankApiClient
     }
 
     /**
-     * Logs in a user with username/email and email.
-     * This is a placeholder implementation. You'll need to implement the actual
-     * login logic on the server side and return a token.
+     * Logs in a user with username and password.
+     * Sends a JSON request to the server for authentication.
      *
-     * @param identifier The username or email.
-     * @param email      The plain text email.
+     * @param username The username.
+     * @param password The plain text password.
      * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
      *         response.
-     *         The response body should contain the authentication token.
+     *         The response body contains user details on successful login.
      */
-    public CompletableFuture<HttpResponse<String>> login(String identifier, String email)
+    public CompletableFuture<HttpResponse<String>> login(String username, String password)
     {
         var url = baseUrl + "/login";
         try
         {
-            // Create a simple form-encoded body for login
-            var formData = new HashMap<String, String>();
-            formData.put("identifier", identifier); // Could be username or email
-            formData.put("email", email);
+            // Create JSON request body for login
+            var loginRequest = Json.defaultObjectMapper().createObjectNode();
+            loginRequest.put("username", username);
+            loginRequest.put("password", password);
+            var jsonBody = Json.stringify(loginRequest);
 
-            var formDataString = encodeFormData(formData);
-
-            var request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(formDataString)).build();
+            var request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception exception)
@@ -114,6 +116,42 @@ public class BankApiClient
 
         var request = requestBuilder.build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * Registers a new user with the provided details.
+     *
+     * @param username The desired username.
+     * @param email    The user's email address.
+     * @param password The plain text password.
+     * @return CompletableFuture<HttpResponse<String>> representing the asynchronous
+     *         response.
+     */
+    public CompletableFuture<HttpResponse<String>> register(String username, String email, String password)
+    {
+        var url = baseUrl + "/users";
+        try
+        {
+            // Create JSON request body for registration
+            var registerRequest = Json.defaultObjectMapper().createObjectNode();
+            registerRequest.put("username", username);
+            registerRequest.put("email", email);
+            registerRequest.put("password", password);
+            var jsonBody = Json.stringify(registerRequest);
+
+            var request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception exception)
+        {
+            var failedFuture = new CompletableFuture<HttpResponse<String>>();
+            failedFuture.completeExceptionally(exception);
+            return failedFuture;
+        }
     }
 
     /**

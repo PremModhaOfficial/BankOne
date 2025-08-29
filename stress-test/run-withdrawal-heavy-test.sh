@@ -11,22 +11,19 @@ echo "Scenario: WITHDRAWAL_HEAVY (10% deposits, 80% withdrawals, 10% transfers)"
 echo "Purpose: Test withdrawal performance and balance validation"
 echo "=========================================="
 
-# Build the project first
-echo "Building project..."
-cd ../
+# Build the stress test project
+echo "Building stress test project..."
 mvn clean compile -q
-cd stress-test
-
-# Build the stress test module
-echo "Building stress test module..."
-mvn compile -q
 
 # Run the withdrawal-heavy test
 echo "Starting withdrawal-heavy test..."
-java -cp "../target/classes:stress-test/target/classes:../target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "../target/classes:target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
     --scenario WITHDRAWAL_HEAVY \
     --output BOTH \
     --progress
+
+# Return to stress-test directory for file operations
+cd stress-test
 
 echo "=========================================="
 echo "Withdrawal-heavy test completed!"

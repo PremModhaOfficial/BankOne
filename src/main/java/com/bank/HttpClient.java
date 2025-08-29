@@ -18,18 +18,23 @@ import com.bank.server.config.ConfigurationManager;
 import com.bank.server.config.HttpConfigurationException;
 import com.bank.server.util.Json;
 
-public class HttpClient {
+public class HttpClient
+{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClient.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         // Load configuration
-        var serverUrl = "http://localhost:8080";
-        try {
+        var startPort = 8080;
+        var serverUrl = "http://localhost:" + startPort;
+        try
+        {
             ConfigurationManager.getInstance().loadConfiguration("src/main/resources/http.json");
             var port = ConfigurationManager.getInstance().getCurrentConfiguration().getPort();
             serverUrl = "http://localhost:" + port;
-        } catch (HttpConfigurationException configException) {
+        } catch (HttpConfigurationException configException)
+        {
             LOGGER.warn("Failed to load configuration, using default URL: {}", serverUrl, configException);
         }
 
@@ -44,16 +49,21 @@ public class HttpClient {
         var wantToExit = false;
         User loggedInUser = null;
 
-        while (!wantToExit) {
-            try {
+        while (!wantToExit)
+        {
+            try
+            {
 
-                if (client.getLoggedInUser() == null || loggedInUser == null) {
+                if (client.getLoggedInUser() == null || loggedInUser == null)
+                {
                     loggedInUser = loginOrRegister(client, mapper, scanner);
                     client.setLoggedInUser(loggedInUser);
-                } else {
+                } else
+                {
                     wantToExit = launchInterface(client, scanner);
                 }
-            } catch (ArrayIndexOutOfBoundsException arrayIndexException) {
+            } catch (ArrayIndexOutOfBoundsException arrayIndexException)
+            {
                 System.out.println("Please enter a number between 1 and 100");
 
             }
@@ -63,21 +73,25 @@ public class HttpClient {
         scanner.close();
     }
 
-    private static User loginOrRegister(BankApiClient client, CliObjectMapper mapper, Scanner scanner) {
+    private static User loginOrRegister(BankApiClient client, CliObjectMapper mapper, Scanner scanner)
+    {
         System.out.println("\n--- Bank Client ---");
         System.out.println("1. Login");
         System.out.println("2. Register");
         System.out.println("3. Exit");
         System.out.print("Choose an option: ");
         int choice;
-        try {
+        try
+        {
             choice = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException)
+        {
             System.out.println("Invalid input. Please enter a number.");
             return null;
         }
 
-        switch (choice) {
+        switch (choice)
+        {
             case 1 -> {
                 return performLogin(client, scanner);
             }
@@ -95,18 +109,20 @@ public class HttpClient {
         return null;
     }
 
-    private static User performLogin(BankApiClient client, Scanner scanner) {
+    private static User performLogin(BankApiClient client, Scanner scanner)
+    {
         System.out.print("Enter username: ");
-        var user_id = scanner.nextLine().trim();
-        System.out.print("Enter email: ");
-        var email = scanner.nextLine().trim();
+        var username = scanner.nextLine().trim();
+        System.out.print("Enter password: ");
+        var password = scanner.nextLine().trim();
 
         System.out.println("Attempting to log in...");
-        try {
+        try
+        {
             // Create login request directly as JSON
             var loginRequest = Json.defaultObjectMapper().createObjectNode();
-            loginRequest.put("id", user_id);
-            loginRequest.put("email", email);
+            loginRequest.put("username", username);
+            loginRequest.put("password", password);
             var jsonBody = loginRequest;
 
             var futureResponse = client.post("/login", jsonBody);
@@ -114,76 +130,54 @@ public class HttpClient {
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Login", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
-                // Parse the response to extract token and user details
+            if (response.statusCode() == 200)
+            {
+                // Parse the response to extract user details
                 var responseBody = Json.parse(response.body());
                 var userNode = responseBody.get("user");
-                var username = userNode.get("username").asText();
+                var responseUsername = userNode.get("username").asText();
                 var id = userNode.get("id").asLong();
-                var got_email = userNode.get("email").asText("");
+                var email = userNode.get("email").asText("");
                 var isAdmin = userNode.get("admin").asBoolean();
-                var password = userNode.get("password").asText();
 
-                LOGGER.debug("Perform Login: email:{} username:{} id:{} Admin:{}", got_email, username, id, isAdmin);
+                LOGGER.debug("Login successful: username:{} email:{} id:{} Admin:{}", responseUsername, email, id, isAdmin);
                 LOGGER.debug("Login Response Details: {}", ResponseFormatter.formatJsonResponse(response.body()));
 
-                // Set the token in the client for future requests
-
-                var user = new User(username, got_email, password, id, isAdmin, true);
-                var isAuthenticated = false;
-
-                isAuthenticated = handleAuth(user, scanner);
-
-                // In a real implementation, you would parse all user details from the response
-                if (isAuthenticated) {
-                    System.out.println("Login successful!");
-                } else {
-                    LOGGER.debug("Login failed with invalid password: {}",
-                            Json.stringifyPretty(Json.toJson(response.body())));
-                    client.setLoggedInUser(null);
-                    return null;
-                }
+                // Create user object without storing password (server doesn't return it)
+                var user = new User(responseUsername, email, "", id, isAdmin, true);
                 client.setLoggedInUser(user);
+                System.out.println("Login successful!");
                 return user;
-            } else {
+            } else
+            {
                 System.out.println("Login failed. Status: " + response.statusCode());
                 LOGGER.debug("Login failed response: {}", Json.stringifyPretty(Json.toJson(response.body())));
                 return null;
             }
-        } catch (Exception loginException) {
+        } catch (Exception loginException)
+        {
             System.err.println("Error during login: " + loginException.getMessage());
             return null;
         }
     }
 
-    private static boolean handleAuth(User user, Scanner scanner) {
-        var isAuthenticated = false;
-        var authTries = 3;
-        while (!isAuthenticated) {
-            System.out.printf("Enter Password (%d tries left)\n", authTries);
-            isAuthenticated = user.validatePassword(scanner.nextLine().trim());
 
-            authTries--;
-            if (authTries <= 0) {
-                System.out.println("Login failed. because of invalid password");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static User performRegistration(BankApiClient client, CliObjectMapper mapper) {
+    private static User performRegistration(BankApiClient client, CliObjectMapper mapper)
+    {
         System.out.println("Registering a new user:");
-        try {
+        try
+        {
             User userRequest;
-            while (true) {
+            while (true)
+            {
                 userRequest = mapper.readValue(User.class);
                 LOGGER.debug("User gave values : {}", userRequest);
-                if (EmailValidator.isValidEmail(userRequest.getEmail())) {
-                    System.out.println("Email is Invalid Please try again");
-                    break;
+                if (!EmailValidator.isValidEmail(userRequest.getEmail()))
+                {
+                    System.out.println("Email is invalid. Please try again.");
+                    continue;
                 }
+                break;
             }
             System.out.println("Attempting to register user: " + userRequest.getUsername());
             var jsonBody = Json.toJson(userRequest);
@@ -192,32 +186,35 @@ public class HttpClient {
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Registration", response.statusCode(), response.body());
 
-            if (response.statusCode() == 201) {
+            if (response.statusCode() == 201)
+            {
                 System.out.println("User registered successfully!");
                 // Parse the created user from the response
                 var userNode = Json.parse(response.body());
                 var username = userNode.get("username").asText();
-                var id = userNode.get("id").asLong();
+                var id = userNode.get("id");
                 var email = userNode.get("email").asText();
                 var isAdmin = userNode.get("admin").asBoolean();
-                var password = userNode.get("password").asText();
-                LOGGER.debug("Registration Response Details: {}",
-                        ResponseFormatter.formatJsonResponse(response.body()));
+                LOGGER.debug("Registration Response Details: {}", ResponseFormatter.formatJsonResponse(response.body()));
 
-                var user = new User(username, email, password, id, isAdmin, true);
+                // Don't store password from response (server removes it for security)
+                var user = new User(username, email, "", (id != null ? id.asLong() : 0L), isAdmin, true);
                 client.setLoggedInUser(user);
                 return user;
-            } else {
+            } else
+            {
                 System.out.println("Failed to register user. Server responded with status: " + response.statusCode());
                 return null;
             }
-        } catch (Exception registrationException) {
+        } catch (Exception registrationException)
+        {
             System.err.println("Error during user registration: " + registrationException.getMessage());
             return null;
         }
     }
 
-    private static boolean launchInterface(BankApiClient client, Scanner scanner) {
+    private static boolean launchInterface(BankApiClient client, Scanner scanner)
+    {
         var user = client.getLoggedInUser();
         System.out.println("\n--- Main Menu ---");
         System.out.println("Welcome, " + user.getUsername() + "!");
@@ -226,7 +223,8 @@ public class HttpClient {
         System.out.println("3. Deposit");
         System.out.println("4. Withdraw");
         System.out.println("5. Transfer");
-        if (user.isAdmin()) {
+        if (user.isAdmin())
+        {
             System.out.println("6. Admin: View All Users");
             System.out.println("7. Admin: View All Accounts");
         }
@@ -237,14 +235,17 @@ public class HttpClient {
         LOGGER.debug("USER {}", user);
 
         int choice;
-        try {
+        try
+        {
             choice = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException)
+        {
             System.out.println("Invalid input. Please enter a number.");
             return false;
         }
 
-        switch (choice) {
+        switch (choice)
+        {
             case 1:
                 viewAccounts(client);
                 break;
@@ -261,14 +262,17 @@ public class HttpClient {
                 transfer(client, scanner);
                 break;
             case 6:
-                if (user.isAdmin()) {
+                if (user.isAdmin())
+                {
                     viewAllUsers(client);
-                } else {
+                } else
+                {
                     System.out.println("Invalid option.");
                 }
                 break;
             case 7:
-                if (user.isAdmin()) {
+                if (user.isAdmin())
+                {
                     viewAllAccounts(client);
                 }
                 break;
@@ -288,23 +292,28 @@ public class HttpClient {
     /**
      * @param client
      */
-    private static void viewAllAccounts(BankApiClient client) {
+    private static void viewAllAccounts(BankApiClient client)
+    {
         var user = client.getLoggedInUser();
         System.out.println("Viewing all accounts by admin: " + user.getUsername());
-        try {
+        try
+        {
             // Include userId in query parameter for GET request
             var futureResponse = client.get("/accounts-all");
             var response = futureResponse.join();
 
             ResponseFormatter.logResponse(LOGGER, "Accounts", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200)
+            {
                 System.out.println("All Accounts:");
                 System.out.println(ResponseFormatter.formatAccountList(response.body()));
-            } else {
+            } else
+            {
                 System.out.println("Failed to retrieve accounts. Status: " + response.statusCode());
             }
-        } catch (Exception accountRetrievalException) {
+        } catch (Exception accountRetrievalException)
+        {
             System.err.println("Error retrieving accounts: " + accountRetrievalException.getMessage());
         }
     }
@@ -312,23 +321,28 @@ public class HttpClient {
     /**
      * @param client
      */
-    private static void viewAccounts(BankApiClient client) {
+    private static void viewAccounts(BankApiClient client)
+    {
         var user = client.getLoggedInUser();
         System.out.println("Viewing accounts for user: " + user.getUsername());
-        try {
+        try
+        {
             // Include userId in query parameter for GET request
             var futureResponse = client.get("/accounts?userId=" + user.getId());
             var response = futureResponse.join();
 
             ResponseFormatter.logResponse(LOGGER, "Accounts", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200)
+            {
                 System.out.println("Accounts:");
                 System.out.println(ResponseFormatter.formatAccountList(response.body()));
-            } else {
+            } else
+            {
                 System.out.println("Failed to retrieve accounts. Status: " + response.statusCode());
             }
-        } catch (Exception accountRetrievalException) {
+        } catch (Exception accountRetrievalException)
+        {
             System.err.println("Error retrieving accounts: " + accountRetrievalException.getMessage());
         }
     }
@@ -337,12 +351,15 @@ public class HttpClient {
      * @param client
      * @param scanner
      */
-    private static void createAccount(BankApiClient client, Scanner scanner) {
+    private static void createAccount(BankApiClient client, Scanner scanner)
+    {
         var user = client.getLoggedInUser();
         System.out.println("Creating a new account for user: " + user.getUsername());
         var created = false;
-        while (!created) {
-            try {
+        while (!created)
+        {
+            try
+            {
                 // Get account details from user
                 System.out.print("Enter initial balance: ");
                 var initialBalanceString = scanner.nextLine().trim();
@@ -359,35 +376,42 @@ public class HttpClient {
                 var futureResponse = client.post("/accounts", jsonBody);
                 var response = futureResponse.join();
 
-                ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(),
-                        response.body());
-                if (response.statusCode() == 201) {
+                ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(), response.body());
+                if (response.statusCode() == 201)
+                {
                     created = true;
                     System.out.println("Account created successfully!");
-                } else {
+                } else
+                {
                     System.out.println("Failed to create account. Status: " + response.statusCode());
                 }
-            } catch (Exception accountCreationException) {
+            } catch (Exception accountCreationException)
+            {
                 System.out.println("Please try again. with valid input");
             }
         }
     }
 
-    private static Account.AccountType getAccountType(Scanner scanner) {
+    private static Account.AccountType getAccountType(Scanner scanner)
+    {
         System.out.println("Enter account type \n[1] SAVINGS \n[2] CHECKING");
         var nextLine = scanner.nextLine();
-        if (nextLine.equals("1")) {
+        if (nextLine.equals("1"))
+        {
             return Account.AccountType.SAVINGS;
-        } else if (nextLine.equals("2")) {
+        } else if (nextLine.equals("2"))
+        {
             return Account.AccountType.CHECKING;
         }
         var typeStr = scanner.nextLine().trim().toUpperCase();
         return Account.AccountType.valueOf(typeStr);
     }
 
-    private static void deposit(BankApiClient client, Scanner scanner) {
+    private static void deposit(BankApiClient client, Scanner scanner)
+    {
         System.out.println("Making a deposit...");
-        try {
+        try
+        {
             System.out.print("Enter account ID: ");
             var accountId = Long.parseLong(scanner.nextLine().trim());
             System.out.print("Enter amount to deposit: ");
@@ -404,14 +428,18 @@ public class HttpClient {
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Deposit", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200)
+            {
                 System.out.println("Deposit successful!");
-            } else {
+            } else
+            {
                 System.out.println("Failed to make deposit. Status: " + response.statusCode());
             }
-        } catch (NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException)
+        {
             System.out.println("Invalid input. Please enter valid numbers.");
-        } catch (Exception depositException) {
+        } catch (Exception depositException)
+        {
             System.err.println("Error making deposit: " + depositException.getMessage());
         }
     }
@@ -420,9 +448,11 @@ public class HttpClient {
      * @param client
      * @param scanner
      */
-    private static void withdraw(BankApiClient client, Scanner scanner) {
+    private static void withdraw(BankApiClient client, Scanner scanner)
+    {
         System.out.println("Making a withdrawal...");
-        try {
+        try
+        {
             System.out.print("Enter account ID: ");
             viewAccounts(client);
             var accountId = Long.parseLong(scanner.nextLine().trim());
@@ -440,23 +470,30 @@ public class HttpClient {
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Withdrawal", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200)
+            {
                 System.out.println("Withdrawal successful!");
-            } else if (response.statusCode() == 400) {
+            } else if (response.statusCode() == 400)
+            {
                 System.out.println("Withdrawal failed: Insufficient funds");
-            } else {
+            } else
+            {
                 System.out.println("Failed to make withdrawal. Status: " + response.statusCode());
             }
-        } catch (NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException)
+        {
             System.out.println("Invalid input. Please enter valid numbers.");
-        } catch (Exception withdrawalException) {
+        } catch (Exception withdrawalException)
+        {
             System.err.println("Error making withdrawal: " + withdrawalException.getMessage());
         }
     }
 
-    private static void transfer(BankApiClient client, Scanner scanner) {
+    private static void transfer(BankApiClient client, Scanner scanner)
+    {
         System.out.println("Making a transfer...");
-        try {
+        try
+        {
             System.out.print("Enter source account ID: ");
             var fromAccountId = Long.parseLong(scanner.nextLine().trim());
             System.out.print("Enter destination account ID: ");
@@ -476,41 +513,51 @@ public class HttpClient {
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Transfer", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200)
+            {
                 System.out.println("Transfer successful!");
                 LOGGER.info("Transfer successful!");
                 LOGGER.debug(ResponseFormatter.formatJsonResponse(response.body()));
-            } else if (response.statusCode() == 400) {
+            } else if (response.statusCode() == 400)
+            {
                 System.out.println("Transfer failed: Insufficient funds");
                 LOGGER.info("Transfer failed: Insufficient funds");
                 LOGGER.debug(ResponseFormatter.formatJsonResponse(response.body()));
-            } else {
+            } else
+            {
                 System.out.println("FAILED TO COMPLETE TRANSACTION");
                 LOGGER.error("Failed to make transfer. Server responded with status: {}", response.statusCode());
                 LOGGER.error("Response Body: {}", response.body());
             }
-        } catch (NumberFormatException numberFormatException) {
+        } catch (NumberFormatException numberFormatException)
+        {
             System.out.println("Invalid input. Please enter valid numbers.");
-        } catch (Exception transferException) {
+        } catch (Exception transferException)
+        {
             System.err.println("Error making transfer: " + transferException.getMessage());
         }
     }
 
-    private static void viewAllUsers(BankApiClient client) {
+    private static void viewAllUsers(BankApiClient client)
+    {
         System.out.println("Viewing all users (Admin only)...");
-        try {
+        try
+        {
             var futureResponse = client.get("/admin/users");
             var response = futureResponse.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "View All Users", response.statusCode(), response.body());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200)
+            {
                 System.out.println("Users:");
                 System.out.println(ResponseFormatter.formatUserList(response.body()));
-            } else {
+            } else
+            {
                 System.out.println("Failed to retrieve users. Status: " + response.statusCode());
             }
-        } catch (Exception userRetrievalException) {
+        } catch (Exception userRetrievalException)
+        {
             System.err.println("Error retrieving users: " + userRetrievalException.getMessage());
         }
     }

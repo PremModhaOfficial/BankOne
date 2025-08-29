@@ -10,26 +10,23 @@ echo "Scenario: BALANCED_LOAD (40% deposits, 30% withdrawals, 30% transfers)"
 echo "Output: CSV and JSON formats"
 echo "=========================================="
 
-# Build the project first
-echo "Building project..."
-cd ../
-mvn clean compile -q
-cd stress-test
-
-# Build the stress test module
-echo "Building stress test module..."
-mvn compile -q
+# Build the stress test project
+echo "Building stress test project and downloading dependencies..."
+mvn clean compile dependency:copy-dependencies -q
 
 # Run the balanced load test
 echo "Starting balanced load test..."
-java -cp "../target/classes:stress-test/target/classes:../target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
     --scenario BALANCED_LOAD \
     --output BOTH \
     --progress
 
 echo "=========================================="
 echo "Test completed! Check the following files:"
-echo "- stress-test-results.csv"
-echo "- stress-test-results.json"
-echo "- logs/application.log (for detailed logs)"
+echo "- stress-test-results.csv (Spreadsheet analysis)"
+echo "- stress-test-results.json (Programmatic analysis)"
+echo "- logs/application.log (Detailed execution logs)"
+echo ""
+echo "Files are created in the stress-test directory:"
+echo "📁 /home/prem-modha/projects/Motadata/BankOne/Bank/stress-test/"
 echo "=========================================="

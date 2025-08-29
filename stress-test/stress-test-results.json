@@ -1,0 +1,34 @@
+{
+  "testMetadata" : {
+    "scenario" : "BALANCED_LOAD",
+    "startTime" : "2025-08-29T10:36:21.011779822Z",
+    "durationMs" : 88269,
+    "totalOperations" : 1600000,
+    "outputFormat" : "BOTH",
+    "progressEnabled" : true
+  },
+  "summary" : {
+    "totalOperations" : 1600000,
+    "successfulOperations" : 1600000,
+    "failedOperations" : 0,
+    "successRate" : 100.0,
+    "averageThroughput" : 18126.40904507811
+  },
+  "responseTimeStats" : {
+    "mean" : 0.438350625,
+    "median" : 0.0,
+    "stdDev" : 0.7393159707203066,
+    "min" : 0.0,
+    "max" : 43.0,
+    "p50" : 0.0,
+    "p95" : 1.0,
+    "p99" : 2.0,
+    "p999" : 6.0
+  },
+  "errorBreakdown" : { },
+  "operationBreakdown" : {
+    "TRANSFER" : 480250,
+    "DEPOSIT" : 638727,
+    "WITHDRAWAL" : 481023
+  }
+}
