@@ -25,17 +25,15 @@ public class HttpClient
 
     public static void main(String[] args)
     {
-        // Load configuration
-        var startPort = 8080;
-        var serverUrl = "http://localhost:" + startPort;
+        // Load configuration - now using nginx load balancer on port 80
+        var serverUrl = "http://localhost";  // nginx load balancer
         try
         {
             ConfigurationManager.getInstance().loadConfiguration("src/main/resources/http.json");
-            var port = ConfigurationManager.getInstance().getCurrentConfiguration().getPort();
-            serverUrl = "http://localhost:" + port;
+            LOGGER.info("Configuration loaded successfully. Using nginx load balancer at {}", serverUrl);
         } catch (HttpConfigurationException configException)
         {
-            LOGGER.warn("Failed to load configuration, using default URL: {}", serverUrl, configException);
+            LOGGER.warn("Failed to load configuration, using default nginx URL: {}", serverUrl, configException);
         }
 
         // Initialize client
@@ -54,7 +52,7 @@ public class HttpClient
             try
             {
 
-                if (client.getLoggedInUser() == null || loggedInUser == null)
+                if (client.getLoggedInUser() == null)
                 {
                     loggedInUser = loginOrRegister(client, mapper, scanner);
                     client.setLoggedInUser(loggedInUser);

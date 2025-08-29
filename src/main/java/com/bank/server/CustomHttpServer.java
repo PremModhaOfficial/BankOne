@@ -33,7 +33,7 @@ public class CustomHttpServer
     {
         this.threadPoolSize = threadPoolSize;
         // Create the server
-        server = HttpServer.create(new InetSocketAddress(port), 1000);
+        server = HttpServer.create(new InetSocketAddress(port), 160_000);
 
         customExecutor = Executors.newFixedThreadPool(threadPoolSize, new CustomThreadFactory());
         // customExecutor = Executors.newVirtualThreadPerTaskExecutor();

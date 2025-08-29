@@ -413,6 +413,7 @@ public class AccountHandler implements HttpHandler
             {
                 response.put("message", "Insufficient funds or account not found");
                 response.put("balance", fromAccount.getBalance().toString());
+                response.put("required-balance", amount);
                 var jsonResponse = Json.stringify(response);
                 sendResponse(exchange, 400, jsonResponse);
             }

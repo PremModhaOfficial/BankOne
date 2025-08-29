@@ -4,7 +4,7 @@ echo "Testing user creation and authentication..."
 
 # Create a user
 echo "Creating user..."
-curl -X POST http://localhost:8080/users \
+curl -X POST http://localhost/users \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
@@ -14,7 +14,7 @@ curl -X POST http://localhost:8080/users \
 
 echo -e "\nLogging in..."
 # Login with the user
-LOGIN_RESPONSE=$(curl -X POST http://localhost:8080/login \
+LOGIN_RESPONSE=$(curl -X POST http://localhost/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
@@ -29,7 +29,7 @@ echo -e "\nUser ID: $USER_ID"
 
 echo -e "\nCreating account..."
 # Create an account using the user ID
-curl -X POST http://localhost:8080/accounts \
+curl -X POST http://localhost/accounts \
   -H "Content-Type: application/json" \
   -d "{
     \"userId\": $USER_ID,

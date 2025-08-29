@@ -1,13 +1,9 @@
 package com.bank.client;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import com.bank.business.entities.User;
@@ -64,11 +60,7 @@ public class BankApiClient
             loginRequest.put("password", password);
             var jsonBody = Json.stringify(loginRequest);
 
-            var request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
+            var request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
 
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception exception)
@@ -77,28 +69,6 @@ public class BankApiClient
             failedFuture.completeExceptionally(exception);
             return failedFuture;
         }
-    }
-
-    /**
-     * Encodes a map of form data into a URL-encoded string.
-     *
-     * @param data The map of form data.
-     * @return The URL-encoded string.
-     */
-    private String encodeFormData(Map<String, String> data)
-    {
-        var encodedData = new StringBuilder();
-        for (Map.Entry<String, String> entry : data.entrySet())
-        {
-            if (!encodedData.isEmpty())
-            {
-                encodedData.append("&");
-            }
-            encodedData.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
-            encodedData.append("=");
-            encodedData.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
-        }
-        return encodedData.toString();
     }
 
     /**
@@ -139,11 +109,7 @@ public class BankApiClient
             registerRequest.put("password", password);
             var jsonBody = Json.stringify(registerRequest);
 
-            var request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
+            var request = HttpRequest.newBuilder().uri(URI.create(url)).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
 
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception exception)

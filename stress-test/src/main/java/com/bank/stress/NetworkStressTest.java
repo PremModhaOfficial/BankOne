@@ -26,14 +26,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Network-based stress test for the banking system that communicates with the
  * HTTP server instead of directly accessing services.
  */
-public class NetworkStressTest {
+public class NetworkStressTest
+{
 
     private static final String SERVER_URL = "http://localhost:8080";
+
+    private static final String[] SERVER_URLS = {"http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083"};
     private static final long NUMBER_OF_USERS = Long.parseLong(System.getProperty("NUMBER_OF_USERS", "5"));
     private static final int NUMBER_OF_ACCOUNTS_PER_USER = Integer.parseInt(System.getProperty("NUMBER_OF_ACCOUNTS_PER_USER", "10"));
     private static final int NUMBER_OF_THREADS = Integer.parseInt(System.getProperty("NUMBER_OF_THREADS", "8"));
     private static final long OPERATIONS_PER_THREAD = Long.parseLong(System.getProperty("OPERATIONS_PER_THREAD", "200000"));
 
+    private static String TRANSFER_OPRATIONS_FAILED = "";
     // HTTP and JSON handling
     private HttpClient httpClient;
     private ObjectMapper objectMapper;
@@ -58,25 +62,32 @@ public class NetworkStressTest {
     private String outputFormat = "CONSOLE";
     private boolean showProgress = true;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception
+    {
         var stressTest = new NetworkStressTest();
 
         // Parse command line arguments
-        for (var i = 0; i < args.length; i++) {
-            switch (args[i]) {
+        for (var i = 0; i < args.length; i++)
+        {
+            switch (args[i])
+            {
                 case "--scenario" -> {
-                    if (i + 1 < args.length) {
-                        try {
+                    if (i + 1 < args.length)
+                    {
+                        try
+                        {
                             stressTest.scenario = TestScenario.valueOf(args[i + 1].toUpperCase());
                             i++; // Skip next argument
-                        } catch (IllegalArgumentException e) {
+                        } catch (IllegalArgumentException e)
+                        {
                             System.err.println("Invalid scenario: " + args[i + 1] + ". Using BALANCED_LOAD.");
                             i++; // Skip next argument
                         }
                     }
                 }
                 case "--output" -> {
-                    if (i + 1 < args.length) {
+                    if (i + 1 < args.length)
+                    {
                         stressTest.outputFormat = args[i + 1].toUpperCase();
                         i++; // Skip next argument
                     }
@@ -89,7 +100,8 @@ public class NetworkStressTest {
         stressTest.runStressTest();
     }
 
-    public void runStressTest() throws Exception {
+    public void runStressTest() throws Exception
+    {
         System.out.println("Starting network-based stress test...");
         System.out.println("Server URL: " + SERVER_URL);
         System.out.println("Scenario: " + scenario.name());
@@ -97,7 +109,8 @@ public class NetworkStressTest {
         // Initialize the system
         initialize();
 
-        try {
+        try
+        {
             // Create users
             createUsers();
 
@@ -105,7 +118,8 @@ public class NetworkStressTest {
             createAccounts();
 
             // Start progress reporting if enabled
-            if (showProgress) {
+            if (showProgress)
+            {
                 startProgressReporting();
             }
 
@@ -115,7 +129,8 @@ public class NetworkStressTest {
             var endTime = Instant.now();
 
             // Stop progress reporting if enabled
-            if (showProgress) {
+            if (showProgress)
+            {
                 stopProgressReporting();
             }
 
@@ -125,18 +140,18 @@ public class NetworkStressTest {
             // Export results if requested
             exportResults();
 
-        } finally {
+        } finally
+        {
             // Cleanup
             cleanup();
         }
     }
 
-    private void initialize() {
+    private void initialize()
+    {
         System.out.println("Initializing HTTP client...");
 
-        httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
+        httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
         objectMapper = new ObjectMapper();
         userIds = new ArrayList<>();
         accountIds = new ArrayList<>();
@@ -145,45 +160,48 @@ public class NetworkStressTest {
         progressReporter = Executors.newScheduledThreadPool(1);
 
         // Initialize error counts for all categories
-        for (var category : ErrorCategory.values()) {
+        for (var category : ErrorCategory.values())
+        {
             errorCounts.put(category, new AtomicInteger(0));
         }
 
         System.out.println("HTTP client initialized");
     }
 
-    private void createUsers() throws Exception {
+    private void createUsers() throws Exception
+    {
         System.out.println("Creating users...");
 
         var futures = new ArrayList<CompletableFuture<Void>>();
 
-        for (var i = 0; i < NUMBER_OF_USERS; i++) {
+        for (var i = 0; i < NUMBER_OF_USERS; i++)
+        {
             var userIndex = i;
             var future = CompletableFuture.runAsync(() -> {
-                try {
+                try
+                {
                     var userJson = String.format(
-                            "{\"username\":\"stress_user_%d\",\"email\":\"stress%d@example.com\", \"password\": \"stress_pass_%d\"}",
-                            userIndex, userIndex, userIndex);
+                            "{\"username\":\"stress_user_%d\",\"email\":\"stress%d@example.com\", \"password\": \"stress_pass_%d\"}", userIndex, userIndex, userIndex);
 
-                    var request = HttpRequest.newBuilder()
-                        .uri(URI.create(SERVER_URL + "/users"))
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(userJson))
-                        .build();
+                    var request = HttpRequest.newBuilder().uri(create(SERVER_URL, "/users")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(userJson)).build();
 
                     var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                    if (response.statusCode() == 201) {
+                    if (response.statusCode() == 201)
+                    {
                         var jsonNode = objectMapper.readTree(response.body());
                         var userId = jsonNode.get("id").asLong();
-                        synchronized (userIds) {
+                        synchronized (userIds)
+                        {
                             userIds.add(userId);
                         }
                         System.out.println("Created user " + userId);
-                    } else {
+                    } else
+                    {
                         System.err.println("Failed to create user, status: " + response.statusCode() + ", response: " + response.body());
                     }
-                } catch (Exception exception) {
+                } catch (Exception exception)
+                {
                     System.err.println("Error creating user " + userIndex + ": " + exception.getMessage());
                 }
             }, executorService);
@@ -197,38 +215,42 @@ public class NetworkStressTest {
         System.out.println("Created " + userIds.size() + " users");
     }
 
-    private void createAccounts() throws Exception {
+    private void createAccounts() throws Exception
+    {
         System.out.println("Creating accounts...");
 
         var futures = new ArrayList<CompletableFuture<Void>>();
 
-        for (var userId : userIds) {
-            for (var j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++) {
+        for (var userId : userIds)
+        {
+            for (var j = 0; j < NUMBER_OF_ACCOUNTS_PER_USER; j++)
+            {
                 var finalUserId = userId;
                 var future = CompletableFuture.runAsync(() -> {
-                    try {
+                    try
+                    {
                         var accountJson = String.format(
                                 "{\"userId\":%d,\"balance\":1000.0,\"type\":\"SAVINGS\"}", finalUserId);
 
-                        var request = HttpRequest.newBuilder()
-                            .uri(URI.create(SERVER_URL + "/accounts"))
-                            .header("Content-Type", "application/json")
-                            .POST(HttpRequest.BodyPublishers.ofString(accountJson))
-                            .build();
+                        var request = HttpRequest.newBuilder().uri(create(SERVER_URL, "/accounts")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(accountJson)).build();
 
                         var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                        if (response.statusCode() == 201) {
+                        if (response.statusCode() == 201)
+                        {
                             var jsonNode = objectMapper.readTree(response.body());
                             var accountId = jsonNode.get("id").asLong();
-                            synchronized (accountIds) {
+                            synchronized (accountIds)
+                            {
                                 accountIds.add(accountId);
                             }
                             System.out.println("Created account " + accountId + " for user " + finalUserId);
-                        } else {
+                        } else
+                        {
                             System.err.println("Failed to create account for user " + finalUserId + ", status: " + response.statusCode() + ", response: " + response.body());
                         }
-                    } catch (Exception exception) {
+                    } catch (Exception exception)
+                    {
                         System.err.println("Error creating account for user " + finalUserId + ": " + exception.getMessage());
                     }
                 }, executorService);
@@ -243,13 +265,15 @@ public class NetworkStressTest {
         System.out.println("Created " + accountIds.size() + " accounts");
     }
 
-    private void executeConcurrentOperations() throws InterruptedException {
+    private void executeConcurrentOperations() throws InterruptedException
+    {
         System.out.println("Executing concurrent operations...");
 
         var futures = new ArrayList<CompletableFuture<Void>>();
 
         // Submit tasks to the executor service
-        for (var i = 0; i < NUMBER_OF_THREADS; i++) {
+        for (var i = 0; i < NUMBER_OF_THREADS; i++)
+        {
             var threadId = i;
             var future = CompletableFuture.runAsync(() -> {
                 performOperations(threadId);
@@ -261,31 +285,37 @@ public class NetworkStressTest {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
-    private void performOperations(int threadId) {
+    private void performOperations(int threadId)
+    {
         System.out.println("Thread " + threadId + " started");
 
         var deposits = 0;
         var withdrawals = 0;
         var transfers = 0;
 
-        for (var i = 0; i < OPERATIONS_PER_THREAD; i++) {
+        for (var i = 0; i < OPERATIONS_PER_THREAD; i++)
+        {
             totalOperations.incrementAndGet();
 
-            try {
+            try
+            {
                 // Select operation based on scenario ratios
                 var random = Math.random();
                 var success = false;
                 String operationType;
 
-                if (random < scenario.depositRatio) {
+                if (random < scenario.depositRatio)
+                {
                     success = performDeposit();
                     deposits++;
                     operationType = "DEPOSIT";
-                } else if (random < scenario.depositRatio + scenario.withdrawalRatio) {
+                } else if (random < scenario.depositRatio + scenario.withdrawalRatio)
+                {
                     success = performWithdrawal();
                     withdrawals++;
                     operationType = "WITHDRAWAL";
-                } else {
+                } else
+                {
                     success = performTransfer();
                     transfers++;
                     operationType = "TRANSFER";
@@ -294,12 +324,15 @@ public class NetworkStressTest {
                 // Update operation type counts
                 operationTypeCounts.computeIfAbsent(operationType, k -> new AtomicInteger(0)).incrementAndGet();
 
-                if (success) {
+                if (success)
+                {
                     successfulOperations.incrementAndGet();
-                } else {
+                } else
+                {
                     failedOperations.incrementAndGet();
                 }
-            } catch (Exception exception) {
+            } catch (Exception exception)
+            {
                 System.err.println("Error in thread " + threadId + " operation " + i + ": " + exception.getMessage());
                 failedOperations.incrementAndGet();
                 errorCounts.get(categorizeError(exception, null)).incrementAndGet();
@@ -309,9 +342,11 @@ public class NetworkStressTest {
         System.out.println("Thread " + threadId + " completed - Deposits: " + deposits + ", Withdrawals: " + withdrawals + ", Transfers: " + transfers);
     }
 
-    private boolean performDeposit() {
+    private boolean performDeposit()
+    {
         var startTime = System.currentTimeMillis();
-        try {
+        try
+        {
             // Select a random account
             if (accountIds.isEmpty())
                 return false;
@@ -323,11 +358,7 @@ public class NetworkStressTest {
 
             var depositJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
-            var request = HttpRequest.newBuilder()
-                .uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/deposit"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(depositJson))
-                .build();
+            var request = HttpRequest.newBuilder().uri(create(SERVER_URL, "/accounts/" + accountId + "/deposit")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(depositJson)).build();
 
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             var endTime = System.currentTimeMillis();
@@ -336,12 +367,14 @@ public class NetworkStressTest {
             responseTimes.add(endTime - startTime);
 
             var success = response.statusCode() == 200;
-            if (!success) {
+            if (!success)
+            {
                 errorCounts.get(categorizeError(null, response)).incrementAndGet();
             }
 
             return success;
-        } catch (Exception exception) {
+        } catch (Exception exception)
+        {
             var endTime = System.currentTimeMillis();
             responseTimes.add(endTime - startTime);
             errorCounts.get(categorizeError(exception, null)).incrementAndGet();
@@ -350,9 +383,11 @@ public class NetworkStressTest {
         }
     }
 
-    private boolean performWithdrawal() {
+    private boolean performWithdrawal()
+    {
         var startTime = System.currentTimeMillis();
-        try {
+        try
+        {
             // Select a random account
             if (accountIds.isEmpty())
                 return false;
@@ -364,11 +399,7 @@ public class NetworkStressTest {
 
             var withdrawJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
-            var request = HttpRequest.newBuilder()
-                .uri(URI.create(SERVER_URL + "/accounts/" + accountId + "/withdraw"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(withdrawJson))
-                .build();
+            var request = HttpRequest.newBuilder().uri(create(SERVER_URL, "/accounts/" + accountId + "/withdraw")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(withdrawJson)).build();
 
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             var endTime = System.currentTimeMillis();
@@ -377,12 +408,14 @@ public class NetworkStressTest {
             responseTimes.add(endTime - startTime);
 
             var success = response.statusCode() == 200;
-            if (!success) {
+            if (!success)
+            {
                 errorCounts.get(categorizeError(null, response)).incrementAndGet();
             }
 
             return success;
-        } catch (Exception exception) {
+        } catch (Exception exception)
+        {
             var endTime = System.currentTimeMillis();
             responseTimes.add(endTime - startTime);
             errorCounts.get(categorizeError(exception, null)).incrementAndGet();
@@ -391,15 +424,18 @@ public class NetworkStressTest {
         }
     }
 
-    private boolean performTransfer() {
+    private boolean performTransfer()
+    {
         var startTime = System.currentTimeMillis();
-        try {
+        try
+        {
             // Select two different random accounts
             if (accountIds.size() < 2)
                 return false;
             var fromAccountIndex = (int) (Math.random() * accountIds.size());
             var toAccountIndex = fromAccountIndex;
-            while (toAccountIndex == fromAccountIndex) {
+            while (toAccountIndex == fromAccountIndex)
+            {
                 toAccountIndex = (int) (Math.random() * accountIds.size());
             }
 
@@ -411,11 +447,7 @@ public class NetworkStressTest {
 
             var transferJson = String.format("{\"toAccountId\":%d,\"amount\":%f}", toAccountId, amount.doubleValue());
 
-            var request = HttpRequest.newBuilder()
-                .uri(URI.create(SERVER_URL + "/accounts/" + fromAccountId + "/transfer"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(transferJson))
-                .build();
+            var request = HttpRequest.newBuilder().uri(create(SERVER_URL, "/accounts/" + fromAccountId + "/transfer")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(transferJson)).build();
 
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             var endTime = System.currentTimeMillis();
@@ -424,12 +456,16 @@ public class NetworkStressTest {
             responseTimes.add(endTime - startTime);
 
             var success = response.statusCode() == 200;
-            if (!success) {
+            if (!success)
+            {
+                TRANSFER_OPRATIONS_FAILED += "port" + request.uri().getPort() + response.statusCode() + ":" + response.body() + "\n";
+
                 errorCounts.get(categorizeError(null, response)).incrementAndGet();
             }
 
             return success;
-        } catch (Exception exception) {
+        } catch (Exception exception)
+        {
             var endTime = System.currentTimeMillis();
             responseTimes.add(endTime - startTime);
             errorCounts.get(categorizeError(exception, null)).incrementAndGet();
@@ -438,59 +474,81 @@ public class NetworkStressTest {
         }
     }
 
-    private void startProgressReporting() {
+    private URI create(String serverUrl, String endpoint)
+    {
+
+        return URI.create(SERVER_URLS[(int) (System.currentTimeMillis() % 4)] + endpoint);
+    }
+
+
+    private void startProgressReporting()
+    {
         progressReporter.scheduleAtFixedRate(this::reportProgress, 0, 5, TimeUnit.SECONDS);
     }
 
-    private void stopProgressReporting() {
-        if (progressReporter != null) {
+    private void stopProgressReporting()
+    {
+        if (progressReporter != null)
+        {
             progressReporter.shutdown();
-            try {
-                if (!progressReporter.awaitTermination(5, TimeUnit.SECONDS)) {
+            try
+            {
+                if (!progressReporter.awaitTermination(5, TimeUnit.SECONDS))
+                {
                     progressReporter.shutdownNow();
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException e)
+            {
                 progressReporter.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         }
     }
 
-    private void reportProgress() {
+    private void reportProgress()
+    {
         var currentOps = totalOperations.get();
         var elapsedMs = Duration.between(testStartTime, Instant.now()).toMillis();
         var currentThroughput = elapsedMs > 0 ? (double) currentOps / (elapsedMs / 1000.0) : 0;
         var successRate = currentOps > 0 ? (double) successfulOperations.get() / currentOps * 100 : 0;
         var progress = (double) currentOps / (NUMBER_OF_THREADS * OPERATIONS_PER_THREAD) * 100;
 
-        System.out.printf("\rProgress: %.1f%% | Operations: %d | Throughput: %.0f ops/sec | Success: %.1f%%",
-                         Math.min(progress, 100.0), currentOps, currentThroughput, successRate);
+        System.out.printf("\rProgress: %.1f%% | Operations: %d | Throughput: %.0f ops/sec | Success: %.1f%%", Math.min(progress, 100.0), currentOps, currentThroughput, successRate);
     }
 
-    private ErrorCategory categorizeError(Exception e, HttpResponse<?> response) {
-        if (e instanceof java.net.http.HttpTimeoutException) {
+    private ErrorCategory categorizeError(Exception e, HttpResponse<?> response)
+    {
+        if (e instanceof java.net.http.HttpTimeoutException)
+        {
             return ErrorCategory.NETWORK_TIMEOUT;
         }
-        if (e instanceof java.net.ConnectException) {
+        if (e instanceof java.net.ConnectException)
+        {
             return ErrorCategory.NETWORK_CONNECTION;
         }
-        if (response != null) {
+        if (response != null)
+        {
             var statusCode = response.statusCode();
-            if (statusCode >= 500) {
+            if (statusCode >= 500)
+            {
                 return ErrorCategory.SERVER_ERROR;
             }
-            if (statusCode >= 400 && statusCode < 500) {
+            if (statusCode >= 400 && statusCode < 500)
+            {
                 return ErrorCategory.VALIDATION_ERROR;
             }
         }
-        if (e instanceof IllegalArgumentException) {
+        if (e instanceof IllegalArgumentException)
+        {
             return ErrorCategory.VALIDATION_ERROR;
         }
         return ErrorCategory.UNKNOWN;
     }
 
-    private StatisticalSummary calculateStatistics(List<Long> values) {
-        if (values.isEmpty()) {
+    private StatisticalSummary calculateStatistics(List<Long> values)
+    {
+        if (values.isEmpty())
+        {
             return new StatisticalSummary(0, 0, 0, 0, 0, 0, 0, 0, 0);
         }
 
@@ -512,17 +570,18 @@ public class NetworkStressTest {
         var p99 = getPercentile(values, 99);
         var p999 = getPercentile(values, 99.9);
 
-        return new StatisticalSummary(mean, median, stdDev, (double) values.get(0), (double) values.get(size - 1),
-                                    p50, p95, p99, p999);
+        return new StatisticalSummary(mean, median, stdDev, (double) values.get(0), (double) values.get(size - 1), p50, p95, p99, p999);
     }
 
-    private double getPercentile(List<Long> sortedValues, double percentile) {
+    private double getPercentile(List<Long> sortedValues, double percentile)
+    {
         if (sortedValues.isEmpty()) return 0.0;
         var index = (int) Math.ceil(percentile / 100.0 * sortedValues.size()) - 1;
         return (double) sortedValues.get(Math.max(0, Math.min(index, sortedValues.size() - 1)));
     }
 
-    private void printResults(Instant startTime, Instant endTime) {
+    private void printResults(Instant startTime, Instant endTime)
+    {
         var duration = Duration.between(startTime, endTime).toMillis();
         var totalOps = totalOperations.get();
         var successOps = successfulOperations.get();
@@ -559,7 +618,8 @@ public class NetworkStressTest {
         System.out.println("  Max: " + String.format("%.2f ms", responseStats.max));
         System.out.println();
         System.out.println("Operation Breakdown:");
-        for (var entry : operationTypeCounts.entrySet()) {
+        for (var entry : operationTypeCounts.entrySet())
+        {
             var operation = entry.getKey();
             var count = entry.getValue();
             var percentage = totalOps > 0 ? (double) count.get() / totalOps * 100 : 0;
@@ -567,10 +627,12 @@ public class NetworkStressTest {
         }
         System.out.println();
         System.out.println("Error Analysis:");
-        for (var entry : errorCounts.entrySet()) {
+        for (var entry : errorCounts.entrySet())
+        {
             var category = entry.getKey();
             var count = entry.getValue();
-            if (count.get() > 0) {
+            if (count.get() > 0)
+            {
                 var percentage = failedOps > 0 ? (double) count.get() / failedOps * 100 : 0;
                 System.out.println("  " + category.name() + ": " + count.get() + " (" + String.format("%.1f%%", percentage) + ")");
             }
@@ -578,12 +640,15 @@ public class NetworkStressTest {
         System.out.println("=".repeat(60));
     }
 
-    private void cleanup() throws InterruptedException {
+    private void cleanup() throws InterruptedException
+    {
         System.out.println("Cleaning up...");
 
-        if (executorService != null) {
+        if (executorService != null)
+        {
             executorService.shutdown();
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
+            {
                 executorService.shutdownNow();
             }
         }
@@ -591,23 +656,30 @@ public class NetworkStressTest {
         System.out.println("Network stress test completed");
     }
 
-    private void exportResults() {
-        if ("CSV".equals(outputFormat) || "BOTH".equals(outputFormat)) {
+    private void exportResults()
+    {
+        if ("CSV".equals(outputFormat) || "BOTH".equals(outputFormat))
+        {
             exportToCSV();
         }
-        if ("JSON".equals(outputFormat) || "BOTH".equals(outputFormat)) {
+        if ("JSON".equals(outputFormat) || "BOTH".equals(outputFormat))
+        {
             exportToJSON();
         }
     }
 
-    private void exportToCSV() {
-        try {
+    private void exportToCSV()
+    {
+        try
+        {
             var outputFile = new java.io.File("stress-test-results.csv");
-            if (outputFile.getParentFile() != null) {
+            if (outputFile.getParentFile() != null)
+            {
                 outputFile.getParentFile().mkdirs();
             }
 
-            try (var writer = new java.io.PrintWriter(outputFile)) {
+            try (var writer = new java.io.PrintWriter(outputFile))
+            {
                 // CSV Header
                 writer.println("timestamp,scenario,duration_ms,total_operations,successful_operations,failed_operations,success_rate,throughput_ops_sec,mean_response_time_ms,p50_response_time_ms,p95_response_time_ms,p99_response_time_ms");
 
@@ -621,29 +693,20 @@ public class NetworkStressTest {
                 var responseTimeList = new ArrayList<>(responseTimes);
                 var stats = calculateStatistics(responseTimeList);
 
-                writer.printf("%s,%s,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f%n",
-                    Instant.now().toString(),
-                    scenario.name(),
-                    duration,
-                    totalOps,
-                    successOps,
-                    failedOps,
-                    successRate,
-                    throughput,
-                    stats.mean,
-                    stats.p50,
-                    stats.p95,
-                    stats.p99);
+                writer.printf("%s,%s,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f%n", Instant.now().toString(), scenario.name(), duration, totalOps, successOps, failedOps, successRate, throughput, stats.mean, stats.p50, stats.p95, stats.p99);
 
                 System.out.println("✅ CSV results exported to: " + outputFile.getAbsolutePath());
             }
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             System.err.println("Failed to export CSV: " + e.getMessage());
         }
     }
 
-    private void exportToJSON() {
-        try {
+    private void exportToJSON()
+    {
+        try
+        {
             var objectMapper = new ObjectMapper();
             var rootNode = objectMapper.createObjectNode();
 
@@ -666,6 +729,7 @@ public class NetworkStressTest {
             summaryNode.put("failedOperations", failedOps);
             summaryNode.put("successRate", totalOps > 0 ? (double) successOps / totalOps * 100 : 0);
             summaryNode.put("averageThroughput", totalOps > 0 ? (double) totalOps / (Duration.between(testStartTime, Instant.now()).toMillis() / 1000.0) : 0);
+            summaryNode.put("transfersFailed", TRANSFER_OPRATIONS_FAILED);
 
             // Response time statistics
             var responseTimeList = new ArrayList<>(responseTimes);
@@ -684,7 +748,8 @@ public class NetworkStressTest {
             // Error breakdown
             var errorBreakdownNode = rootNode.putObject("errorBreakdown");
             errorCounts.forEach((category, count) -> {
-                if (count.get() > 0) {
+                if (count.get() > 0)
+                {
                     errorBreakdownNode.put(category.name(), count.get());
                 }
             });
@@ -697,7 +762,8 @@ public class NetworkStressTest {
 
             // Ensure parent directory exists and write to file
             var outputFile = new java.io.File("stress-test-results.json");
-            if (outputFile.getParentFile() != null) {
+            if (outputFile.getParentFile() != null)
+            {
                 outputFile.getParentFile().mkdirs();
             }
 
@@ -705,47 +771,46 @@ public class NetworkStressTest {
 
             System.out.println("✅ JSON results exported to: " + outputFile.getAbsolutePath());
 
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             System.err.println("Failed to export JSON: " + e.getMessage());
         }
     }
 
     // Enums and Records
-    public enum TestScenario {
-        BALANCED_LOAD(0.4, 0.3, 0.3),
-        HEAVY_TRANSFERS(0.2, 0.2, 0.6),
-        READ_HEAVY(0.8, 0.1, 0.1),
-        STRESS_TRANSFERS(0.0, 0.0, 1.0),
-        WITHDRAWAL_HEAVY(0.1, 0.8, 0.1);
+    public enum TestScenario
+    {
+        BALANCED_LOAD(0.4, 0.3, 0.3), HEAVY_TRANSFERS(0.2, 0.2, 0.6), READ_HEAVY(0.8, 0.1, 0.1), STRESS_TRANSFERS(0.0, 0.0, 1.0), WITHDRAWAL_HEAVY(0.1, 0.8, 0.1);
 
         public final double depositRatio;
         public final double withdrawalRatio;
         public final double transferRatio;
 
-        TestScenario(double depositRatio, double withdrawalRatio, double transferRatio) {
+        TestScenario(double depositRatio, double withdrawalRatio, double transferRatio)
+        {
             this.depositRatio = depositRatio;
             this.withdrawalRatio = withdrawalRatio;
             this.transferRatio = transferRatio;
         }
     }
 
-    public enum ErrorCategory {
-        NETWORK_TIMEOUT,
-        NETWORK_CONNECTION,
-        SERVER_ERROR,
-        VALIDATION_ERROR,
-        UNKNOWN
+    public enum ErrorCategory
+    {
+        NETWORK_TIMEOUT, NETWORK_CONNECTION, SERVER_ERROR, VALIDATION_ERROR, UNKNOWN
     }
 
+
     public record StatisticalSummary(
-        double mean,
-        double median,
-        double stdDev,
-        double min,
-        double max,
-        double p50,
-        double p95,
-        double p99,
-        double p999
-    ) {}
+                                     double mean,
+                                     double median,
+                                     double stdDev,
+                                     double min,
+                                     double max,
+                                     double p50,
+                                     double p95,
+                                     double p99,
+                                     double p999
+    )
+    {
+    }
 }

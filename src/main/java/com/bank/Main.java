@@ -1,6 +1,8 @@
 package com.bank;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,15 +44,27 @@ public class Main
 
         // Initialize Services with the chosen repositories
 
-        // Create and start the built-in HTTP server
-        var port = config.getPort();
+        // Get all ports from configuration
+        var ports = config.getPorts();
+        if (ports == null || ports.isEmpty())
+        {
+            ports = List.of(8080); // Default fallback
+        }
+
+        // Create and start multiple HTTP servers
         var threadPoolSize = 8; // You can make this configurable if needed
+        List<CustomHttpServer> servers = new ArrayList<>();
 
-        var server = new CustomHttpServer(
-                port, threadPoolSize, new UserService(repositories.userRepository()), new AccountService(repositories.accountRepository()));
-        server.start();
+        for (int port : ports)
+        {
+            var server = new CustomHttpServer(
+                    port, threadPoolSize, new UserService(repositories.userRepository()), new AccountService(repositories.accountRepository()));
+            server.start();
+            servers.add(server);
+            LOGGER.info("Server started at http://localhost:{}", port);
+        }
 
-        LOGGER.info("Server started at http://localhost:{}", port);
+        LOGGER.info("All servers started. Ports: {}", ports);
         LOGGER.info("Config: {}", config);
 
         // Keep the main thread alive
@@ -59,11 +73,14 @@ public class Main
             Thread.currentThread().join();
         } catch (InterruptedException interruptedException)
         {
-            LOGGER.info("Server interrupted, shutting down...");
-            server.stop(0);
+            LOGGER.info("Server interrupted, shutting down all servers...");
+            for (var server : servers)
+            {
+                server.stop(0);
+            }
         }
 
-        LOGGER.info("Server Finished");
+        LOGGER.info("All servers finished");
     }
 
     /**
@@ -73,23 +90,20 @@ public class Main
     private static RepositoryContainer getRepositories(Configuration config)
     {
         RepositoryContainer repositories;
-        var storageType = config.getStorageConfig().getType();
+        var storageType = config.getStorageType(); // Changed from config.getStorageConfig().getType()
         repositories = switch (storageType.toLowerCase())
         {
-            case "in-memory" ->
-            {
+            case "in-memory" -> {
                 LOGGER.info("Using In-Memory storage.");
                 yield new RepositoryContainer(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
-            case "database" ->
-            {
+            case "database" -> {
                 // Placeholder for database setup.
                 LOGGER.info("Database storage selected. (Implementation is a placeholder)");
                 throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
             }
-            default ->
-            {
+            default -> {
                 LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
                 yield new RepositoryContainer(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());

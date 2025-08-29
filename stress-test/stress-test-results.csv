@@ -1,2 +1,2 @@
 timestamp,scenario,duration_ms,total_operations,successful_operations,failed_operations,success_rate,throughput_ops_sec,mean_response_time_ms,p50_response_time_ms,p95_response_time_ms,p99_response_time_ms
-2025-08-29T10:37:49.276822005Z,BALANCED_LOAD,88090,1600000,1600000,0,100.00,18163.24,0.44,0.00,1.00,2.00
+2025-08-29T13:40:30.809897063Z,STRESS_TRANSFERS,78534,1600000,1580315,19685,98.77,20373.34,0.39,0.00,1.00,1.00

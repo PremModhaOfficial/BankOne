@@ -7,7 +7,6 @@ import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bank.business.entities.User;
 import com.bank.business.services.UserService;
 import com.bank.server.util.Json;
 import com.sun.net.httpserver.HttpExchange;
@@ -86,7 +85,8 @@ public class UserHandler implements HttpHandler
             LOGGER.debug("JSON is {}", requestBody);
 
             // Validate required fields
-            if (!jsonNode.has("email") || !jsonNode.has("username") || !jsonNode.has("password")) {
+            if (!jsonNode.has("email") || !jsonNode.has("username") || !jsonNode.has("password"))
+            {
                 sendResponse(exchange, 400, "{\"error\": \"Email, username, and password are required\"}");
                 return;
             }
@@ -96,7 +96,8 @@ public class UserHandler implements HttpHandler
             var password = jsonNode.get("password").asText();
 
             // Basic input validation
-            if (email.trim().isEmpty() || username.trim().isEmpty() || password.trim().isEmpty()) {
+            if (email.trim().isEmpty() || username.trim().isEmpty() || password.trim().isEmpty())
+            {
                 sendResponse(exchange, 400, "{\"error\": \"Email, username, and password cannot be empty\"}");
                 return;
             }
@@ -120,7 +121,8 @@ public class UserHandler implements HttpHandler
 
             var jsonResponse = Json.stringify(userNode);
             sendResponse(exchange, 201, jsonResponse);
-        } catch (IllegalArgumentException validationException) {
+        } catch (IllegalArgumentException validationException)
+        {
             LOGGER.warn("Password validation failed: {}", validationException.getMessage());
             sendResponse(exchange, 400, "{\"error\": \"" + validationException.getMessage() + "\"}");
         } catch (Exception userCreationException)
@@ -137,7 +139,8 @@ public class UserHandler implements HttpHandler
             var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             var jsonNode = Json.parse(requestBody);
 
-            if (!jsonNode.has("username") || !jsonNode.has("password")) {
+            if (!jsonNode.has("username") || !jsonNode.has("password"))
+            {
                 sendResponse(exchange, 400, "{\"error\": \"Username and password are required\"}");
                 return;
             }
@@ -147,7 +150,8 @@ public class UserHandler implements HttpHandler
 
             // Find user by username first, then by email
             var user = userService.getUserByUsername(username);
-            if (user == null) {
+            if (user == null)
+            {
                 user = userService.getUserByEmail(username);
             }
 
