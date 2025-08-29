@@ -3,6 +3,7 @@ package com.bank.db.inmemory;
 import java.util.ArrayList; // Add import
 import java.util.List; // Add import
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -28,20 +29,26 @@ public class InMemoryUserRepository implements UserRepository
     {
         if (user.getId() == null)
         {
-            user.setId((long) user.hashCode());
-            idGenerator.getAndIncrement();
-        }
-        if (userStore.containsValue(user))
-        {
-            userStore.put(user.getId(), user);
-            return userStore.get(user.getId());
+            user.setId(idGenerator.getAndIncrement());
         }
 
-        try
-        {
+        // Check if user already exists by username or email
+        var userExists = userStore.values().stream().filter(
+                existingUser -> existingUser.getUsername().equalsIgnoreCase(user.getUsername()));
 
-        } catch (Exception repositoryException)
+
+        Optional<User> existingUserOptional = userExists.findAny();
+        if (existingUserOptional.isPresent())
         {
+            // Find existing user and update it
+            var existingUser = existingUserOptional.get();
+
+            if (existingUser != null)
+            {
+                user.setId(existingUser.getId());
+                userStore.put(existingUser.getId(), user);
+                return user;
+            }
         }
 
         userStore.put(user.getId(), user);

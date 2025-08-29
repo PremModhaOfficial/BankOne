@@ -65,7 +65,7 @@ public class ConcurrentAccountOperationsStressTest
     public void testHighConcurrencyDeposits() throws Exception
     {
         // Create a user and account
-        var user = userService.createUser("testuser", "test@example.com");
+        var user = userService.createUser("testuser", "test@example.com", "password123");
         var userId = user.getId();
 
         var account = accountService.createAccount(userId, new BigDecimal("0.0"), Account.AccountType.SAVINGS);
@@ -98,7 +98,7 @@ public class ConcurrentAccountOperationsStressTest
     public void testHighConcurrencyWithdrawals() throws Exception
     {
         // Create a user and account with initial balance
-        var user = userService.createUser("testuser", "test@example.com");
+        var user = userService.createUser("testuser", "test@example.com", "password123");
         var userId = user.getId();
         var initialBalance = new BigDecimal("10000.0");
 
@@ -132,8 +132,8 @@ public class ConcurrentAccountOperationsStressTest
     public void testHighConcurrencyTransfers() throws Exception
     {
         // Create users and accounts
-        var user1 = userService.createUser("user1", "user1@example.com");
-        var user2 = userService.createUser("user2", "user2@example.com");
+        var user1 = userService.createUser("user1", "user1@example.com","");
+        var user2 = userService.createUser("user2", "user2@example.com","");
 
         var userId1 = user1.getId();
         var userId2 = user2.getId();
@@ -173,9 +173,9 @@ public class ConcurrentAccountOperationsStressTest
     public void testMixedOperations() throws Exception
     {
         // Create users and accounts
-        var user1 = userService.createUser("user1", "user1@example.com");
-        var user2 = userService.createUser("user2", "user2@example.com");
-        var user3 = userService.createUser("user3", "user3@example.com");
+        var user1 = userService.createUser("user1", "user1@example.com", "password123");
+        var user2 = userService.createUser("user2", "user2@example.com", "password123");
+        var user3 = userService.createUser("user3", "user3@example.com", "password123");
 
         var userId1 = user1.getId();
         var userId2 = user2.getId();

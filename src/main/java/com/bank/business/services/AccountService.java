@@ -78,7 +78,7 @@ public class AccountService
 
     /**
      * Transfers amount from one account to another atomically.
-     * 
+     *
      * @param fromAccountId The ID of the account to transfer from
      * @param toAccountId   The ID of the account to transfer to
      * @param amount        The amount to transfer
@@ -86,54 +86,101 @@ public class AccountService
      */
     public boolean transferAmount(Long fromAccountId, Long toAccountId, BigDecimal amount)
     {
+        // Validate input parameters
+        if (fromAccountId == null || toAccountId == null || amount == null)
+        {
+            LOGGER.warn("Invalid transfer parameters: fromAccountId={}, toAccountId={}, amount={}", fromAccountId, toAccountId, amount);
+            return false;
+        }
+
+        // Prevent transferring to the same account
+        if (fromAccountId.equals(toAccountId))
+        {
+            LOGGER.warn("Cannot transfer to the same account: {}", fromAccountId);
+            return false;
+        }
+
+        // Validate transfer amount
+        if (amount.compareTo(BigDecimal.ZERO) <= 0)
+        {
+            LOGGER.warn("Invalid transfer amount: {}", amount);
+            return false;
+        }
+
         // Get both accounts
         var fromAccount = getAccountById(fromAccountId);
         var toAccount = getAccountById(toAccountId);
 
         if (fromAccount == null || toAccount == null)
         {
+            LOGGER.warn("Account not found: fromAccountId={}, toAccountId={}", fromAccountId, toAccountId);
             return false;
         }
 
-        // To ensure atomicity of the transfer operation, we need to synchronize on both
-        // accounts
-        // We'll use a consistent locking order to prevent deadlocks
         var firstWriteLock = (fromAccount.getId() < toAccount.getId() ? fromAccount : toAccount).getReadWriteLock().writeLock();
         var secondWriteLock = (fromAccount.getId() < toAccount.getId() ? toAccount : fromAccount).getReadWriteLock().writeLock();
 
-        while (true)
+        // Track lock acquisition state
+        boolean firstLockAcquired = false;
+        boolean secondLockAcquired = false;
+
+        try
         {
-
-            try
+            // Try to acquire first lock with timeout (5 seconds)
+            firstLockAcquired = firstWriteLock.tryLock(5, java.util.concurrent.TimeUnit.SECONDS);
+            if (firstLockAcquired)
             {
-                if (firstWriteLock.tryLock())
+                try
                 {
-                    if (secondWriteLock.tryLock())
+                    // Try to acquire second lock with timeout (5 seconds)
+                    secondLockAcquired = secondWriteLock.tryLock(5, java.util.concurrent.TimeUnit.SECONDS);
+                    if (secondLockAcquired)
                     {
-                        try
-                        {
-                            var success = fromAccount.withdrawAmount(amount);
-                            if (success)
-                            {
-                                toAccount.addAmount(amount);
-                                // Update both accounts in the repository
-                                updateAccount(fromAccount);
-                                updateAccount(toAccount);
-                            }
+                        // Both locks acquired, perform transfer
+                        LOGGER.debug("Performing transfer: {} -> {} : {}", fromAccountId, toAccountId, amount);
 
-                            return success;
-
-                        } finally
+                        var success = fromAccount.withdrawAmount(amount);
+                        if (success)
                         {
-                            secondWriteLock.unlock();
+                            toAccount.addAmount(amount);
+                            // Update both accounts in the repository
+                            updateAccount(fromAccount);
+                            updateAccount(toAccount);
+                            LOGGER.info("Transfer successful: {} -> {} : {}", fromAccountId, toAccountId, amount);
+                        } else
+                        {
+                            LOGGER.warn("Transfer failed - insufficient funds: {} -> {} : {}", fromAccountId, toAccountId, amount);
                         }
+                        return success;
+                    } else
+                    {
+                        LOGGER.warn("Failed to acquire second lock for transfer: {} -> {}", fromAccountId, toAccountId);
+                    }
+                } finally
+                {
+                    if (secondLockAcquired)
+                    {
+                        secondWriteLock.unlock();
                     }
                 }
-            } finally
+            } else
+            {
+                LOGGER.warn("Failed to acquire first lock for transfer: {} -> {}", fromAccountId, toAccountId);
+            }
+            // If we reach here, either first or second lock acquisition failed
+            return false;
+        } catch (InterruptedException interruptedException)
+        {
+            LOGGER.error("Transfer interrupted: {} -> {} : {}", fromAccountId, toAccountId, amount, interruptedException);
+            Thread.currentThread().interrupt(); // Restore interrupted status
+            return false;
+        } finally
+        {
+            // Clean up locks in reverse order of acquisition
+            if (firstLockAcquired)
             {
                 firstWriteLock.unlock();
             }
-            return false;
         }
 
     }

@@ -156,7 +156,7 @@ public class ResponseFormatter
      */
     public static String formatUserList(String jsonString)
     {
-        return formatJsonArrayTable(jsonString);
+        return formatJsonArrayTable(jsonString, "password");
     }
 
     /**

@@ -35,7 +35,8 @@ class UserServiceTest
         // Arrange
         var username = "testuser";
         var email = "test@example.com";
-        var savedUser = new User(username, email, false); // Explicitly non-admin
+        var password = "password123";
+        var savedUser = new User(username, email, password, false); // Explicitly non-admin
         savedUser.setId(1L); // Simulate ID assignment by repo
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -45,7 +46,7 @@ class UserServiceTest
         });
 
         // Act
-        var result = userService.createUser(username, email);
+        var result = userService.createUser(username, email, password);
 
         // Assert
         assertNotNull(result);
@@ -62,8 +63,9 @@ class UserServiceTest
         // Arrange
         var username = "adminuser";
         var email = "admin@example.com";
+        var password = "adminpass123";
         var isAdmin = true;
-        var savedUser = new User(username, email, isAdmin);
+        var savedUser = new User(username, email, password, isAdmin);
         savedUser.setId(1L); // Simulate ID assignment by repo
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -73,7 +75,7 @@ class UserServiceTest
         });
 
         // Act
-        var result = userService.createUser(username, email, isAdmin);
+        var result = userService.createUser(username, email, password, isAdmin);
 
         // Assert
         assertNotNull(result);
@@ -89,16 +91,15 @@ class UserServiceTest
     {
         // Arrange
         var userId = 1L;
-        var mockUser = new User("testuser", "test@example.com");
-        mockUser.setId(userId);
+        var mockUser = new User("testuser", "test@example.com", "password123", userId, false, true);
 
-        when(userRepository.findById(userId)).thenReturn((mockUser));
+        when(userRepository.findById(userId)).thenReturn(mockUser);
 
         // Act
         var result = userService.getUserById(userId);
 
         // Assert
-        assertTrue(result != null);
+        assertNotNull(result);
         assertEquals(mockUser, result);
         verify(userRepository, times(1)).findById(userId);
     }
@@ -123,16 +124,15 @@ class UserServiceTest
     {
         // Arrange
         var username = "testuser";
-        var mockUser = new User(username, "test@example.com");
-        mockUser.setId(1L);
+        var mockUser = new User(username, "test@example.com", "password123", 1L, false, true);
 
-        when(userRepository.findByUsername(username)).thenReturn(null);
+        when(userRepository.findByUsername(username)).thenReturn(mockUser);
 
         // Act
         var result = userService.getUserByUsername(username);
 
         // Assert
-        assertTrue(result != null);
+        assertNotNull(result);
         assertEquals(mockUser, result);
         verify(userRepository, times(1)).findByUsername(username);
     }
@@ -142,16 +142,15 @@ class UserServiceTest
     {
         // Arrange
         var email = "test@example.com";
-        var mockUser = new User("testuser", email);
-        mockUser.setId(1L);
+        var mockUser = new User("testuser", email, "password123", 1L, false, true);
 
-        when(userRepository.findByEmail(email)).thenReturn(null);
+        when(userRepository.findByEmail(email)).thenReturn(mockUser);
 
         // Act
         var result = userService.getUserByEmail(email);
 
         // Assert
-        assertTrue(result != null);
+        assertNotNull(result);
         assertEquals(mockUser, result);
         verify(userRepository, times(1)).findByEmail(email);
     }
@@ -160,10 +159,8 @@ class UserServiceTest
     void testGetAllUsers()
     {
         // Arrange
-        var user1 = new User("user1", "u1@example.com");
-        user1.setId(1L);
-        var adminUser = new User("admin", "admin@example.com", true);
-        adminUser.setId(2L);
+        var user1 = new User("user1", "u1@example.com", "password123", 1L, false, true);
+        var adminUser = new User("admin", "admin@example.com", "adminpass123", 2L, true, true);
         var mockUsers = Arrays.asList(user1, adminUser);
 
         when(userRepository.findAll()).thenReturn(mockUsers);
@@ -180,8 +177,7 @@ class UserServiceTest
     void testUpdateUser()
     {
         // Arrange
-        var userToUpdate = new User("olduser", "old@example.com");
-        userToUpdate.setId(1L);
+        var userToUpdate = new User("olduser", "old@example.com", "password123", 1L, false, true);
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -191,7 +187,6 @@ class UserServiceTest
         // Assert
         assertSame(userToUpdate, updatedUser); // Should return the same object instance
         assertEquals(userToUpdate.getId(), updatedUser.getId());
-        // Verify updatedAt was updated (it should be more recent than createdAt)
         verify(userRepository, times(1)).save(userToUpdate);
     }
 
@@ -206,5 +201,62 @@ class UserServiceTest
 
         // Assert
         verify(userRepository, times(1)).deleteById(userId);
+    }
+
+    @Test
+    void testAuthenticateUser_Success()
+    {
+        // Arrange
+        var username = "testuser";
+        var password = "password123";
+        var mockUser = new User(username, "test@example.com", password, 1L, false, false); // Not pre-hashed
+
+        when(userRepository.findByUsername(username)).thenReturn(mockUser);
+
+        // Act
+        var result = userService.authenticateUser(username, password);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(username, result.getUsername());
+        verify(userRepository, times(1)).findByUsername(username);
+    }
+
+    @Test
+    void testAuthenticateUser_InvalidPassword()
+    {
+        // Arrange
+        var username = "testuser";
+        var correctPassword = "password123";
+        var wrongPassword = "wrongpassword";
+        var mockUser = new User(username, "test@example.com", correctPassword, 1L, false, false);
+
+        when(userRepository.findByUsername(username)).thenReturn(mockUser);
+
+        // Act
+        var result = userService.authenticateUser(username, wrongPassword);
+
+        // Assert
+        assertNull(result);
+        verify(userRepository, times(1)).findByUsername(username);
+    }
+
+    @Test
+    void testAuthenticateUser_UserNotFound()
+    {
+        // Arrange
+        var username = "nonexistent";
+        var password = "password123";
+
+        when(userRepository.findByUsername(username)).thenReturn(null);
+        when(userRepository.findByEmail(username)).thenReturn(null);
+
+        // Act
+        var result = userService.authenticateUser(username, password);
+
+        // Assert
+        assertNull(result);
+        verify(userRepository, times(1)).findByUsername(username);
+        verify(userRepository, times(1)).findByEmail(username);
     }
 }

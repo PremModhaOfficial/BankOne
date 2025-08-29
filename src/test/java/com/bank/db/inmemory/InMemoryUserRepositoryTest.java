@@ -27,7 +27,7 @@ class InMemoryUserRepositoryTest
     void testSave_NewUser_AssignsId()
     {
         // Arrange
-        var user = new User("testuser", "test@example.com");
+        var user = new User("testuser", "test@example.com", "password123");
 
         // Act
         var savedUser = userRepository.save(user);
@@ -43,7 +43,7 @@ class InMemoryUserRepositoryTest
     void testSave_ExistingUser_Updates()
     {
         // Arrange
-        var user = new User("testuser", "test@example.com");
+        var user = new User("testuser", "test@example.com", "password123");
         var savedUser = userRepository.save(user); // ID assigned here
         var assignedId = savedUser.getId();
         var updatedEmail = "newemail@example.com";
@@ -62,7 +62,7 @@ class InMemoryUserRepositoryTest
     void testFindById_UserExists()
     {
         // Arrange
-        var user = new User("testuser", "test@example.com");
+        var user = new User("testuser", "test@example.com", "password123");
         var savedUser = userRepository.save(user);
         var id = savedUser.getId();
 
@@ -92,7 +92,7 @@ class InMemoryUserRepositoryTest
     {
         // Arrange
         var username = "uniqueuser" + System.currentTimeMillis(); // Make it unique
-        var user = new User(username, "test@example.com");
+        var user = new User(username, "test@example.com","");
         userRepository.save(user);
 
         // Act
@@ -121,7 +121,7 @@ class InMemoryUserRepositoryTest
     {
         // Arrange
         var email = "unique" + System.currentTimeMillis() + "@example.com"; // Make it unique
-        var user = new User("testuser", email);
+        var user = new User("testuser", email,"");
         userRepository.save(user);
 
         // Act
@@ -149,7 +149,7 @@ class InMemoryUserRepositoryTest
     void testDeleteById_UserExists()
     {
         // Arrange
-        var user = new User("testuser", "test@example.com");
+        var user = new User("testuser", "test@example.com", "password123");
         var savedUser = userRepository.save(user);
         var id = savedUser.getId();
 
@@ -179,9 +179,9 @@ class InMemoryUserRepositoryTest
 
         // Arrange
         var uniqueSuffix = String.valueOf(System.currentTimeMillis());
-        var user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
-        var user2 = new User("user2" + uniqueSuffix, "u2" + uniqueSuffix + "@example.com", true); // Admin user
-        var user3 = new User("user3" + uniqueSuffix, "u3" + uniqueSuffix + "@example.com");
+        var user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com","");
+        var user2 = new User("user2" + uniqueSuffix, "u2" + uniqueSuffix + "@example.com", "password123", true); // Admin user
+        var user3 = new User("user3" + uniqueSuffix, "u3" + uniqueSuffix + "@example.com","");
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);
@@ -207,7 +207,7 @@ class InMemoryUserRepositoryTest
     {
         // Arrange
         var uniqueSuffix = String.valueOf(System.currentTimeMillis());
-        var user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com");
+        var user1 = new User("user1" + uniqueSuffix, "u1" + uniqueSuffix + "@example.com","");
         userRepository.save(user1);
         var usersFromRepo = userRepository.findAll();
         var expectedSize = usersFromRepo.size();

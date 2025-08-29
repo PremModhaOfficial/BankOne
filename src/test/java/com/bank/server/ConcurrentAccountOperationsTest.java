@@ -1,7 +1,6 @@
 package com.bank.server;
 
 import com.bank.business.entities.Account;
-import com.bank.business.entities.User;
 import com.bank.business.services.AccountService;
 import com.bank.business.services.UserService;
 import com.bank.db.inmemory.InMemoryAccountRepository;
@@ -9,7 +8,6 @@ import com.bank.db.inmemory.InMemoryUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -65,7 +63,7 @@ public class ConcurrentAccountOperationsTest
     public void testConcurrentAccountDeposits() throws Exception
     {
         // Create a user and account
-        var user = userService.createUser("testuser", "test@example.com");
+        var user = userService.createUser("testuser", "test@example.com", "password123");
         var userId = user.getId();
 
         var account = accountService.createAccount(userId, new BigDecimal("0.0"), Account.AccountType.SAVINGS);
@@ -98,7 +96,7 @@ public class ConcurrentAccountOperationsTest
     public void testConcurrentAccountWithdrawals() throws Exception
     {
         // Create a user and account with initial balance
-        var user = userService.createUser("testuser", "test@example.com");
+        var user = userService.createUser("testuser", "test@example.com", "password123");
         var userId = user.getId();
         var initialBalance = new BigDecimal("1000.0");
 
@@ -132,8 +130,8 @@ public class ConcurrentAccountOperationsTest
     public void testConcurrentTransfersBetweenAccounts() throws Exception
     {
         // Create users and accounts
-        var user1 = userService.createUser("user1", "user1@example.com");
-        var user2 = userService.createUser("user2", "user2@example.com");
+        var user1 = userService.createUser("user1", "user1@example.com", "password123");
+        var user2 = userService.createUser("user2", "user2@example.com", "password123");
 
         var userId1 = user1.getId();
         var userId2 = user2.getId();
@@ -191,9 +189,9 @@ public class ConcurrentAccountOperationsTest
     public void testConcurrentTransfersFromSameAccount() throws Exception
     {
         // Create users and accounts
-        var user1 = userService.createUser("user1", "user1@example.com");
-        var user2 = userService.createUser("user2", "user2@example.com");
-        var user3 = userService.createUser("user3", "user3@example.com");
+        var user1 = userService.createUser("user1", "user1@example.com", "password123");
+        var user2 = userService.createUser("user2", "user2@example.com", "password123");
+        var user3 = userService.createUser("user3", "user3@example.com", "password123");
 
         var userId1 = user1.getId();
         var userId2 = user2.getId();

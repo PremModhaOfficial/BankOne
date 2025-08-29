@@ -35,9 +35,8 @@ public class CustomHttpServer
         // Create the server
         server = HttpServer.create(new InetSocketAddress(port), 1000);
 
-        // customExecutor = Executors.newFixedThreadPool(threadPoolSize, new
-        // CustomThreadFactory());
-        customExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        customExecutor = Executors.newFixedThreadPool(threadPoolSize, new CustomThreadFactory());
+        // customExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
         // Set the custom executor for the server
         // This controls how incoming requests are handled
@@ -81,11 +80,11 @@ public class CustomHttpServer
         private final AtomicInteger threadNumber = new AtomicInteger(1);
 
         @Override
-        public Thread newThread(Runnable r)
+        public Thread newThread(Runnable runnable)
         {
-            var t = new Thread(r, "CustomHttpServer-" + threadNumber.getAndIncrement());
-            t.setDaemon(false); // User threads, not daemon threads
-            return t;
+            var newThreadInstance = new Thread(runnable, "CustomHttpServer-" + threadNumber.getAndIncrement());
+            newThreadInstance.setDaemon(false); // User threads, not daemon threads
+            return newThreadInstance;
         }
     }
 }

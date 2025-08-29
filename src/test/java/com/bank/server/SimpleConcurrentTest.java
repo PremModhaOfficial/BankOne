@@ -38,7 +38,7 @@ public class SimpleConcurrentTest
     public void testConcurrentAccountDeposits() throws Exception
     {
         // Create a user and account
-        var user = userService.createUser("testuser", "test@example.com");
+        var user = userService.createUser("testuser", "test@example.com", "password123");
         var userId = user.getId();
 
         var account = accountService.createAccount(userId, "ACC123", new BigDecimal("0.0"), Account.AccountType.SAVINGS);

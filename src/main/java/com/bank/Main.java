@@ -44,7 +44,7 @@ public class Main
 
         // Create and start the built-in HTTP server
         var port = config.getPort();
-        var threadPoolSize = 10; // You can make this configurable if needed
+        var threadPoolSize = 8; // You can make this configurable if needed
 
         var server = new CustomHttpServer(
                 port, threadPoolSize, new UserService(repositories.userRepository()), new AccountService(repositories.accountRepository()));
@@ -76,17 +76,20 @@ public class Main
         var storageType = config.getStorageConfig().getType();
         repositories = switch (storageType.toLowerCase())
         {
-            case "in-memory" -> {
+            case "in-memory" ->
+            {
                 LOGGER.info("Using In-Memory storage.");
                 yield new RepositoryContainer(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
             }
-            case "database" -> {
+            case "database" ->
+            {
                 // Placeholder for database setup.
                 LOGGER.info("Database storage selected. (Implementation is a placeholder)");
                 throw new UnsupportedOperationException("Database storage implementation is not yet complete.");
             }
-            default -> {
+            default ->
+            {
                 LOGGER.warn("Unknown storage type '{}'. Defaulting to In-Memory.", storageType);
                 yield new RepositoryContainer(
                         InMemoryUserRepository.getInstance(), InMemoryAccountRepository.getInstance());
