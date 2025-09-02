@@ -14,22 +14,17 @@ echo "- Statistical analysis"
 echo "- Error categorization"
 echo "=========================================="
 
-# Build the stress test project
-echo "Building stress test project..."
-mvn clean compile -q
-
-# Create timestamp for unique output files
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+# Build the stress test project and download dependencies
+echo "Building stress test project and downloading dependencies..."
+mvn clean compile dependency:copy-dependencies -q
 
 # Run the analysis test
 echo "Starting analysis-optimized test..."
-java -cp "../target/classes:target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "target/classes:target/dependency/*" \
+    com.bank.stress.NetworkStressTest \
     --scenario BALANCED_LOAD \
     --output BOTH \
     --progress
-
-# Return to stress-test directory for file operations
-cd stress-test
 
 echo "=========================================="
 echo "Analysis test completed!"

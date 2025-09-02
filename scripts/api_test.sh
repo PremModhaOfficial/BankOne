@@ -10,7 +10,7 @@ sleep 5
 
 # Test the server is running
 echo "Testing server connectivity..."
-RESPONSE=$(curl -s http://localhost:8080)
+RESPONSE=$(curl -s http://localhost)
 if [ "$RESPONSE" = "PONG" ]; then
     echo "Server is running successfully"
 else
@@ -21,7 +21,7 @@ fi
 
 # Test user registration
 echo "Testing user registration..."
-REGISTRATION_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost:8080/users \
+REGISTRATION_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost/users \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","password":"password123"}')
 
@@ -35,7 +35,7 @@ fi
 
 # Test user login
 echo "Testing user login..."
-LOGIN_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost:8080/login \
+LOGIN_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost/login \
   -H "Content-Type: application/json" \
   -d '{"identifier":"testuser","password":"password123"}')
 

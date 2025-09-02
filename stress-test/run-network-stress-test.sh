@@ -3,34 +3,27 @@
 # Network Stress Test Runner Script
 # This script runs the network-based stress test for the Bank application
 
-echo "Bank Application Network Stress Test"
-echo "==================================="
-echo
+echo "=========================================="
+echo "🏦 Banking System - Network Stress Test"
+echo "=========================================="
+echo "Default configuration:"
+echo "- Scenario: BALANCED_LOAD"
+echo "- Output: CONSOLE format"
+echo "- Progress reporting enabled"
+echo "=========================================="
 
-# Check if we're in the right directory
-if [ ! -f "pom.xml" ]; then
-    echo "Error: This script must be run from the stress-test directory"
-    exit 1
-fi
-
-# Check if JAR exists
-if [  -f "target/stress-test-1.0-SNAPSHOT.jar" ]; then
-    echo "info: Network stress test JAR  found. Need to rebuild it first:"
-    echo "running  mvn clean package"
-fi
-mvn clean package
-
-# Make sure the server is running
-echo "Please make sure the Bank server is running on http://localhost:8080"
-echo "You can start it by running: cd .. && ./scripts/run-server.sh"
-echo
-read -p "Press Enter to continue or Ctrl+C to cancel..."
+# Build the stress test project and download dependencies
+echo "Building stress test project and downloading dependencies..."
+mvn clean compile dependency:copy-dependencies -q
 
 # Run the network stress test
-echo
 echo "Running network stress test..."
-echo "============================"
-java -jar target/stress-test-1.0-SNAPSHOT.jar
+java -cp "target/classes:target/dependency/*" \
+    com.bank.stress.NetworkStressTest \
+    --scenario BALANCED_LOAD \
+    --output CONSOLE \
+    --progress
 
-echo
-echo "Network stress test completed."
+echo "=========================================="
+echo "Network stress test completed!"
+echo "=========================================="

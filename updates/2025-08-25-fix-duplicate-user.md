@@ -23,15 +23,15 @@ if (userService.getUserById(user.getId()).isPresent()) {
 } else {
     // Create user
     user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
-    String jsonResponse = Json.stringify(Json.toJson(user));
-    sendResponse(exchange, 201, jsonResponse);
+    String json = Json.stringify(Json.toJson(user));
+    sendResponse(exchange, 201, json);
 }
 
 // After (fixed code):
 // Create user - the service will handle duplicates appropriately
 User user = userService.createUser(request.getUsername(), request.getEmail(), request.isAdmin());
-String jsonResponse = Json.stringify(Json.toJson(user));
-sendResponse(exchange, 201, jsonResponse);
+String json = Json.stringify(Json.toJson(user));
+sendResponse(exchange, 201, json);
 ```
 
 #### UserService.java

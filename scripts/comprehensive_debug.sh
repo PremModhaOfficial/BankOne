@@ -3,16 +3,16 @@
 echo "Comprehensive account access debugging..."
 
 echo "1. Verifying user exists:"
-curl -X GET "http://localhost:8080/users/1" | jq .
+curl -X GET "http://localhost/users/1" | jq .
 
 echo -e "\n2. Verifying account exists:"
-curl -X GET "http://localhost:8080/accounts/1" | jq .
+curl -X GET "http://localhost/accounts/1" | jq .
 
 echo -e "\n3. Testing account listing with user ID in query parameter:"
-curl -X GET "http://localhost:8080/accounts?userId=1" | jq .
+curl -X GET "http://localhost/accounts?userId=1" | jq .
 
 echo -e "\n4. Testing account listing with user ID in request body:"
-curl -X GET "http://localhost:8080/accounts" \
+curl -X GET "http://localhost/accounts" \
   -H "Content-Type: application/json" \
   -d '{"userId": 1}' | jq .
 

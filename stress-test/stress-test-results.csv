@@ -1,2 +1,2 @@
 timestamp,scenario,duration_ms,total_operations,successful_operations,failed_operations,success_rate,throughput_ops_sec,mean_response_time_ms,p50_response_time_ms,p95_response_time_ms,p99_response_time_ms
-2025-08-29T13:40:30.809897063Z,STRESS_TRANSFERS,78534,1600000,1580315,19685,98.77,20373.34,0.39,0.00,1.00,1.00
+2025-09-02T06:21:14.508264653Z,HEAVY_TRANSFERS,184265,1600000,742423,857577,46.40,8683.15,1.38,1.00,3.00,5.00

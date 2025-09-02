@@ -16,11 +16,11 @@ public class Json
 
     public static ObjectMapper defaultObjectMapper()
     {
-        var om = new ObjectMapper();
+        var mapper = new ObjectMapper();
 
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        return om;
+        return mapper;
     }
 
     public static JsonNode parse(String jString) throws IOException
@@ -40,13 +40,13 @@ public class Json
 
     private static String generateJson(JsonNode jsonNode, boolean pretty) throws JsonProcessingException
     {
-        var ow = objectMapper.writer();
+        var writer = objectMapper.writer();
         if (pretty)
         {
-            ow = ow.with(SerializationFeature.INDENT_OUTPUT);
+            writer = writer.with(SerializationFeature.INDENT_OUTPUT);
         }
 
-        return ow.writeValueAsString(jsonNode);
+        return writer.writeValueAsString(jsonNode);
     }
 
     public static <A> A fromJson(JsonNode conf, Class<A> clazz) throws HttpConfigurationException

@@ -11,19 +11,17 @@ echo "Scenario: HEAVY_TRANSFERS (20% deposits, 20% withdrawals, 60% transfers)"
 echo "Purpose: Test transfer performance with mixed operations"
 echo "=========================================="
 
-# Build the stress test project
-echo "Building stress test project..."
-mvn clean compile -q
+# Build the stress test project and download dependencies
+echo "Building stress test project and downloading dependencies..."
+mvn clean compile dependency:copy-dependencies -q
 
 # Run the heavy transfers test
 echo "Starting heavy transfers test..."
-java -cp "../target/classes:target/classes:target/dependency/*" com.bank.stress.NetworkStressTest \
+java -cp "target/classes:target/dependency/*" \
+    com.bank.stress.NetworkStressTest \
     --scenario HEAVY_TRANSFERS \
     --output BOTH \
     --progress
-
-# Return to stress-test directory for file operations
-cd stress-test
 
 echo "=========================================="
 echo "Heavy transfers test completed!"

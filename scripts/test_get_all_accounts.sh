@@ -10,7 +10,7 @@ sleep 5
 
 # Test the server is running
 echo "Testing server connectivity..."
-RESPONSE=$(curl -s http://localhost:8080)
+RESPONSE=$(curl -s http://localhost)
 if [ "$RESPONSE" = "PONG" ]; then
     echo "Server is running successfully"
 else
@@ -21,7 +21,7 @@ fi
 
 # Test user registration
 echo "Testing user registration..."
-REGISTRATION_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost:8080/users \
+REGISTRATION_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost/users \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","password":"password123"}')
 
@@ -37,7 +37,7 @@ fi
 
 # Test user login
 echo "Testing user login..."
-LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8080/login \
+LOGIN_RESPONSE=$(curl -s -X POST http://localhost/login \
   -H "Content-Type: application/json" \
   -d '{"identifier":"testuser","password":"password123"}')
 
@@ -55,7 +55,7 @@ fi
 
 # Test account creation
 echo "Testing account creation..."
-ACCOUNT_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost:8080/accounts \
+ACCOUNT_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost/accounts \
   -H "Content-Type: application/json" \
   -d "{\"userId\":$USER_ID,\"initialBalance\":100.0}")
 
@@ -71,7 +71,7 @@ fi
 
 # Test getAllAccounts endpoint
 echo "Testing getAllAccounts endpoint..."
-ALL_ACCOUNTS_RESPONSE=$(curl -s -X GET http://localhost:8080/accounts-all \
+ALL_ACCOUNTS_RESPONSE=$(curl -s -X GET http://localhost/accounts-all \
   -H "Content-Type: application/json")
 
 echo "All accounts response: $ALL_ACCOUNTS_RESPONSE"

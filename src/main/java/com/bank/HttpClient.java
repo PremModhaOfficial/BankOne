@@ -121,10 +121,10 @@ public class HttpClient
             var loginRequest = Json.defaultObjectMapper().createObjectNode();
             loginRequest.put("username", username);
             loginRequest.put("password", password);
-            var jsonBody = loginRequest;
+            var json = loginRequest;
 
-            var futureResponse = client.post("/login", jsonBody);
-            var response = futureResponse.join();
+            var future = client.post("/login", json);
+            var response = future.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Login", response.statusCode(), response.body());
 
@@ -178,9 +178,9 @@ public class HttpClient
                 break;
             }
             System.out.println("Attempting to register user: " + userRequest.getUsername());
-            var jsonBody = Json.toJson(userRequest);
-            CompletableFuture<HttpResponse<String>> futureResponse = client.post("/users", jsonBody);
-            HttpResponse<String> response = futureResponse.join();
+            var json = Json.toJson(userRequest);
+            CompletableFuture<HttpResponse<String>> future = client.post("/users", json);
+            HttpResponse<String> response = future.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Registration", response.statusCode(), response.body());
 
@@ -297,8 +297,8 @@ public class HttpClient
         try
         {
             // Include userId in query parameter for GET request
-            var futureResponse = client.get("/accounts-all");
-            var response = futureResponse.join();
+            var future = client.get("/accounts-all");
+            var response = future.join();
 
             ResponseFormatter.logResponse(LOGGER, "Accounts", response.statusCode(), response.body());
 
@@ -326,8 +326,8 @@ public class HttpClient
         try
         {
             // Include userId in query parameter for GET request
-            var futureResponse = client.get("/accounts?userId=" + user.getId());
-            var response = futureResponse.join();
+            var future = client.get("/accounts?userId=" + user.getId());
+            var response = future.join();
 
             ResponseFormatter.logResponse(LOGGER, "Accounts", response.statusCode(), response.body());
 
@@ -369,10 +369,10 @@ public class HttpClient
                 var request = new Account(
                         user.getId(), initialBalance, type);
 
-                var jsonBody = Json.toJson(request);
-                LOGGER.debug("JSON for account creation request: {}", jsonBody);
-                var futureResponse = client.post("/accounts", jsonBody);
-                var response = futureResponse.join();
+                var json = Json.toJson(request);
+                LOGGER.debug("JSON for account creation request: {}", json);
+                var future = client.post("/accounts", json);
+                var response = future.join();
 
                 ResponseFormatter.logAndDisplayResponse(LOGGER, "Create Account", response.statusCode(), response.body());
                 if (response.statusCode() == 201)
@@ -416,13 +416,13 @@ public class HttpClient
             var amount = new BigDecimal(scanner.nextLine().trim());
 
             // Create transaction request directly as JSON
-            var transactionRequest = Json.defaultObjectMapper().createObjectNode();
-            transactionRequest.put("accountId", accountId);
-            transactionRequest.put("amount", amount.toString());
-            var jsonBody = transactionRequest;
+            var transaction = Json.defaultObjectMapper().createObjectNode();
+            transaction.put("accountId", accountId);
+            transaction.put("amount", amount.toString());
+            var json = transaction;
 
-            var futureResponse = client.post("/accounts/" + accountId + "/deposit", jsonBody);
-            var response = futureResponse.join();
+            var future = client.post("/accounts/" + accountId + "/deposit", json);
+            var response = future.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Deposit", response.statusCode(), response.body());
 
@@ -458,13 +458,13 @@ public class HttpClient
             var amount = new BigDecimal(scanner.nextLine().trim());
 
             // Create transaction request directly as JSON
-            var transactionRequest = Json.defaultObjectMapper().createObjectNode();
-            transactionRequest.put("accountId", accountId);
-            transactionRequest.put("amount", amount.toString());
-            var jsonBody = transactionRequest;
+            var transaction = Json.defaultObjectMapper().createObjectNode();
+            transaction.put("accountId", accountId);
+            transaction.put("amount", amount.toString());
+            var json = transaction;
 
-            var futureResponse = client.post("/accounts/" + accountId + "/withdraw", jsonBody);
-            var response = futureResponse.join();
+            var future = client.post("/accounts/" + accountId + "/withdraw", json);
+            var response = future.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Withdrawal", response.statusCode(), response.body());
 
@@ -500,14 +500,14 @@ public class HttpClient
             var amount = new BigDecimal(scanner.nextLine().trim());
 
             // Create transfer request directly as JSON
-            var transferRequest = Json.defaultObjectMapper().createObjectNode();
-            transferRequest.put("fromAccountId", fromAccountId);
-            transferRequest.put("toAccountId", toAccountId);
-            transferRequest.put("amount", amount.toString());
-            var jsonBody = transferRequest;
+            var trasnsfer = Json.defaultObjectMapper().createObjectNode();
+            trasnsfer.put("fromAccountId", fromAccountId);
+            trasnsfer.put("toAccountId", toAccountId);
+            trasnsfer.put("amount", amount.toString());
+            var json = trasnsfer;
 
-            var futureResponse = client.post("/accounts/" + fromAccountId + "/transfer", jsonBody);
-            var response = futureResponse.join();
+            var future = client.post("/accounts/" + fromAccountId + "/transfer", json);
+            var response = future.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "Transfer", response.statusCode(), response.body());
 
@@ -541,8 +541,8 @@ public class HttpClient
         System.out.println("Viewing all users (Admin only)...");
         try
         {
-            var futureResponse = client.get("/admin/users");
-            var response = futureResponse.join();
+            var future = client.get("/admin/users");
+            var response = future.join();
 
             ResponseFormatter.logAndDisplayResponse(LOGGER, "View All Users", response.statusCode(), response.body());
 

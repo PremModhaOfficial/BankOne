@@ -97,34 +97,34 @@ public class AccountHandler implements HttpHandler
     {
         try
         {
-            var requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            var jsonNode = Json.parse(requestBody);
+            var request = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            var json = Json.parse(request);
 
             // Extract values directly from JSON
-            var userId = jsonNode.get("userId").asLong();
+            var userId = json.get("userId").asLong();
             BigDecimal initialBalance;
-            if (jsonNode.has("initialBalance"))
+            if (json.has("initialBalance"))
             {
-                initialBalance = new BigDecimal(jsonNode.get("initialBalance").asText());
+                initialBalance = new BigDecimal(json.get("initialBalance").asText());
             } else
             {
-                initialBalance = new BigDecimal(jsonNode.get("balance").asText());
+                initialBalance = new BigDecimal(json.get("balance").asText());
             }
-            var type = Account.AccountType.valueOf(jsonNode.get("type").asText());
+            var type = Account.AccountType.valueOf(json.get("type").asText());
 
             // Create account - account number will be auto-generated if not provided
             Account account;
-            if (jsonNode.has("accountNumber") && !jsonNode.get("accountNumber").isNull())
+            if (json.has("accountNumber") && !json.get("accountNumber").isNull())
             {
-                var accountNumber = jsonNode.get("accountNumber").asText();
+                var accountNumber = json.get("accountNumber").asText();
                 account = accountService.createAccount(userId, accountNumber, initialBalance, type);
             } else
             {
                 account = accountService.createAccount(userId, initialBalance, type);
             }
 
-            var jsonResponse = Json.stringify(Json.toJson(account));
-            sendResponse(exchange, 201, jsonResponse);
+            var response = Json.stringify(Json.toJson(account));
+            sendResponse(exchange, 201, response);
         } catch (NumberFormatException numberFormatException)
         {
             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
@@ -157,8 +157,8 @@ public class AccountHandler implements HttpHandler
 
             if (account != null)
             {
-                var jsonResponse = Json.stringify(Json.toJson(account));
-                sendResponse(exchange, 200, jsonResponse);
+                var json = Json.stringify(Json.toJson(account));
+                sendResponse(exchange, 200, json);
             } else
             {
                 sendResponse(exchange, 404, "{\"error\": \"Account not found\"}");
@@ -179,8 +179,8 @@ public class AccountHandler implements HttpHandler
         try
         {
             var accounts = accountService.getAllAccounts();
-            var jsonResponse = Json.stringify(Json.toJson(accounts));
-            sendResponse(exchange, 200, jsonResponse);
+            var json = Json.stringify(Json.toJson(accounts));
+            sendResponse(exchange, 200, json);
         } catch (NumberFormatException numberFormatException)
         {
             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
@@ -229,8 +229,8 @@ public class AccountHandler implements HttpHandler
             }
 
             var accounts = accountService.getAccountsByUserId(userId);
-            var jsonResponse = Json.stringify(Json.toJson(accounts));
-            sendResponse(exchange, 200, jsonResponse);
+            var json = Json.stringify(Json.toJson(accounts));
+            sendResponse(exchange, 200, json);
         } catch (NumberFormatException numberFormatException)
         {
             LOGGER.error("Invalid user ID format: {}", numberFormatException.getMessage(), numberFormatException);
@@ -283,8 +283,8 @@ public class AccountHandler implements HttpHandler
             response.put("message", "Deposit successful");
             response.put("balance", account.getBalance().toString());
 
-            var jsonResponse = Json.stringify(response);
-            sendResponse(exchange, 200, jsonResponse);
+            var json = Json.stringify(response);
+            sendResponse(exchange, 200, json);
         } catch (NumberFormatException numberFormatException)
         {
             LOGGER.error("Invalid account ID or amount format: {}", numberFormatException.getMessage(), numberFormatException);
@@ -335,13 +335,13 @@ public class AccountHandler implements HttpHandler
                 response.put("message", "Withdrawal successful");
                 // Update the account in the service
                 accountService.updateAccount(account);
-                var jsonResponse = Json.stringify(response);
-                sendResponse(exchange, 200, jsonResponse);
+                var json = Json.stringify(response);
+                sendResponse(exchange, 200, json);
             } else
             {
                 response.put("message", "Insufficient funds");
-                var jsonResponse = Json.stringify(response);
-                sendResponse(exchange, 400, jsonResponse);
+                var json = Json.stringify(response);
+                sendResponse(exchange, 400, json);
             }
         } catch (NumberFormatException numberFormatException)
         {
@@ -407,15 +407,15 @@ public class AccountHandler implements HttpHandler
                 var updatedFromAccount = accountService.getAccountById(fromAccountId);
                 response.put("message", "Transfer successful");
                 response.put("balance", updatedFromAccount.getBalance().toString());
-                var jsonResponse = Json.stringify(response);
-                sendResponse(exchange, 200, jsonResponse);
+                var json = Json.stringify(response);
+                sendResponse(exchange, 200, json);
             } else
             {
                 response.put("message", "Insufficient funds or account not found");
                 response.put("balance", fromAccount.getBalance().toString());
                 response.put("required-balance", amount);
-                var jsonResponse = Json.stringify(response);
-                sendResponse(exchange, 400, jsonResponse);
+                var json = Json.stringify(response);
+                sendResponse(exchange, 400, json);
             }
         } catch (NumberFormatException numberFormatException)
         {

@@ -119,8 +119,8 @@ public class UserHandler implements HttpHandler
             var userNode = Json.toJson(user).deepCopy();
             ((com.fasterxml.jackson.databind.node.ObjectNode) userNode).remove("password");
 
-            var jsonResponse = Json.stringify(userNode);
-            sendResponse(exchange, 201, jsonResponse);
+            var json = Json.stringify(userNode);
+            sendResponse(exchange, 201, json);
         } catch (IllegalArgumentException validationException)
         {
             LOGGER.warn("Password validation failed: {}", validationException.getMessage());
@@ -165,8 +165,8 @@ public class UserHandler implements HttpHandler
                 response.set("user", userNode);
                 response.put("message", "Login successful");
 
-                var jsonResponse = Json.stringify(response);
-                sendResponse(exchange, 200, jsonResponse);
+                var json = Json.stringify(response);
+                sendResponse(exchange, 200, json);
             } else
             {
                 sendResponse(exchange, 401, "{\"error\": \"Invalid username or password\"}");
@@ -195,8 +195,8 @@ public class UserHandler implements HttpHandler
 
             if (userOptional != null)
             {
-                var jsonResponse = Json.stringify(Json.toJson(userOptional));
-                sendResponse(exchange, 200, jsonResponse);
+                var json = Json.stringify(Json.toJson(userOptional));
+                sendResponse(exchange, 200, json);
             } else
             {
                 sendResponse(exchange, 404, "{\"error\": \"User not found\"}");
@@ -219,8 +219,8 @@ public class UserHandler implements HttpHandler
             // Check for admin authorization (simplified)
             // In a real app, you'd check the JWT token
             var users = userService.getAllUsers();
-            var jsonResponse = Json.stringify(Json.toJson(users));
-            sendResponse(exchange, 200, jsonResponse);
+            var json = Json.stringify(Json.toJson(users));
+            sendResponse(exchange, 200, json);
         } catch (Exception usersRetrievalException)
         {
             LOGGER.error("Error getting all users: {}", usersRetrievalException.getMessage(), usersRetrievalException);

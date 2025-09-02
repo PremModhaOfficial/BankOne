@@ -6,13 +6,51 @@ A comprehensive stress testing suite for the banking system with advanced metric
 
 This stress testing suite provides multiple testing scenarios to evaluate the banking system's performance under various load conditions. It includes detailed metrics collection, error analysis, and multiple output formats for comprehensive performance analysis.
 
+## ⚖️ Load Balancing Support
+
+The stress test supports **dual load balancing modes** for comprehensive testing:
+
+### 🔄 Server-side Load Balancing (Nginx)
+- **Default mode**: Uses nginx reverse proxy for intelligent load distribution
+- **Benefits**: Better performance, health checks, SSL termination
+- **Usage**: `java -cp target/classes com.bank.stress.NetworkStressTest`
+
+### 🔀 Client-side Load Balancing
+- **Round-robin**: Direct client-side distribution across server instances
+- **Benefits**: No single point of failure, direct server connections
+- **Usage**: `java -DUSE_CLIENT_LOAD_BALANCING=true -cp target/classes com.bank.stress.NetworkStressTest`
+
+### 🧪 Dual Load Balancing Test
+```bash
+./run-dual-load-balancing-test.sh
+```
+Compares both load balancing approaches in a single test run.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Java 21+
 - Maven 3.6+
-- Running banking system server on `http://localhost:8080`
+- Running banking system server on `http://localhost:8080-8083` (multi-port setup)
+- Nginx load balancer configured (optional, see main project README)
 - Main Bank project must be compiled separately (see main project README)
+
+### ⚠️ Known Issues & Fixes
+
+#### Insufficient Funds Errors
+**Problem**: Stress test shows many "insufficient funds" errors due to concurrent operations depleting balances.
+
+**Solution**: The stress test now includes:
+- Balance checking before operations
+- Smaller random amounts ($1-10 for transfers, $1-20 for withdrawals)
+- Higher initial account balances ($5000 instead of $1000)
+- Operation skipping when balance is too low
+- Detailed reporting of skipped operations
+
+**Test the fix**:
+```bash
+./test-balance-check.sh
+```
 
 ### Run a Smoke Test (Recommended First)
 ```bash

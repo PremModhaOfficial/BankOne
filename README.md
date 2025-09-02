@@ -29,7 +29,7 @@ mvn clean compile
 ./scripts/run-server.sh
 ```
 
-The server will start on port 8080 by default (http://localhost:8080).
+The server will start on multiple ports (8080, 8081, 8082, 8083) with nginx load balancing on port 80 (http://localhost).
 
 ### Running the Client
 
@@ -69,9 +69,11 @@ See [scripts/README.md](scripts/README.md) for detailed information about each s
 ## Configuration
 
 The server configuration is in `src/main/resources/http.json`:
-- Port: 8080 (default)
+- Ports: [8080, 8081, 8082, 8083] (multi-port setup with nginx load balancing)
 - Web root: /tmp (default)
 - Storage: in-memory (default)
+
+**Load Balancing**: Nginx acts as a reverse proxy, distributing traffic across all server instances for optimal performance and fault tolerance.
 
 ## Logging
 

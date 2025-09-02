@@ -37,7 +37,7 @@ fi
 
 # Test user login
 echo "Testing user login..."
-LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8080/login \
+LOGIN_RESPONSE=$(curl -s -X POST http://localhost/login \
   -H "Content-Type: application/json" \
   -d '{"identifier":"testuser","password":"password123"}')
 
@@ -55,7 +55,7 @@ fi
 
 # Test account creation
 echo "Testing account creation..."
-ACCOUNT_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost:8080/accounts \
+ACCOUNT_RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost/accounts \
   -H "Content-Type: application/json" \
   -d "{\"userId\":$USER_ID,\"initialBalance\":100.0}")
 

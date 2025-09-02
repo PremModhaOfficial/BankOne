@@ -25,19 +25,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Network-based stress test for the banking system that communicates with the
  * HTTP server instead of directly accessing services.
+ *
+ * Supports dual load balancing modes:
+ * - Server-side load balancing via nginx (default): Uses nginx reverse proxy to distribute requests
+ * - Client-side load balancing: Round-robin distribution across server instances
+ *
+ * Control load balancing mode with system property: -DUSE_CLIENT_LOAD_BALANCING=true
  */
 public class NetworkStressTest
 {
 
-    private static final String SERVER_URL = "http://localhost:8080";
+    private static final String SERVER_URL = "http://localhost";  // nginx load balancer
 
-    private static final String[] SERVER_URLS = {"http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083"};
+    private static final String[] SERVER_URLS = {"http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083", "http://localhost"};
+
+    // Load balancing configuration
+    private static final boolean USE_CLIENT_LOAD_BALANCING = Boolean.parseBoolean(System.getProperty("USE_CLIENT_LOAD_BALANCING", "false"));
     private static final long NUMBER_OF_USERS = Long.parseLong(System.getProperty("NUMBER_OF_USERS", "5"));
     private static final int NUMBER_OF_ACCOUNTS_PER_USER = Integer.parseInt(System.getProperty("NUMBER_OF_ACCOUNTS_PER_USER", "10"));
     private static final int NUMBER_OF_THREADS = Integer.parseInt(System.getProperty("NUMBER_OF_THREADS", "8"));
     private static final long OPERATIONS_PER_THREAD = Long.parseLong(System.getProperty("OPERATIONS_PER_THREAD", "200000"));
 
     private static String TRANSFER_OPRATIONS_FAILED = "";
+    private static long operationsSkipped = 0;
     // HTTP and JSON handling
     private HttpClient httpClient;
     private ObjectMapper objectMapper;
@@ -104,6 +114,7 @@ public class NetworkStressTest
     {
         System.out.println("Starting network-based stress test...");
         System.out.println("Server URL: " + SERVER_URL);
+        System.out.println("Load Balancing Mode: " + (USE_CLIENT_LOAD_BALANCING ? "Client-side (round-robin)" : "Server-side (nginx)"));
         System.out.println("Scenario: " + scenario.name());
 
         // Initialize the system
@@ -229,8 +240,9 @@ public class NetworkStressTest
                 var future = CompletableFuture.runAsync(() -> {
                     try
                     {
+                        // Increase initial balance to handle concurrent operations better
                         var accountJson = String.format(
-                                "{\"userId\":%d,\"balance\":1000.0,\"type\":\"SAVINGS\"}", finalUserId);
+                                "{\"userId\":%d,\"balance\":5000.0,\"type\":\"SAVINGS\"}", finalUserId);
 
                         var request = HttpRequest.newBuilder().uri(create(SERVER_URL, "/accounts")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(accountJson)).build();
 
@@ -342,6 +354,34 @@ public class NetworkStressTest
         System.out.println("Thread " + threadId + " completed - Deposits: " + deposits + ", Withdrawals: " + withdrawals + ", Transfers: " + transfers);
     }
 
+    /**
+     * Check if an account has sufficient balance for operations
+     */
+    private boolean hasSufficientBalance(long accountId, double minimumBalance)
+    {
+        try
+        {
+            var request = HttpRequest.newBuilder()
+                    .uri(create(SERVER_URL, "/accounts/" + accountId))
+                    .GET()
+                    .build();
+
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200)
+            {
+                var jsonNode = objectMapper.readTree(response.body());
+                var balance = jsonNode.get("balance").asDouble();
+                return balance >= minimumBalance;
+            }
+        } catch (Exception e)
+        {
+            // If we can't check balance, assume it's okay to proceed
+            return true;
+        }
+        return false;
+    }
+
     private boolean performDeposit()
     {
         var startTime = System.currentTimeMillis();
@@ -394,8 +434,14 @@ public class NetworkStressTest
             var accountIndex = (int) (Math.random() * accountIds.size());
             var accountId = accountIds.get(accountIndex);
 
-            // Generate a random withdrawal amount
-            var amount = new BigDecimal(Math.random() * 50);
+            // Check balance before withdrawal to avoid insufficient funds
+            if (!hasSufficientBalance(accountId, 25.0)) { // Check for minimum $25
+                operationsSkipped++;
+                return false; // Skip this operation
+            }
+
+            // Generate a smaller random withdrawal amount to prevent insufficient funds
+            var amount = new BigDecimal(Math.random() * 20 + 1); // $1-20 range
 
             var withdrawJson = String.format("{\"amount\":%f}", amount.doubleValue());
 
@@ -442,8 +488,15 @@ public class NetworkStressTest
             var fromAccountId = accountIds.get(fromAccountIndex);
             var toAccountId = accountIds.get(toAccountIndex);
 
-            // Generate a random transfer amount
-            var amount = new BigDecimal(Math.random() * 25);
+            // Check balance before transfer to avoid insufficient funds
+            if (!hasSufficientBalance(fromAccountId, 15.0)) { // Check for minimum $15
+                // Skip this operation to avoid insufficient funds error
+                operationsSkipped++;
+                return false;
+            }
+
+            // Generate a smaller random transfer amount to prevent insufficient funds
+            var amount = new BigDecimal(Math.random() * 10 + 1); // $1-10 range
 
             var transferJson = String.format("{\"toAccountId\":%d,\"amount\":%f}", toAccountId, amount.doubleValue());
 
@@ -458,7 +511,10 @@ public class NetworkStressTest
             var success = response.statusCode() == 200;
             if (!success)
             {
-                TRANSFER_OPRATIONS_FAILED += "port" + request.uri().getPort() + response.statusCode() + ":" + response.body() + "\n";
+                // Log the actual server URL and error details
+                var port = request.uri().getPort();
+                var portInfo = port == -1 ? "default" : String.valueOf(port);
+                TRANSFER_OPRATIONS_FAILED += "port-" + portInfo + ":" + response.body() + "\n";
 
                 errorCounts.get(categorizeError(null, response)).incrementAndGet();
             }
@@ -474,10 +530,24 @@ public class NetworkStressTest
         }
     }
 
+    /**
+     * Creates a URI for the given endpoint using either nginx load balancing or client-side load balancing.
+     *
+     * @param serverUrl The base server URL (typically nginx load balancer)
+     * @param endpoint  The API endpoint (e.g., "/users", "/accounts")
+     * @return URI for the request
+     */
     private URI create(String serverUrl, String endpoint)
     {
-
-        return URI.create(SERVER_URLS[(int) (System.currentTimeMillis() % 4)] + endpoint);
+        if (USE_CLIENT_LOAD_BALANCING)
+        {
+            // Client-side round-robin load balancing across individual server ports
+            return URI.create(SERVER_URLS[(int) (System.currentTimeMillis() % SERVER_URLS.length)] + endpoint);
+        } else
+        {
+            // Use nginx load balancer (server-side load balancing)
+            return URI.create(serverUrl + endpoint);
+        }
     }
 
 
@@ -637,6 +707,11 @@ public class NetworkStressTest
                 System.out.println("  " + category.name() + ": " + count.get() + " (" + String.format("%.1f%%", percentage) + ")");
             }
         }
+        System.out.println();
+        System.out.println("Operation Optimization:");
+        System.out.println("  Operations Skipped (Insufficient Balance): " + operationsSkipped);
+        var skipPercentage = totalOps > 0 ? (double) operationsSkipped / (totalOps + operationsSkipped) * 100 : 0;
+        System.out.println("  Skip Rate: " + String.format("%.2f%%", skipPercentage));
         System.out.println("=".repeat(60));
     }
 

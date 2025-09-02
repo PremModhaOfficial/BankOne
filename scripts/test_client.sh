@@ -10,7 +10,7 @@ sleep 5
 
 # Test the server is running
 echo "Testing server connectivity..."
-curl -s http://localhost:8080 > /dev/null
+curl -s http://localhost > /dev/null
 if [ $? -eq 0 ]; then
     echo "Server is running successfully"
 else
